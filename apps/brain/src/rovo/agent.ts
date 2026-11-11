@@ -16,6 +16,7 @@ import { getSignature } from '../actions/get-signature';
 import { listFlakyTests } from '../actions/list-flaky-tests';
 import { reportResolution } from '../actions/report-resolution';
 import { confirmResolution } from '../actions/confirm-resolution';
+import { proposeQuarantine } from '../actions/propose-quarantine';
 
 /** Instruction système de l'agent, en anglais (jury anglophone). */
 export const AGENT_INSTRUCTIONS = [
@@ -52,7 +53,7 @@ export const TYPICAL_QUESTIONS: Array<{ question: string; action: string; inputs
   },
 ];
 
-/** Les six actions câblées dans l'agent. */
+/** Les sept actions câblées dans l'agent (les six du § 13 + CI-19). */
 export const AGENT_ACTIONS = {
   'explain-build-failure': explainBuildFailure,
   'search-failures': searchFailures,
@@ -60,6 +61,7 @@ export const AGENT_ACTIONS = {
   'list-flaky-tests': listFlakyTests,
   'report-resolution': reportResolution,
   'confirm-resolution': confirmResolution,
+  'propose-quarantine': proposeQuarantine,
 } as const;
 
 /** Clé d'une action de l'agent. */

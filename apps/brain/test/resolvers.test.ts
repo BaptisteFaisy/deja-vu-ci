@@ -55,12 +55,24 @@ function fakePorts(): { ports: UiDataPorts; calls: string[] } {
         calls.push('replaySample');
         return { ok: true, seeded: true };
       },
+      async curateMerge(payload) {
+        calls.push(`curateMerge:${JSON.stringify(payload)}`);
+        return { ok: true, data: { movedOccurrences: 0 } };
+      },
+      async curateSplit(payload) {
+        calls.push(`curateSplit:${JSON.stringify(payload)}`);
+        return { ok: true, data: { groups: [] } };
+      },
+      async quarantineProposal(payload) {
+        calls.push(`quarantine:${JSON.stringify(payload)}`);
+        return { ok: true, data: { flaky: false, reasons: [] } };
+      },
     },
   };
 }
 
 describe('résolveurs des écrans UI Kit', () => {
-  it('enregistre les cinq noms appelés par l’interface', () => {
+  it('enregistre les huit noms appelés par l’interface', () => {
     const { resolver, defined } = fakeResolver();
     const { ports } = fakePorts();
     registerUiResolvers(resolver, ports);
@@ -100,5 +112,32 @@ describe('résolveurs des écrans UI Kit', () => {
     const answer = await defined.get('replay-sample')?.({ payload: undefined, context: undefined });
     expect(calls).toEqual(['replaySample']);
     expect(answer).toEqual({ ok: true, seeded: true });
+  });
+
+  it('route `curate-merge` vers l’aperçu de fusion (CI-17)', async () => {
+    const { resolver, defined } = fakeResolver();
+    const { ports, calls } = fakePorts();
+    registerUiResolvers(resolver, ports);
+    await defined.get('curate-merge')?.({ payload: { keepId: 'a', dropId: 'b' }, context: undefined });
+    expect(calls).toEqual(['curateMerge:{"keepId":"a","dropId":"b"}']);
+  });
+
+  it('route `curate-split` vers l’aperçu de scission (CI-17)', async () => {
+    const { resolver, defined } = fakeResolver();
+    const { ports, calls } = fakePorts();
+    registerUiResolvers(resolver, ports);
+    await defined.get('curate-split')?.({
+      payload: { signatureId: 'a', criterion: 'branch' },
+      context: undefined,
+    });
+    expect(calls).toEqual(['curateSplit:{"signatureId":"a","criterion":"branch"}']);
+  });
+
+  it('route `quarantine-proposal` vers la proposition de quarantaine (CI-19)', async () => {
+    const { resolver, defined } = fakeResolver();
+    const { ports, calls } = fakePorts();
+    registerUiResolvers(resolver, ports);
+    await defined.get('quarantine-proposal')?.({ payload: { signatureId: 'a' }, context: undefined });
+    expect(calls).toEqual(['quarantine:{"signatureId":"a"}']);
   });
 });

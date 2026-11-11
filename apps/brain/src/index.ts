@@ -7,9 +7,11 @@
  *  - the UI Kit 2 screens: they are rendered by `src/frontend.tsx`
  *    (`resources: main`) and read their data through `uiResolverHandler`,
  *    which dispatches the `invoke()` names (`memory-page`, `issue-context`,
- *    `settings`, `save-settings`, `replay-sample`) to the resolvers below,
+ *    `settings`, `save-settings`, `replay-sample`, `curate-merge`,
+ *    `curate-split`, `quarantine-proposal`) to the resolvers below,
  *  - `issueContextText`, the text a Rovo agent reads on a ticket,
- *  - the six actions of § 13 (lot G), also exposed to Rovo and MCP.
+ *  - the six actions of § 13 (lot G) plus `propose-quarantine` (CI-19), also
+ *    exposed to Rovo and MCP.
  *
  * Wiring: one Forge SQL store (memory), one engine assembled from the real
  * `@dejavu/core` functions, registered as the default engine of lot G's
@@ -28,6 +30,16 @@ import {
 } from '@dejavu/core';
 import * as brainActions from './actions/index';
 import { createBrainEngine, setDefaultEngine, type CoreFunctions } from './actions/engine';
+import {
+  proposeQuarantine as proposeQuarantineAction,
+  proposeQuarantineData,
+} from './actions/propose-quarantine';
+import {
+  assembleMergePreview,
+  assembleSplitPreview,
+  isSplitCriterionKey,
+  type SplitCriterionKey,
+} from './pure/curation';
 import { ingest } from './ingest';
 import { createQueryHandler, issueContextData, memoryPageData } from './query';
 import { createUniversalHandler } from './universal';
@@ -71,8 +83,9 @@ export const consumer = createConsumerHandler(store);
 export const scheduled = createScheduledHandler(store);
 
 // ---------------------------------------------------------------------------
-// The six actions of § 13 (lot G) — Forge resolvers around the descriptors.
-// The descriptors receive the shared engine and never throw.
+// The six actions of § 13 (lot G) plus `propose-quarantine` (CI-19) — Forge
+// resolvers around the descriptors. The descriptors receive the shared engine
+// and never throw.
 // ---------------------------------------------------------------------------
 
 export const explainBuildFailure = (payload: unknown): Promise<unknown> =>
@@ -87,6 +100,13 @@ export const reportResolution = (payload: unknown): Promise<unknown> =>
   brainActions['report-resolution'](engine, (payload ?? {}) as Record<string, unknown>);
 export const confirmResolution = (payload: unknown): Promise<unknown> =>
   brainActions['confirm-resolution'](engine, (payload ?? {}) as Record<string, unknown>);
+/**
+ * Seventh action (CI-19, § 25): drafts the quarantine of an unstable test.
+ * Exposed to Rovo and MCP through the manifest `actionProposeQuarantine`
+ * handler; the UI resolver `quarantine-proposal` reads the same assembly.
+ */
+export const proposeQuarantine = (payload: unknown): Promise<unknown> =>
+  proposeQuarantineAction(engine, (payload ?? {}) as Record<string, unknown>);
 
 // ---------------------------------------------------------------------------
 // Data resolvers of the UI Kit screens (called through `invoke`, lot G).
@@ -161,6 +181,44 @@ export async function replaySample(): Promise<ReplayOutcome> {
 // which is where the platform routes every call of a UI module.
 // ---------------------------------------------------------------------------
 
+/**
+ * Resolver `curate-merge` (project page curation, CI-17): previews the merge of
+ * two signatures **without** writing to the memory. The screen shows what is
+ * kept (strongest status, single ticket, oldest `firstSeen`) before the operator
+ * confirms; the copy in `src/pure/curation.ts` keeps the store untouched.
+ */
+export async function curateMerge(payload?: unknown): Promise<unknown> {
+  const body = (payload ?? {}) as { keepId?: unknown; dropId?: unknown };
+  const keepId = typeof body.keepId === 'string' ? body.keepId.trim() : '';
+  const dropId = typeof body.dropId === 'string' ? body.dropId.trim() : '';
+  return assembleMergePreview(store, keepId, dropId);
+}
+
+/**
+ * Resolver `curate-split` (project page curation, CI-17): previews how one
+ * signature splits by the chosen criterion, without writing to the memory.
+ */
+export async function curateSplit(payload?: unknown): Promise<unknown> {
+  const body = (payload ?? {}) as { signatureId?: unknown; criterion?: unknown };
+  const signatureId = typeof body.signatureId === 'string' ? body.signatureId.trim() : '';
+  const criterion: SplitCriterionKey = isSplitCriterionKey(body.criterion)
+    ? body.criterion
+    : 'test-name';
+  return assembleSplitPreview(store, signatureId, criterion);
+}
+
+/**
+ * Resolver `quarantine-proposal` (project page, CI-19): the quarantine draft of
+ * a signature, or the reasons `assessFlakiness` did not call it unstable. Reads
+ * the same assembly as the `propose-quarantine` action (single truth).
+ */
+export async function quarantineProposal(payload?: unknown): Promise<unknown> {
+  const body = (payload ?? {}) as { signatureId?: unknown };
+  const signatureId = typeof body.signatureId === 'string' ? body.signatureId.trim() : '';
+  if (!signatureId) return { ok: false, error: 'signatureId is required' };
+  return proposeQuarantineData(engine, signatureId);
+}
+
 /** The resolver the UI modules of the manifest point at. */
 const uiResolver = new Resolver();
 registerUiResolvers(uiResolver, {
@@ -169,6 +227,9 @@ registerUiResolvers(uiResolver, {
   settings,
   saveSettings,
   replaySample,
+  curateMerge,
+  curateSplit,
+  quarantineProposal,
 });
 
 /** Handler of `projectPageResolver`, `settingsPageResolver`, `issuePanelResolver`. */

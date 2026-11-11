@@ -68,7 +68,7 @@ describe('manifestes Forge vs schéma @forge/manifest', () => {
     }
   });
 
-  it('les six actions du § 13 sont déclarées, exposées à Rovo et au serveur MCP', () => {
+  it('les actions du § 13 (+ CI-19) sont déclarées, exposées à Rovo et au serveur MCP', () => {
     const manifest = load(path.join(repoRoot, 'apps', 'brain', 'manifest.yml'));
     const expected = [
       'explain-build-failure',
@@ -77,6 +77,8 @@ describe('manifestes Forge vs schéma @forge/manifest', () => {
       'list-flaky-tests',
       'report-resolution',
       'confirm-resolution',
+      // CI-19 (§ 25): the quarantine proposal, added to the six of § 13.
+      'propose-quarantine',
     ];
     const actions = manifest.modules.action.map((a) => a.key);
     expect(actions.sort()).toEqual([...expected].sort());

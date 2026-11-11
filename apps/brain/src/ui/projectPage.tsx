@@ -2,8 +2,12 @@
  * Page projet « Mémoire de CI » (§ 14, écran 3).
  *
  * L'écran montre les signatures connues (statut, catégorie, occurrences,
- * dernière vue, ticket), avec filtres et recherche par texte, puis trois
- * onglets : **Tests instables**, **Résolutions à confirmer** et **Coût**.
+ * dernière vue, ticket), avec filtres et recherche par texte, puis quatre
+ * onglets : **Signatures**, **Tests instables**, **Résolutions à confirmer** et
+ * **Coût**. En dessous, deux panneaux ajoutés par ce lot : **Curation**
+ * (fusionner / scinder des signatures, CI-17) et **Quarantaine** (proposer la
+ * mise en quarantaine d'un test instable, CI-19) — tous deux en aperçu avant
+ * confirmation, sans écriture en mémoire.
  *
  * En tête, le bouton « Rejouer le jeu d'exemple » (§ 22, CI-11) remplit une
  * mémoire neuve : sans lui, un juge qui installe l'app voit des écrans vides.
@@ -31,6 +35,8 @@ import { loadData } from './data';
 import { t, type Lang } from './i18n';
 import { MemoryTabs, PageHeader, Toolbar } from './projectPageParts';
 import { SampleReplay } from './sampleReplay';
+import { Curation } from './curation';
+import { QuarantinePanel } from './quarantine';
 
 /** Ce que rend le Cerveau pour la page projet. */
 interface MemoryPayload {
@@ -96,6 +102,10 @@ export default function ProjectPage(): React.JSX.Element {
       />
 
       <MemoryTabs lang={lang} rows={visible} pending={data?.pending ?? []} costRows={costRows} />
+
+      <Curation lang={lang} signatures={data?.signatures ?? []} shortId={shortId} />
+
+      <QuarantinePanel lang={lang} signatures={data?.signatures ?? []} shortId={shortId} />
     </Stack>
   );
 }

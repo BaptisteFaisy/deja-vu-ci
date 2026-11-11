@@ -4,15 +4,14 @@
  * A UI Kit 2 module declares **one** Forge function as its resolver
  * (`resolver.function` in `manifest.yml`); every `invoke('<name>')` of the
  * frontend reaches that function with the name in `call.functionKey`, and the
- * resolver dispatches on it. This module registers the four names the screens
+ * resolver dispatches on it. This module registers the eight names the screens
  * use (`src/ui/data.ts`), and nothing else: reading the memory stays in
- * `query.ts` and `settings.ts`.
+ * `query.ts` and `settings.ts`, and the curation and quarantine previews are
+ * assembled in `src/pure/`.
  *
  * No `@forge/*` import here — the resolver is injected (`ResolverLike`) and
  * the data is injected (`UiDataPorts`), so the wiring is unit-tested without
- * a tenant, exactly like the rest of `src/pure/`. This module registers the
- * five names the screens use, and nothing else: reading the memory stays in
- * `query.ts`, the settings in `settings.ts` and the sample replay in `seed.ts`.
+ * a tenant, exactly like the rest of `src/pure/`.
  */
 
 /** What `@forge/resolver` hands to a definition: the payload and the context. */
@@ -38,6 +37,12 @@ export interface UiDataPorts {
   saveSettings(payload: unknown): Promise<unknown>;
   /** Project page, "replay the sample set" button (§ 22, CI-11). */
   replaySample(): Promise<unknown>;
+  /** Project page, curation: merge two signatures (CI-17). */
+  curateMerge(payload: unknown): Promise<unknown>;
+  /** Project page, curation: split one signature (CI-17). */
+  curateSplit(payload: unknown): Promise<unknown>;
+  /** Project page, propose the quarantine of a signature (CI-19). */
+  quarantineProposal(payload: unknown): Promise<unknown>;
 }
 
 /** The `invoke()` names the frontend uses, in the order they are registered. */
@@ -47,6 +52,9 @@ export const UI_CALL_NAMES = [
   'settings',
   'save-settings',
   'replay-sample',
+  'curate-merge',
+  'curate-split',
+  'quarantine-proposal',
 ] as const;
 
 /** Registers the screen resolvers on an injected `@forge/resolver`. */
@@ -56,4 +64,7 @@ export function registerUiResolvers(resolver: ResolverLike, ports: UiDataPorts):
   resolver.define('settings', () => ports.settings());
   resolver.define('save-settings', ({ payload }) => ports.saveSettings(payload));
   resolver.define('replay-sample', () => ports.replaySample());
+  resolver.define('curate-merge', ({ payload }) => ports.curateMerge(payload));
+  resolver.define('curate-split', ({ payload }) => ports.curateSplit(payload));
+  resolver.define('quarantine-proposal', ({ payload }) => ports.quarantineProposal(payload));
 }
