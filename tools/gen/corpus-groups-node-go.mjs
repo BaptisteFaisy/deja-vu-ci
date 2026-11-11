@@ -133,7 +133,9 @@ export const GROUPS = [
   {
     key: 'jest-timeout',
     group: 'jest-timeout',
-    category: 'timeout',
+    // Per-test timeout: the step ran to its end, one test failed. Only a
+    // step interrupted for exceeding its duration is categorized `timeout`.
+    category: 'test',
     diagnostic: 'new',
     repo: 'payments-web',
     branches: ['main'],

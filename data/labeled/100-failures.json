@@ -686,7 +686,7 @@
       "step": "jest test",
       "log": "undefined jest run\nFAIL src/cart/cart.test.js\n  ● cart > applies the shipping rule\n\n   Exceeded timeout of 5000 ms for a test.\n    request-id: d4e5f6a7-3333-4d2e-8f3a-0123456789ab\n\n    at cart > applies the shipping rule (src/cart/cart.test.js:5.031)\n\nTest Suites: 1 failed, 11 passed, 12 total\nTests:       1 failed, 218 passed, 219 total\nTime:        12.904 s",
       "expectedGroup": "jest-timeout",
-      "expectedCategory": "timeout",
+      "expectedCategory": "test",
       "expectedDiagnostic": "new"
     },
     {
@@ -696,7 +696,7 @@
       "step": "jest test",
       "log": "undefined jest run\nFAIL src/cart/cart.test.js\n  ● cart > applies the shipping rule\n\n   Exceeded timeout of 5000 ms for a test.\n    request-id: d4e5f6a7-3333-4d2e-8f3a-0123456789ab\n\n    at cart > applies the shipping rule (src/cart/cart.test.js:5.031)\n\nTest Suites: 1 failed, 11 passed, 12 total\nTests:       1 failed, 218 passed, 219 total\nTime:        12.904 s",
       "expectedGroup": "jest-timeout",
-      "expectedCategory": "timeout",
+      "expectedCategory": "test",
       "expectedDiagnostic": "new"
     },
     {
@@ -706,7 +706,7 @@
       "step": "jest test",
       "log": "undefined jest run\nFAIL src/cart/cart.test.js\n  ● cart > applies the shipping rule\n\n   Exceeded timeout of 5000 ms for a test.\n    request-id: d4e5f6a7-3333-4d2e-8f3a-0123456789ab\n\n    at cart > applies the shipping rule (src/cart/cart.test.js:5.031)\n\nTest Suites: 1 failed, 11 passed, 12 total\nTests:       1 failed, 218 passed, 219 total\nTime:        12.904 s",
       "expectedGroup": "jest-timeout",
-      "expectedCategory": "timeout",
+      "expectedCategory": "test",
       "expectedDiagnostic": "new"
     },
     {
