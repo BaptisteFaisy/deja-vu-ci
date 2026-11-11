@@ -66,6 +66,20 @@ def _a2a_depuis_main():
     return _charger_module(cible, proc.stdout)
 
 
+def _racine_module():
+    """Dossier du module courant, même quand il est chargé par `exec`.
+
+    Le balayeur extrait l'agent seul dans `/tmp` : ses modules voisins sont
+    alors chargés par `git show` et exécutés **sans `__file__`**. Sans ce
+    repli, `os.path.abspath(__file__)` lève `NameError` et l'agent ne démarre
+    pas. À défaut, on se rabat sur le dossier attendu du dépôt courant.
+    """
+    fichier = globals().get("__file__")
+    if fichier:
+        return os.path.dirname(os.path.abspath(fichier))
+    return os.path.join(os.getcwd(), ".github", "fireworks")
+
+
 def _charger_a2a():
     """Charge `.github/hermes/a2a.py` (repli local) sans dépendre du sys.path.
 
@@ -73,7 +87,7 @@ def _charger_a2a():
     lue sur `origin/main` (le balayeur extrait ce script seul). Sans aucun des
     deux, le repli est simplement indisponible.
     """
-    chemin = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "hermes", "a2a.py")
+    chemin = os.path.join(_racine_module(), os.pardir, "hermes", "a2a.py")
     if os.path.exists(chemin):
         module = _charger_module(chemin)
         if module is not None:
