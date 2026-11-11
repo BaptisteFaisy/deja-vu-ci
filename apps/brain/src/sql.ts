@@ -171,3 +171,15 @@ export function createSqlStore(client: SqlClient = forgeSqlClient()): BrainSqlSt
     },
   };
 }
+
+let shared: BrainSqlStore | undefined;
+
+/**
+ * Process-wide store singleton: every resolver of the Brain shares one
+ * client (the Forge SQL connection is managed by the platform, the object
+ * itself is cheap — the singleton only avoids rebuilding the wrappers).
+ */
+export function brainStore(): BrainSqlStore {
+  if (!shared) shared = createSqlStore();
+  return shared;
+}
