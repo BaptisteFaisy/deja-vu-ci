@@ -10,7 +10,7 @@
  * idempotent, so a retry after a partial failure never duplicates anything.
  */
 
-import { requestJira } from '@forge/api';
+import { assumeTrustedRoute, requestJira } from '@forge/api';
 import {
   assessFlakiness,
   detectOutbreak,
@@ -45,7 +45,7 @@ export function coreConsumerEngine(): ConsumerEngine {
 }
 
 /** Reads a Jira REST answer as JSON, tolerating empty bodies. */
-async function jiraJson(response: Response): Promise<Record<string, unknown>> {
+async function jiraJson(response: { text(): Promise<string> }): Promise<Record<string, unknown>> {
   const text = await response.text();
   if (!text) return {};
   try {
@@ -57,7 +57,7 @@ async function jiraJson(response: Response): Promise<Record<string, unknown>> {
 
 /** Finds the id of a "reopen"-like transition, when the workflow has one. */
 async function findReopenTransition(issueKey: string): Promise<string | undefined> {
-  const response = await requestJira(`/rest/api/3/issue/${issueKey}/transitions`, {
+  const response = await requestJira(assumeTrustedRoute(`/rest/api/3/issue/${issueKey}/transitions`), {
     method: 'GET',
     headers: { Accept: 'application/json' },
   });
@@ -68,7 +68,7 @@ async function findReopenTransition(issueKey: string): Promise<string | undefine
 
 /** Posts a plain comment (used as the fallback of every failed transition). */
 async function postComment(issueKey: string, text: string): Promise<void> {
-  await requestJira(`/rest/api/3/issue/${issueKey}/comment`, {
+  await requestJira(assumeTrustedRoute(`/rest/api/3/issue/${issueKey}/comment`), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(commentBody(text)),
@@ -83,7 +83,7 @@ async function postComment(issueKey: string, text: string): Promise<void> {
 export function jiraTicketApplier(settings: Settings) {
   return {
     async lastCommentAt(issueKey: string, signatureId: string): Promise<string | undefined> {
-      const response = await requestJira(`/rest/api/3/issue/${issueKey}/comment`, {
+      const response = await requestJira(assumeTrustedRoute(`/rest/api/3/issue/${issueKey}/comment`), {
         method: 'GET',
         headers: { Accept: 'application/json' },
       });
@@ -109,7 +109,7 @@ async function applyOne(
   settings: Settings,
 ): Promise<{ issueKey?: string }> {
   if (action.kind === 'create') {
-    const response = await requestJira('/rest/api/3/issue', {
+    const response = await requestJira(assumeTrustedRoute('/rest/api/3/issue'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(createIssueBody(action, settings.issueProjectKey)),
@@ -122,7 +122,7 @@ async function applyOne(
   if (!issueKey) return {};
 
   if (action.kind === 'update' && action.description) {
-    await requestJira(`/rest/api/3/issue/${issueKey}`, {
+    await requestJira(assumeTrustedRoute(`/rest/api/3/issue/${issueKey}`), {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updateIssueBody(action)),
@@ -134,7 +134,7 @@ async function applyOne(
   if (action.kind === 'reopen') {
     const transition = await findReopenTransition(issueKey);
     if (transition) {
-      await requestJira(`/rest/api/3/issue/${issueKey}/transitions`, {
+      await requestJira(assumeTrustedRoute(`/rest/api/3/issue/${issueKey}/transitions`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ transition: { id: transition } }),

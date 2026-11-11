@@ -133,7 +133,7 @@ function validateOptionalFields(body: Record<string, unknown>): Validation<Parti
     ...(buildNumber.value !== undefined ? { buildNumber: buildNumber.value } : {}),
     ...(testCases.value !== undefined ? { testCases: testCases.value } : {}),
     ...(branchHistory.value !== undefined ? { branchHistory: branchHistory.value } : {}),
-    ...(contains ? { containsResolution: { commit: contains.commit as string, contains: contains.contains } } : {}),
+    ...(contains ? { containsResolution: { commit: contains.commit as string, contains: contains.contains as boolean } } : {}),
     ...(changedFiles.value !== undefined ? { changedFiles: changedFiles.value } : {}),
     ...(linkedIssueKey.value !== undefined ? { linkedIssueKey: linkedIssueKey.value } : {}),
   });

@@ -66,21 +66,21 @@ export const scheduled = createScheduledHandler(store);
 
 // ---------------------------------------------------------------------------
 // The six actions of § 13 (lot G) — Forge resolvers around the descriptors.
-// The descriptors read the default engine and never throw.
+// The descriptors receive the shared engine and never throw.
 // ---------------------------------------------------------------------------
 
 export const explainBuildFailure = (payload: unknown): Promise<unknown> =>
-  brainActions['explain-build-failure'](payload);
+  brainActions['explain-build-failure'](engine, (payload ?? {}) as Record<string, unknown>);
 export const searchFailures = (payload: unknown): Promise<unknown> =>
-  brainActions['search-failures'](payload);
+  brainActions['search-failures'](engine, (payload ?? {}) as Record<string, unknown>);
 export const getSignature = (payload: unknown): Promise<unknown> =>
-  brainActions['get-signature'](payload);
+  brainActions['get-signature'](engine, (payload ?? {}) as Record<string, unknown>);
 export const listFlakyTests = (payload: unknown): Promise<unknown> =>
-  brainActions['list-flaky-tests'](payload);
+  brainActions['list-flaky-tests'](engine, (payload ?? {}) as Record<string, unknown>);
 export const reportResolution = (payload: unknown): Promise<unknown> =>
-  brainActions['report-resolution'](payload);
+  brainActions['report-resolution'](engine, (payload ?? {}) as Record<string, unknown>);
 export const confirmResolution = (payload: unknown): Promise<unknown> =>
-  brainActions['confirm-resolution'](payload);
+  brainActions['confirm-resolution'](engine, (payload ?? {}) as Record<string, unknown>);
 
 // ---------------------------------------------------------------------------
 // Data resolvers of the UI Kit screens (called through `invoke`, lot G).
