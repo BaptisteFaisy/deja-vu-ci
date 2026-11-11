@@ -13,6 +13,7 @@
 import type {
   Category,
   Frame,
+  LlmTemplateCacheEntry,
   Occurrence,
   Outbreak,
   Pairing,
@@ -180,6 +181,15 @@ export function mapOutbreak(row: SqlRow): Outbreak {
   const incidentKey = text(row, 'incident_key');
   if (incidentKey !== undefined) outbreak.incidentKey = incidentKey;
   return outbreak;
+}
+
+/** `llm_template_cache` row → engine type. */
+export function mapTemplateEntry(row: SqlRow): LlmTemplateCacheEntry {
+  return {
+    normalizedHash: text(row, 'normalized_hash') ?? '',
+    template: text(row, 'template') ?? '',
+    category: (text(row, 'category') ?? 'unknown') as Category,
+  };
 }
 
 /** `pairing` row → engine type. */

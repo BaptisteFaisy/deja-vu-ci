@@ -17,7 +17,9 @@ import {
   occurrenceIdFor,
   planAndApplyTickets,
   plusDaysIso,
+  refineUnknownBlock,
   type ConsumerDeps,
+  type LlmPort,
 } from '../src/pure/consume.js';
 import { FakeConsumerEngine, FakeConsumerStore, FakeTicketApplier } from './fakes/consumer.js';
 
@@ -216,5 +218,66 @@ describe('planAndApplyTickets', () => {
       { ...signature, issueKey: 'CI-77' }, [], verdict, store.settings,
     );
     expect(seenInput.lastCommentAt).toBe('2026-11-05T08:00:00.000Z');
+  });
+});
+
+describe('the LLM fallback port (§ 9.5)', () => {
+  function unknownDeps(llm?: LlmPort): { d: ConsumerDeps; store: FakeConsumerStore } {
+    const store = new FakeConsumerStore();
+    const engine = new FakeConsumerEngine();
+    engine.blockCategory = 'unknown';
+    return {
+      d: { store, engine, tickets: new FakeTicketApplier(), now: () => new Date('2026-11-05T09:05:00.000Z'), ...(llm ? { llm } : {}) },
+      store,
+    };
+  }
+
+  it('refines an unknown block with the template and category of the port', async () => {
+    const llm: LlmPort = {
+      async normalize() {
+        return { template: 'registry <name> unreachable', category: 'dependency' };
+      },
+    };
+    const { d, store } = unknownDeps(llm);
+    const result = await consumeIngest(payload({ errorBlocks: ['npm ERR! code ECONNREFUSED'] }), d);
+    expect(result.ok).toBe(true);
+    const signature = [...store.signatures.values()][0];
+    expect(signature.category).toBe('dependency');
+    expect(signature.template).toBe('registry <name> unreachable');
+  });
+
+  it('leaves the block untouched when the port fails or answers nothing', async () => {
+    const throwing: LlmPort = {
+      async normalize() {
+        throw new Error('model unreachable');
+      },
+    };
+    const empty: LlmPort = { async normalize() { return undefined; } };
+    for (const llm of [throwing, empty]) {
+      const { d, store } = unknownDeps(llm);
+      const result = await consumeIngest(payload({ errorBlocks: ['weird failure'] }), d);
+      expect(result.ok).toBe(true);
+      expect([...store.signatures.values()][0].category).toBe('unknown');
+    }
+  });
+
+  it('never calls the model for a block a pattern already recognised', async () => {
+    let calls = 0;
+    const llm: LlmPort = {
+      async normalize() {
+        calls += 1;
+        return { template: 'x', category: 'config' };
+      },
+    };
+    const store = new FakeConsumerStore();
+    const d: ConsumerDeps = {
+      store,
+      engine: new FakeConsumerEngine(), // category 'test' by default
+      tickets: new FakeTicketApplier(),
+      now: () => new Date('2026-11-05T09:05:00.000Z'),
+      llm,
+    };
+    await consumeIngest(payload(), d);
+    expect(calls).toBe(0);
   });
 });

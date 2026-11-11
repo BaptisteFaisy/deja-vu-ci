@@ -17,6 +17,7 @@
 import { sql } from '@forge/sql';
 import {
   SQL_SCHEMA,
+  type LlmTemplateCacheEntry,
   type Occurrence,
   type Outbreak,
   type Pairing,
@@ -30,6 +31,7 @@ import {
 import * as queries from './pure/sqlQueries.js';
 import {
   mapOccurrence,
+  mapTemplateEntry,
   mapOutbreak,
   mapPairing,
   mapResolution,
@@ -85,12 +87,14 @@ async function read(client: SqlClient, statement: queries.SqlStatement): Promise
   return client.query(statement.text, statement.params);
 }
 
-/** Extra read used by the `/query` route, beyond the core `Store`. */
+/** Extra reads and writes beyond the core `Store`, used by the routes. */
 export interface BrainSqlStore extends Store {
   latestOccurrence(repo: string, branch: string, commit?: string): Promise<Occurrence | undefined>;
   pendingResolutions(): Promise<Resolution[]>;
   pairing(workspace: string): Promise<Pairing | undefined>;
   savePairing(pairing: Pairing): Promise<void>;
+  listTemplateCache(): Promise<LlmTemplateCacheEntry[]>;
+  saveTemplateCacheEntry(entry: LlmTemplateCacheEntry): Promise<void>;
 }
 
 /** Signature and occurrence halves of the store. */
@@ -180,6 +184,12 @@ function brainReadMethods(client: SqlClient) {
     },
     async savePairing(pairing: Pairing): Promise<void> {
       await run(client, queries.upsertPairing(pairing));
+    },
+    async listTemplateCache(): Promise<LlmTemplateCacheEntry[]> {
+      return (await read(client, queries.selectAllTemplates())).map(mapTemplateEntry);
+    },
+    async saveTemplateCacheEntry(entry: LlmTemplateCacheEntry): Promise<void> {
+      await run(client, queries.upsertTemplate(entry));
     },
   };
 }

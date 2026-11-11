@@ -8,6 +8,7 @@ import { describe, expect, it } from 'vitest';
 import type { Occurrence, Resolution, Settings, Signature } from '@dejavu/core';
 import {
   deleteExcerpts,
+  selectAllTemplates,
   selectExpiredExcerpts,
   selectLatestOccurrence,
   selectSignaturesByFamily,
@@ -16,6 +17,7 @@ import {
   upsertResolution,
   upsertSettings,
   upsertSignature,
+  upsertTemplate,
   SETTINGS_KEY,
   isAlreadyExists,
   splitSchema,
@@ -134,5 +136,16 @@ describe('splitSchema on the real engine DDL', () => {
     ]) {
       expect(statements.some((s) => s.startsWith(`CREATE TABLE ${table} `))).toBe(true);
     }
+  });
+});
+
+describe('template cache statements', () => {
+  it('hydrates from the whole cache table and upserts by hash', () => {
+    expect(selectAllTemplates().text).toBe('SELECT * FROM llm_template_cache');
+    const statement = upsertTemplate({
+      normalizedHash: 'h1', template: 'registry <name> unreachable', category: 'dependency',
+    });
+    expect(statement.text).toContain('ON CONFLICT (normalized_hash)');
+    expect(statement.params[0]).toBe('h1');
   });
 });

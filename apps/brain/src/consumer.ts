@@ -17,14 +17,18 @@ import {
   detectRegression,
   diagnose,
   extractErrorBlocks,
+  llmNormalize,
+  normalizedHash,
   planTicketActions,
   signatureKeys,
+  TemplateCache,
   testStats,
+  type ErrorBlock,
   type Settings,
   type Signature,
   type TicketAction,
 } from '@dejavu/core';
-import { consumeIngest, type ConsumeResult, type ConsumerEngine } from './pure/consume.js';
+import { consumeIngest, type ConsumeResult, type ConsumerEngine, type LlmPort } from './pure/consume.js';
 import { commentBody, createIssueBody, findLastSynthesisAt, updateIssueBody } from './pure/jira.js';
 import { validateIngestPayload } from './pure/validate.js';
 import { loadSettings } from './settings.js';
@@ -41,6 +45,63 @@ export function coreConsumerEngine(): ConsumerEngine {
     detectOutbreak,
     testStats,
     detectRegression,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// LLM fallback (§ 9.5) — the model only ever sees an already-masked block,
+// only when no pattern recognised it, and never twice for the same error:
+// the engine cache is hydrated from, and persisted to, `llm_template_cache`.
+// ---------------------------------------------------------------------------
+
+/** Specifier kept in a constant: the bundler must not resolve it eagerly. */
+const AI_PACKAGE = '@forge/ai';
+
+type Completion = (prompt: string) => Promise<string>;
+
+let completion: Completion | undefined;
+let aiProbed = false;
+let templates: TemplateCache | undefined;
+
+/** Probes the platform model; unavailable means deterministic path only. */
+async function probeAi(): Promise<Completion | undefined> {
+  if (aiProbed) return completion;
+  aiProbed = true;
+  try {
+    const mod = (await import(AI_PACKAGE)) as { ai?: { complete?: Completion } };
+    const complete = mod.ai?.complete;
+    if (typeof complete === 'function') completion = (prompt) => complete.call(mod.ai, prompt);
+  } catch {
+    completion = undefined;
+  }
+  return completion;
+}
+
+/** Builds the LLM port, or undefined when the platform model is absent. */
+export async function createLlmPort(store: BrainSqlStore): Promise<LlmPort | undefined> {
+  const complete = await probeAi();
+  if (!complete) return undefined;
+  if (!templates) {
+    templates = new TemplateCache();
+    for (const entry of await store.listTemplateCache()) {
+      templates.set(entry.normalizedHash, { template: entry.template, category: entry.category });
+    }
+  }
+  const cache = templates;
+  return {
+    async normalize(block: ErrorBlock) {
+      const hash = normalizedHash(block);
+      const wasCached = cache.get(hash) !== undefined;
+      const result = await llmNormalize(block, { complete }, cache);
+      if (!wasCached) {
+        await store.saveTemplateCacheEntry({
+          normalizedHash: hash,
+          template: result.template,
+          category: result.category,
+        });
+      }
+      return result;
+    },
   };
 }
 
@@ -158,11 +219,13 @@ export async function consumeMessage(
   const parsed = validateIngestPayload(JSON.parse(body) as unknown);
   if (!parsed.ok) return { ok: false, error: parsed.error };
   const settings = await loadSettings(store);
+  const llm = await createLlmPort(store);
   return consumeIngest(parsed.value, {
     store,
     engine: coreConsumerEngine(),
     tickets: jiraTicketApplier(settings),
     now: () => now,
+    ...(llm ? { llm } : {}),
   });
 }
 

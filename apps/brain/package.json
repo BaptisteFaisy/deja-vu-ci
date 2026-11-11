@@ -10,6 +10,7 @@
   "dependencies": {
     "@dejavu/bridge": "file:../../packages/bridge",
     "@dejavu/core": "file:../../packages/core",
+    "@forge/ai": "^1.0.0",
     "@forge/api": "^4.0.0",
     "@forge/bridge": "^5.0.0",
     "@forge/events": "^0.9.0",

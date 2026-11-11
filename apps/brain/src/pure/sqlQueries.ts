@@ -10,6 +10,7 @@
  */
 
 import type {
+  LlmTemplateCacheEntry,
   Occurrence,
   Outbreak,
   Pairing,
@@ -125,6 +126,21 @@ export function upsertSettings(s: Settings, updatedAt: string): SqlStatement {
     ['project_key', 'issue_project_key', 'flaky_min_occurrences', 'flaky_min_branches', 'flaky_window_days', 'outbreak_repos', 'outbreak_window_min', 'raw_retention_days', 'min_confidence_not_your_fault', 'universal_key', 'updated_at'],
     [SETTINGS_KEY, s.issueProjectKey, s.flakyMinOccurrences, s.flakyMinBranches, s.flakyWindowDays, s.outbreakRepos, s.outbreakWindowMin, s.rawRetentionDays, toPerMille(s.minConfidenceNotYourFault), s.universalKey ?? null, updatedAt],
     ['project_key'],
+  );
+}
+
+/** Every cached LLM template (hydration of the warm-instance cache). */
+export function selectAllTemplates(): SqlStatement {
+  return { text: 'SELECT * FROM llm_template_cache', params: [] };
+}
+
+/** Upsert of one `llm_template_cache` row. */
+export function upsertTemplate(entry: LlmTemplateCacheEntry): SqlStatement {
+  return upsert(
+    'llm_template_cache',
+    ['normalized_hash', 'template', 'category'],
+    [entry.normalizedHash, entry.template, entry.category],
+    ['normalized_hash'],
   );
 }
 

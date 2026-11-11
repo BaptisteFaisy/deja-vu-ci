@@ -14,6 +14,7 @@ import {
   mapResolution,
   mapSettings,
   mapSignature,
+  mapTemplateEntry,
   number,
   text,
 } from '../src/pure/sqlRows.js';
@@ -96,5 +97,14 @@ describe('domain mappers', () => {
     expect(settings.flakyMinBranches).toBe(DEFAULT_SETTINGS.flakyMinBranches);
     expect(settings.minConfidenceNotYourFault).toBe(DEFAULT_SETTINGS.minConfidenceNotYourFault);
     expect('universalKey' in settings).toBe(false);
+  });
+});
+
+describe('mapTemplateEntry', () => {
+  it('maps a cache row, unreadable category degrading to unknown', () => {
+    expect(mapTemplateEntry({ normalized_hash: 'h', template: 't', category: 'test' })).toEqual({
+      normalizedHash: 'h', template: 't', category: 'test',
+    });
+    expect(mapTemplateEntry({}).category).toBe('unknown');
   });
 });

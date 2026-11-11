@@ -18,6 +18,7 @@
 
 import { createHash } from 'node:crypto';
 import type {
+  Category,
   Diagnostic,
   ErrorBlock,
   ExtractResult,
@@ -82,12 +83,40 @@ export interface TicketApplier {
   apply(action: TicketAction, signature: Signature): Promise<AppliedTicket>;
 }
 
+/**
+ * Optional LLM fallback port (§ 9.5): refines a block no pattern recognised
+ * into a canonical template and category. The adapter wires it to
+ * `llmNormalize` of `@dejavu/core` with the Forge AI and the SQL template
+ * cache; the pure core only knows the port.
+ */
+export interface LlmPort {
+  normalize(block: ErrorBlock): Promise<{ template: string; category: Category } | undefined>;
+}
+
 /** Everything the consumer core needs, injected. */
 export interface ConsumerDeps {
   store: ConsumerStore;
   engine: ConsumerEngine;
   tickets: TicketApplier;
   now(): Date;
+  /** Absent when the platform LLM is unavailable: deterministic path only. */
+  llm?: LlmPort;
+}
+
+/**
+ * Refines an `unknown` block through the LLM fallback. The fallback is a
+ * best-effort refinement: any failure keeps the original block, so the
+ * deterministic pipeline never depends on the model.
+ */
+export async function refineUnknownBlock(block: ErrorBlock, llm?: LlmPort): Promise<ErrorBlock> {
+  if (!llm || block.category !== 'unknown') return block;
+  try {
+    const refined = await llm.normalize(block);
+    if (!refined) return block;
+    return { ...block, category: refined.category, message: refined.template };
+  } catch {
+    return block;
+  }
 }
 
 /** One processed error block, with what it produced. */
@@ -319,7 +348,8 @@ export async function consumeIngest(
     }
     const processed: ConsumedBlock[] = [];
     let replays = 0;
-    for (const [index, block] of extracted.blocks.entries()) {
+    for (const [index, raw] of extracted.blocks.entries()) {
+      const block = await refineUnknownBlock(raw, deps.llm);
       const id = occurrenceIdFor(payload, index);
       const known = await deps.store.listOccurrences(deps.engine.signatureKeys(block).signature);
       if (known.some((o) => o.id === id)) {

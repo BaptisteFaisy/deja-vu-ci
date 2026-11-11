@@ -9,6 +9,7 @@
 
 import { createHash } from 'node:crypto';
 import type {
+  Category,
   Diagnostic,
   ErrorBlock,
   Occurrence,
@@ -77,6 +78,8 @@ export class FakeConsumerStore implements ConsumerStore {
 export class FakeConsumerEngine implements ConsumerEngine {
   /** Set to make `extractErrorBlocks` (or any call) throw. */
   failure: string | undefined;
+  /** Category of the produced blocks (`unknown` exercises the LLM port). */
+  blockCategory: Category = 'test';
   diagnoseCalls = 0;
 
   private failIfAsked(): void {
@@ -88,7 +91,7 @@ export class FakeConsumerEngine implements ConsumerEngine {
     const chunks = (input.stepLog ?? '').split('\n\n').filter((c) => c.trim() !== '');
     return {
       blocks: chunks.map((raw) => ({
-        category: 'test' as const,
+        category: this.blockCategory,
         errorType: 'AssertionError',
         message: raw.split('\n')[0],
         rawMessage: raw,
