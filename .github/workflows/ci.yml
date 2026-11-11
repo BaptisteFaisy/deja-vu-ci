@@ -105,11 +105,13 @@ jobs:
           raise SystemExit(1 if (illisibles or vides) else 0)
           EOF
 
-      # Les gardes de la CI se testent elles-mêmes : couche0 + agents de
-      # conflit — stdlib, quelques secondes, aucun réseau.
-      - name: Tests des gardes CI (couche0, conflit)
+      # Les gardes de la CI se testent elles-mêmes : couche0, agents de
+      # conflit et triage de test rouge — stdlib, quelques secondes, aucun
+      # réseau (le triage est testé sur des journaux fictifs).
+      - name: Tests des gardes CI (couche0, conflit, triage)
         shell: bash
         run: |
+          python3 tools/test_triage.py
           python3 .github/couche0/test_check_couche0.py
           python3 .github/fireworks/test_conflict_agent.py
           python3 .github/fireworks/test_test_agent.py
