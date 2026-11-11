@@ -1,0 +1,54 @@
+# Déjà-vu CI — Capteur (Sensor): the Bitbucket side of the pair.
+#
+# The Sensor watches the build statuses of the paired workspace, reads the
+# failing step, masks the secrets, and forwards a signed payload to the
+# Brain (the Jira app) through its web trigger.
+#
+# Module keys, scopes and event names are checked against the Forge
+# manifest schema shipped with `@forge/manifest`. The remaining
+# uncertainties (event names of the product-event mapping, the two entries
+# of the settings page) are listed in `apps/sensor/README.md`.
+#
+# `app.id` is a placeholder: `forge create` / `forge install` replaces it
+# with the ari of the real app. Never commit a real app id together with a
+# secret.
+
+modules:
+  trigger:
+    - key: on-build-status
+      function: onBuildStatus
+      events:
+        - avi:bitbucket:created:build-status
+        - avi:bitbucket:updated:build-status
+
+  bitbucket:repoPullRequestCard:
+    - key: deja-vu-pr-card
+      title: Déjà-vu CI
+      function: getPrCard
+
+  bitbucket:workspaceSettingsMenuPage:
+    - key: deja-vu-workspace-settings
+      title: Déjà-vu CI
+      function: getSettings
+    - key: deja-vu-workspace-settings-save
+      title: Déjà-vu CI — save settings
+      function: saveSettings
+
+permissions:
+  scopes:
+    - read:repository:bitbucket
+    - read:pipeline:bitbucket
+    - read:pullrequest:bitbucket
+    - storage:app
+  external:
+    fetch:
+      backend:
+        - '*.webtrigger.atlassian.app'
+
+app:
+  id: ari:cloud:ecosystem::app/REPLACE-WITH-THE-REAL-APP-ID
+  description: >-
+    Recognises a red build, tells in seconds whether it is new, known,
+    flaky or an infrastructure failure, and keeps one ticket per problem.
+  runtime:
+    name: nodejs20.x
