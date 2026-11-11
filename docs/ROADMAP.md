@@ -90,3 +90,7 @@ The order below is the order we would tackle them in:
    only hashes, never code.
 5. **Marketplace publication** — the app is designed to be published: two apps, clear scopes, no
    external service.
+
+## Sonde InferHub A — mémoire des erreurs publiques
+
+Les erreurs d'outils publics sont reconnues partout, sans partager une ligne de code.
