@@ -33,6 +33,9 @@ export * from './resolutions.js';
 export * from './tickets.js';
 export * from './cost.js';
 
+// Manual curation of signatures (§ 19, CI-17).
+export * from './curate.js';
+
 // Where it lives (§ 15, § 16, CI-11, CI-16).
 export * from './store.js';
 export * from './replay.js';
