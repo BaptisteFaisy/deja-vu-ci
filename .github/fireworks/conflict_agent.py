@@ -16,33 +16,69 @@ seul). Codes : 0 poussé, 1 échec commenté, 2 rien à faire. Aucun secret deda
 """
 
 import argparse
+import importlib.machinery
 import importlib.util
 import json
 import os
 import re
 import subprocess
 import sys
+import tempfile
 import time
 import types
 import urllib.request
 
-def _charger_a2a():
-    """Charge `.github/hermes/a2a.py` (repli local) sans dépendre du sys.path.
-
-    Le module vit dans le dossier `hermes/`, pas à côté de ce script : on le
-    charge par son chemin. Sans lui (déploiement ancien), le repli est
-    simplement indisponible.
-    """
-    chemin = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "hermes", "a2a.py")
-    if not os.path.exists(chemin):
-        return None
+def _charger_module(chemin, source=None):
+    """Charge un module Python depuis un chemin (ou un texte source)."""
     try:
-        spec = importlib.util.spec_from_file_location("a2a", chemin)
+        if source is None:
+            spec = importlib.util.spec_from_file_location("a2a", chemin)
+        else:
+            spec = importlib.util.spec_from_loader(
+                "a2a", importlib.machinery.SourceFileLoader("a2a", chemin)
+            )
+            with open(chemin, "w", encoding="utf-8") as fh:
+                fh.write(source)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         return module
     except Exception:  # noqa: BLE001 - un repli cassé ne doit rien casser
         return None
+
+
+def _a2a_depuis_main():
+    """Le module de repli lu sur `origin/main`, comme les modules voisins.
+
+    Le balayeur extrait ce script seul dans un fichier temporaire : le voisin
+    `hermes/a2a.py` n'est donc pas à côté. On le relit sur la branche protégée
+    (jamais sur la branche de la PR — un juge ne s'écrit pas dans le prétoire).
+    """
+    try:
+        proc = subprocess.run(
+            ["git", "show", "origin/main:.github/hermes/a2a.py"],
+            capture_output=True, text=True, timeout=60,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if proc.returncode != 0 or not proc.stdout.strip():
+        return None
+    cible = os.path.join(tempfile.gettempdir(), "deja-vu-a2a-%d.py" % os.getpid())
+    return _charger_module(cible, proc.stdout)
+
+
+def _charger_a2a():
+    """Charge `.github/hermes/a2a.py` (repli local) sans dépendre du sys.path.
+
+    Deux chemins : le voisin dans l'arbre (exécution normale), sinon la copie
+    lue sur `origin/main` (le balayeur extrait ce script seul). Sans aucun des
+    deux, le repli est simplement indisponible.
+    """
+    chemin = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "hermes", "a2a.py")
+    if os.path.exists(chemin):
+        module = _charger_module(chemin)
+        if module is not None:
+            return module
+    return _a2a_depuis_main()
 
 
 a2a = _charger_a2a()
