@@ -13,12 +13,14 @@
 
 import {
   DEFAULT_SETTINGS,
+  type Category,
   type DiagnoseContext,
   type Diagnostic,
   type DiagnosticKind,
   type ErrorBlock,
   type ExtractResult,
   type FailedTestCase,
+  type Frame,
   type FlakyVerdict,
   type Occurrence,
   type ReplayResult,
@@ -31,6 +33,21 @@ import {
   type TicketAction,
 } from './types.js';
 import { MemoryStore, type Store } from './store.js';
+import {
+  TicketLedger,
+  attachIssueKey,
+  branchHasFix,
+  buildCommitIndex,
+  buildOccurrence,
+  countByKind,
+  extractBlocks,
+  markFlaky,
+  markResolved,
+  priorOccurrences,
+  statusAfterOccurrence,
+  syntheticBlock,
+  type CommitInfo,
+} from './replay-state.js';
 
 /**
  * The engine parts the replay needs: each one is the contract of the module
@@ -50,8 +67,16 @@ export interface SigningApi {
   familyOf(block: ErrorBlock): string;
 }
 
+/** Hints the diagnosis accepts on top of the frozen context (§ 10). */
+export type DiagnosisHints = {
+  now?: Date;
+  category?: Category;
+  frames?: Frame[];
+  signature?: Signature;
+};
+
 export interface DiagnosisApi {
-  diagnose(ctx: DiagnoseContext): Diagnostic;
+  diagnose(ctx: DiagnoseContext & DiagnosisHints): Diagnostic;
 }
 
 export interface FlakinessApi {
@@ -164,12 +189,6 @@ export interface ReplayWithEngineOptions extends ReplayOptions {
   store?: Store;
 }
 
-/** A commit of the dataset, with the moment it was seen. */
-interface CommitInfo {
-  at: string;
-  commit: CandidateCommit;
-}
-
 /** Internal context of a replay. */
 interface ReplayContext {
   engine: ReplayEngine;
@@ -179,6 +198,10 @@ interface ReplayContext {
   commits: CommitInfo[];
   resolutions: SampleResolution[];
   occurrences: Occurrence[];
+  /** Commits each occurrence's branch already contains (ancestry, § 10.2). */
+  contains: Map<string, string[]>;
+  /** Simulated Jira side: issue keys and last comment of each family. */
+  ledger: TicketLedger;
 }
 
 /** A diagnostic produced for one occurrence, with the tickets it produced. */
@@ -210,6 +233,8 @@ export async function replayWithEngine(
     commits: buildCommitIndex(dataset.occurrences),
     resolutions: dataset.resolutions ?? [],
     occurrences: [],
+    contains: new Map<string, string[]>(),
+    ledger: new TicketLedger(),
   };
   const ordered = [...dataset.occurrences].sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0));
   const outcomes: OccurrenceOutcome[] = [];
@@ -233,61 +258,6 @@ export async function replayWithEngine(
   };
 }
 
-/** Index of the commits of the dataset, with the moment they were seen. */
-function buildCommitIndex(occurrences: SampleOccurrence[]): CommitInfo[] {
-  const seen = new Map<string, CommitInfo>();
-  for (const occ of occurrences) {
-    if (seen.has(occ.commit)) continue;
-    seen.set(occ.commit, {
-      at: occ.at,
-      commit: {
-        sha: occ.commit,
-        author: occ.author,
-        files: occ.changedFiles ?? [],
-        message: `commit ${occ.commit.slice(0, 8)}`,
-      },
-    });
-  }
-  return [...seen.values()];
-}
-
-/** Count the diagnostics per kind, every kind being present. */
-function countByKind(outcomes: OccurrenceOutcome[]): Record<DiagnosticKind, number> {
-  const counts: Record<DiagnosticKind, number> = {
-    flaky: 0,
-    'already-fixed': 0,
-    new: 0,
-    infrastructure: 0,
-    uncertain: 0,
-  };
-  for (const outcome of outcomes) counts[outcome.diagnostic.kind] += 1;
-  return counts;
-}
-
-/** Extract the error blocks of a failure; never returns an empty list. */
-function extractBlocks(sample: SampleOccurrence, engine: ReplayEngine): ErrorBlock[] {
-  const result = engine.extraction.extractErrorBlocks({
-    stepLog: sample.log,
-    testCases: sample.testCases,
-  });
-  return result.blocks.length > 0 ? result.blocks : [syntheticBlock(sample)];
-}
-
-/** Block used when the extractor found nothing at all. */
-function syntheticBlock(sample: SampleOccurrence): ErrorBlock {
-  const text = (sample.log ?? '').slice(0, 2000);
-  const lines = text.trim().split('\n');
-  return {
-    category: 'unknown',
-    errorType: 'UnknownError',
-    message: lines[lines.length - 1] || 'unknown failure',
-    rawMessage: text,
-    frames: [],
-    source: 'tail',
-    rawText: text,
-  };
-}
-
 /** Create or refresh the signature of a block, then apply a known resolution. */
 async function upsertSignature(
   sample: SampleOccurrence,
@@ -297,11 +267,14 @@ async function upsertSignature(
   const signatureId = ctx.engine.signing.signatureOf(block);
   const familyId = ctx.engine.signing.familyOf(block);
   const existing = await ctx.store.getSignature(signatureId);
+  const resolution = await ctx.store.getResolution(signatureId);
+  const status = statusAfterOccurrence(existing?.status, resolution, branchHasFix(sample, resolution?.commit ?? ''));
   const signature: Signature = existing
     ? {
         ...existing,
         occurrences: existing.occurrences + 1,
         lastSeen: existing.lastSeen < sample.at ? sample.at : existing.lastSeen,
+        status,
       }
     : {
         id: signatureId,
@@ -310,14 +283,14 @@ async function upsertSignature(
         errorType: block.errorType,
         template: block.message,
         frames: block.frames,
-        status: 'new',
+        status,
         firstSeen: sample.at,
         lastSeen: sample.at,
         occurrences: 1,
         testName: block.testName ?? sample.testCases?.[0]?.name,
       };
   await ctx.store.saveSignature(signature);
-  await applyKnownResolution(signature, sample, ctx);
+  if (await applyKnownResolution(signature, sample, ctx)) await markResolved(ctx.store, signature);
   return signature;
 }
 
@@ -334,10 +307,10 @@ async function applyKnownResolution(
   signature: Signature,
   sample: SampleOccurrence,
   ctx: ReplayContext,
-): Promise<void> {
+): Promise<boolean> {
   const match = ctx.resolutions.find((r) => matchesResolution(r, signature));
-  if (!match) return;
-  if (await ctx.store.getResolution(signature.id)) return;
+  if (!match) return false;
+  if (await ctx.store.getResolution(signature.id)) return false;
   const resolution: Resolution = {
     id: `res-${signature.id}`,
     signatureId: signature.id,
@@ -350,33 +323,7 @@ async function applyKnownResolution(
     confirmedAt: match.confirmed ? sample.at : undefined,
   };
   await ctx.store.saveResolution(resolution);
-}
-
-/** Build the occurrence row of a block. */
-function buildOccurrence(
-  sample: SampleOccurrence,
-  index: number,
-  signature: Signature,
-  block: ErrorBlock,
-): Occurrence {
-  return {
-    id: `${sample.repo}-${sample.commit.slice(0, 8)}-${sample.step}-${index}`,
-    signatureId: signature.id,
-    familyId: signature.familyId,
-    workspace: 'sample',
-    repo: sample.repo,
-    branch: sample.branch,
-    commit: sample.commit,
-    author: sample.author,
-    prId: sample.prId,
-    stepName: sample.step,
-    durationS: sample.durationS,
-    buildUrl: sample.buildUrl,
-    occurredAt: sample.at,
-    passedOnRetry: false,
-    testName: block.testName ?? sample.testCases?.[0]?.name,
-    changedFiles: sample.changedFiles,
-  };
+  return true;
 }
 
 /** Process one failure: store, diagnose and plan the tickets. */
@@ -384,60 +331,92 @@ async function processFailure(
   sample: SampleOccurrence,
   ctx: ReplayContext,
 ): Promise<OccurrenceOutcome[]> {
-  const blocks = extractBlocks(sample, ctx.engine);
+  const blocks = extractBlocks(sample, ctx.engine.extraction);
   const outcomes: OccurrenceOutcome[] = [];
   for (const [index, block] of blocks.entries()) {
     const signature = await upsertSignature(sample, block, ctx);
     const occurrence = buildOccurrence(sample, index, signature, block);
+    ctx.contains.set(occurrence.id, sample.containsCommits ?? []);
     await ctx.store.saveOccurrence(occurrence);
     ctx.occurrences.push(occurrence);
-    outcomes.push(await diagnoseOccurrence(occurrence, signature, ctx));
+    const diagnostic = await diagnoseOnly(occurrence, signature, ctx);
+    const tickets = await planTicketsFor(occurrence, signature, ctx);
+    outcomes.push({ occurrence, diagnostic, tickets });
   }
   return outcomes;
 }
 
-/** Occurrences of the same signature, at or before the given one. */
-async function priorOccurrences(ctx: ReplayContext, occurrence: Occurrence): Promise<Occurrence[]> {
-  const all = await ctx.store.listOccurrences(occurrence.signatureId);
-  return all.filter((o) => o.id !== occurrence.id && o.occurredAt <= occurrence.occurredAt);
-}
-
-/** Diagnose one occurrence and plan the ticket actions it implies. */
-async function diagnoseOccurrence(
+/** Compute the diagnostic of one occurrence; no side effect on the ledger. */
+async function diagnoseOnly(
   occurrence: Occurrence,
   signature: Signature,
   ctx: ReplayContext,
-): Promise<OccurrenceOutcome> {
-  const history = await priorOccurrences(ctx, occurrence);
+): Promise<Diagnostic> {
+  const history = await priorOccurrences(ctx.store, occurrence);
   const familyAll = await ctx.store.listFamilyOccurrences(occurrence.familyId);
   const familyHistory = familyAll.filter(
     (o) => o.id !== occurrence.id && o.occurredAt <= occurrence.occurredAt,
   );
   const resolution = await ctx.store.getResolution(signature.id);
   const outbreak = await ctx.store.findOutbreak(signature.familyId);
-  const diagnostic = ctx.engine.diagnosis.diagnose({
+  return ctx.engine.diagnosis.diagnose({
     occurrence,
     history,
     familyHistory,
     resolution,
-    branchContainsResolution: false,
+    branchContainsResolution: containsResolution(ctx, occurrence, resolution),
     outbreak,
     changedFiles: occurrence.changedFiles,
     settings: ctx.settings,
+    now: new Date(occurrence.occurredAt),
+    category: signature.category,
+    frames: signature.frames,
+    signature,
   });
+}
+
+/**
+ * Plan the ticket actions of one occurrence and record them in the ledger.
+ *
+ * Kept apart from the diagnostic: a later success at the same commit refines
+ * the diagnostic, but the ticket decisions were already taken (and a second
+ * planning would open a second ticket or repeat the comment of the day).
+ */
+async function planTicketsFor(
+  occurrence: Occurrence,
+  signature: Signature,
+  ctx: ReplayContext,
+): Promise<TicketAction[]> {
+  const history = await priorOccurrences(ctx.store, occurrence);
+  const asOf = new Date(occurrence.occurredAt);
   const verdict = ctx.engine.flakiness.assessFlakiness([...history, occurrence], {
     settings: ctx.settings,
-    now: ctx.now,
+    now: asOf,
   });
+  await markFlaky(ctx.store, signature, verdict);
+  const familyId = signature.familyId;
   const tickets = ctx.engine.tickets.planTicketActions({
     signature,
     occurrences: [...history, occurrence],
     verdict,
-    existingIssueKey: signature.issueKey,
-    now: ctx.now,
+    existingIssueKey: ctx.ledger.keyFor(familyId),
+    lastCommentAt: ctx.ledger.lastCommentFor(familyId),
+    now: asOf,
     settings: ctx.settings,
   });
-  return { occurrence, diagnostic, tickets };
+  ctx.ledger.record(familyId, tickets, occurrence.occurredAt);
+  await attachIssueKey(ctx.store, ctx.ledger, signature);
+  return tickets;
+}
+
+/** True when the branch of the occurrence already contains the fixing commit. */
+function containsResolution(
+  ctx: ReplayContext,
+  occurrence: Occurrence,
+  resolution: Resolution | undefined,
+): boolean {
+  if (!resolution) return false;
+  return (ctx.contains.get(occurrence.id) ?? []).includes(resolution.commit);
 }
 
 /**
@@ -470,7 +449,16 @@ async function refineOutcome(
   if (index < 0) return;
   const signature = await ctx.store.getSignature(occurrence.signatureId);
   if (!signature) return;
-  outcomes[index] = await diagnoseOccurrence(occurrence, signature, ctx);
+  const previous = outcomes[index];
+  const diagnostic = await diagnoseOnly(occurrence, signature, ctx);
+  // A success can be what makes a signature unstable: while the family has no
+  // ticket yet, nothing has been decided, so the plan is re-evaluated. Once a
+  // ticket exists, the earlier decisions stand (the ledger already enforces
+  // "one ticket per family" and "one comment per day").
+  const tickets = ctx.ledger.keyFor(occurrence.familyId) === undefined
+    ? await planTicketsFor(occurrence, signature, ctx)
+    : previous.tickets;
+  outcomes[index] = { ...previous, diagnostic, tickets };
 }
 
 /** Deduce a candidate resolution from the commits seen between failure and success. */
@@ -481,7 +469,7 @@ async function deduceResolution(
 ): Promise<void> {
   const existing = await ctx.store.getResolution(failure.signatureId);
   if (existing?.confirmedBy) return;
-  const history = await priorOccurrences(ctx, failure);
+  const history = await priorOccurrences(ctx.store, failure);
   const commitsBetween = ctx.commits
     .filter((c) => c.at > failure.occurredAt && c.at <= sample.at)
     .map((c) => c.commit);
@@ -492,5 +480,8 @@ async function deduceResolution(
     commitsBetween,
     now: ctx.now,
   });
-  if (candidate) await ctx.store.saveResolution(candidate);
+  if (!candidate) return;
+  await ctx.store.saveResolution(candidate);
+  const signature = await ctx.store.getSignature(failure.signatureId);
+  if (signature) await markResolved(ctx.store, signature);
 }

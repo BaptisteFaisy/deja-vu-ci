@@ -28,6 +28,13 @@ export interface SampleOccurrence {
   log?: string;
   testCases?: FailedTestCase[];
   changedFiles?: string[];
+  /**
+   * Commits que la branche contient déjà (comparaison d'ancêtres faite par le
+   * Capteur en production). Sert à distinguer « déjà corrigé » (la branche
+   * précède le correctif) d'une « régression » (le correctif est là et le
+   * problème revient). Absent = la branche est supposée ne pas le contenir.
+   */
+  containsCommits?: string[];
   /** Vérité terrain, quand elle est connue — sert à la recette § 20. */
   expected?: {
     signature?: string;
