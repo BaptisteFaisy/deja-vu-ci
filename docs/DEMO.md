@@ -49,11 +49,9 @@ And for the agent shot, prepare the question (you will type it live, but know it
 tools/universal-entry.sh --project-key CI --repository demo-repo --branch main --log-file /tmp/agent.log
 ```
 
-> **Status:** the sample dataset, the demo repository and the tools are delivered by the
-> sample-data-and-tools lot (`data/**`, `tools/**`), which lands in parallel with this
-> documentation. The commands above are the contract those tools were built against
-> (`docs/CONTRACTS.md`); if a command is not yet present in your checkout, wait for that lot to
-> merge.
+> **Status:** the sample dataset, the demo repository and the tools are in this repository
+> (`data/**`, `tools/**`, `examples/flaky-repo/**`). Every command quoted in this script runs
+> as-is: `npm run replay`, `npm run eval`, `npm run check:data`, `node tools/gen/sample.mjs`.
 
 ---
 
