@@ -15,7 +15,7 @@ import {
   MIN_EXCERPT_BYTES,
   readSettings,
   removeRepository,
-} from '../src/pure/settings.js';
+} from '../src/pure/settings';
 
 const PAIRING = {
   brainUrl: 'https://acme.atlassian.net/webtrigger/dejavu/ingest',

@@ -20,9 +20,9 @@ import {
   planTicketActions,
   signatureKeys,
   testStats,
-} from '../../../packages/core/src/index.js';
-import { consumeIngest, type ConsumerDeps, type ConsumerEngine } from '../src/pure/consume.js';
-import { FakeConsumerStore, FakeTicketApplier } from './fakes/consumer.js';
+} from '../../../packages/core/src/index';
+import { consumeIngest, type ConsumerDeps, type ConsumerEngine } from '../src/pure/consume';
+import { FakeConsumerStore, FakeTicketApplier } from './fakes/consumer';
 
 /** The real engine, assembled exactly like `src/consumer.ts` does. */
 export function realEngine(): ConsumerEngine {

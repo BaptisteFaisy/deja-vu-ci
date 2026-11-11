@@ -8,10 +8,10 @@
  */
 
 import type { Diagnostic } from '@dejavu/core';
-import { diagnoseFor, latestOccurrence, signatureForIssue } from './context.js';
-import { defineAction, type RawInput } from './descriptor.js';
-import { fail, ok, type ActionResult, type BrainEngine } from './engine.js';
-import { optionalText } from './validate.js';
+import { diagnoseFor, latestOccurrence, signatureForIssue } from './context';
+import { defineAction, type RawInput } from './descriptor';
+import { fail, ok, type ActionResult, type BrainEngine } from './engine';
+import { optionalText } from './validate';
 
 /** Réponse de l'action. */
 export interface ExplainBuildFailureData {

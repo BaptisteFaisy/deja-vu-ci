@@ -37,9 +37,9 @@ import {
   validateSettingsForm,
   type SettingsForm,
   type SettingsView,
-} from '../pure/settingsView.js';
-import { loadData } from './data.js';
-import { LanguageButton, type ScreenProps } from './parts.js';
+} from '../pure/settingsView';
+import { loadData } from './data';
+import { LanguageButton, type ScreenProps } from './parts';
 
 /** The page's own state: everything is text until it is posted. */
 interface FormState {

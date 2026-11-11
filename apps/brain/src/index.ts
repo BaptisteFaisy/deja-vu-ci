@@ -26,25 +26,25 @@ import {
   signatureKeys,
   signatureShort,
 } from '@dejavu/core';
-import * as brainActions from './actions/index.js';
-import { createBrainEngine, setDefaultEngine, type CoreFunctions } from './actions/engine.js';
-import { ingest } from './ingest.js';
-import { createQueryHandler, issueContextData, memoryPageData } from './query.js';
-import { createUniversalHandler } from './universal.js';
-import { createConsumerHandler } from './consumer.js';
-import { createScheduledHandler } from './scheduled.js';
-import { settingsData, saveSettingsData } from './settings.js';
-import { toSettingsPayload } from './pure/settingsSchema.js';
-import { DEFAULT_SETTINGS } from './pure/defaults.js';
-import { brainStore } from './sql.js';
+import * as brainActions from './actions/index';
+import { createBrainEngine, setDefaultEngine, type CoreFunctions } from './actions/engine';
+import { ingest } from './ingest';
+import { createQueryHandler, issueContextData, memoryPageData } from './query';
+import { createUniversalHandler } from './universal';
+import { createConsumerHandler } from './consumer';
+import { createScheduledHandler } from './scheduled';
+import { settingsData, saveSettingsData } from './settings';
+import { toSettingsPayload } from './pure/settingsSchema';
+import { DEFAULT_SETTINGS } from './pure/defaults';
+import { brainStore } from './sql';
 import Resolver from '@forge/resolver';
-import { registerUiResolvers } from './resolvers.js';
-import { issueKeyFrom } from './pure/invokeContext.js';
+import { registerUiResolvers } from './resolvers';
+import { issueKeyFrom } from './pure/invokeContext';
 import {
   issueContextText as renderIssueContextText,
   type IssueContextInput,
-} from './pure/issueContextText.js';
-import type { IssueContextPayload, MemoryPagePayload } from './query.js';
+} from './pure/issueContextText';
+import type { IssueContextPayload, MemoryPagePayload } from './query';
 
 export { ingest };
 

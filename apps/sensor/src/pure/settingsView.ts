@@ -10,7 +10,7 @@
  * (a boolean) and never the secret nor its identifier (§ 16).
  */
 
-import { MAX_EXCERPT_BYTES, MIN_EXCERPT_BYTES } from './settings.js';
+import { MAX_EXCERPT_BYTES, MIN_EXCERPT_BYTES } from './settings';
 
 /** What the settings page shows. */
 export interface SettingsView {

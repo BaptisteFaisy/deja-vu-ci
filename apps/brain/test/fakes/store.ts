@@ -11,7 +11,7 @@
  */
 
 import type { Occurrence, Resolution, Settings, Signature } from '@dejavu/core';
-import type { StoreLike } from '../../src/actions/engine.js';
+import type { StoreLike } from '../../src/actions/engine';
 
 /**
  * Valeurs par défaut des réglages, alignées sur `DEFAULT_SETTINGS` du moteur.

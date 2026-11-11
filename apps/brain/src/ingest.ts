@@ -12,13 +12,13 @@
  * replay risk across cold starts.
  */
 
-import { storage } from '@forge/api';
+import { kvs as storage } from '@forge/kvs';
 import { Queue } from '@forge/events';
 import { verifyRequest } from '@dejavu/bridge';
 import type { IngestPayload } from '@dejavu/core';
-import { createNonceCache } from './pure/nonce.js';
-import { validateIngestPayload } from './pure/validate.js';
-import { brainStore } from './sql.js';
+import { createNonceCache } from './pure/nonce';
+import { validateIngestPayload } from './pure/validate';
+import { brainStore } from './sql';
 
 /** Storage key of the bridge secret (set at pairing time). */
 export const BRIDGE_SECRET_KEY = 'dejavu-bridge-secret';

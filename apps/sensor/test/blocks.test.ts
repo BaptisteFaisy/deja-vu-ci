@@ -4,7 +4,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { byteLength, MAX_TOTAL_BLOCK_BYTES, selectBlocks, truncateText } from '../src/pure/blocks.js';
+import { byteLength, MAX_TOTAL_BLOCK_BYTES, selectBlocks, truncateText } from '../src/pure/blocks';
 
 describe('truncateText', () => {
   it('returns the text unchanged when it fits', () => {

@@ -8,14 +8,14 @@
  * « incertain », l'agent ne les réécrit pas.
  */
 
-import type { ActionDescriptor, RawInput } from '../actions/descriptor.js';
-import type { BrainEngine } from '../actions/engine.js';
-import { explainBuildFailure } from '../actions/explain-build-failure.js';
-import { searchFailures } from '../actions/search-failures.js';
-import { getSignature } from '../actions/get-signature.js';
-import { listFlakyTests } from '../actions/list-flaky-tests.js';
-import { reportResolution } from '../actions/report-resolution.js';
-import { confirmResolution } from '../actions/confirm-resolution.js';
+import type { ActionDescriptor, RawInput } from '../actions/descriptor';
+import type { BrainEngine } from '../actions/engine';
+import { explainBuildFailure } from '../actions/explain-build-failure';
+import { searchFailures } from '../actions/search-failures';
+import { getSignature } from '../actions/get-signature';
+import { listFlakyTests } from '../actions/list-flaky-tests';
+import { reportResolution } from '../actions/report-resolution';
+import { confirmResolution } from '../actions/confirm-resolution';
 
 /** Instruction système de l'agent, en anglais (jury anglophone). */
 export const AGENT_INSTRUCTIONS = [

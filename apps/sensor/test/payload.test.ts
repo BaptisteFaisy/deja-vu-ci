@@ -4,9 +4,9 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { buildIngestPayload, boundHistory, maskTestCase, MAX_BRANCH_HISTORY } from '../src/pure/payload.js';
-import { MAX_TOTAL_BLOCK_BYTES } from '../src/pure/blocks.js';
-import { fakeMaskSecrets, masker } from './fakes/mask.js';
+import { buildIngestPayload, boundHistory, maskTestCase, MAX_BRANCH_HISTORY } from '../src/pure/payload';
+import { MAX_TOTAL_BLOCK_BYTES } from '../src/pure/blocks';
+import { fakeMaskSecrets, masker } from './fakes/mask';
 import type { FailedTestCase, IngestPayload } from '@dejavu/core';
 
 const BASE = {

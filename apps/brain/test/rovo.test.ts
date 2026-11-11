@@ -6,10 +6,10 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { AGENT_ACTIONS, AGENT_INSTRUCTIONS, TYPICAL_QUESTIONS, describeAgent, runAgentAction } from '../src/rovo/agent.js';
-import { MCP_TOOLS, callTool, findTool } from '../src/rovo/mcp.js';
-import { makeFakeEngine } from './fakes/engine.js';
-import { FLAKY_SIGNATURE, SEED } from './fakes/fixtures.js';
+import { AGENT_ACTIONS, AGENT_INSTRUCTIONS, TYPICAL_QUESTIONS, describeAgent, runAgentAction } from '../src/rovo/agent';
+import { MCP_TOOLS, callTool, findTool } from '../src/rovo/mcp';
+import { makeFakeEngine } from './fakes/engine';
+import { FLAKY_SIGNATURE, SEED } from './fakes/fixtures';
 
 const SIX = [
   'confirm-resolution',

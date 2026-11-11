@@ -10,9 +10,9 @@
  */
 
 import type { Settings } from '@dejavu/core';
-import type { BrainSqlStore } from './sql.js';
-import { DEFAULT_SETTINGS } from './pure/defaults.js';
-import { coerceSettingsPatch, toSettingsPayload, type SettingsPayload } from './pure/settingsSchema.js';
+import type { BrainSqlStore } from './sql';
+import { DEFAULT_SETTINGS } from './pure/defaults';
+import { coerceSettingsPatch, toSettingsPayload, type SettingsPayload } from './pure/settingsSchema';
 
 /** Answer of a resolver: never a thrown error. */
 export type SettingsAnswer =

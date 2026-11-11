@@ -5,7 +5,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { containsCommit, MAX_ANCESTOR_DEPTH, toContainsResolution, type CommitReader } from '../src/ancestry.js';
+import { containsCommit, MAX_ANCESTOR_DEPTH, toContainsResolution, type CommitReader } from '../src/ancestry';
 
 /** Builds a reader over a small history graph. */
 function readerOf(graph: Record<string, string[]>): CommitReader {

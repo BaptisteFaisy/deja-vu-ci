@@ -6,15 +6,15 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import * as actions from '../src/actions/index.js';
-import { runExplainBuildFailure } from '../src/actions/explain-build-failure.js';
-import { runGetSignature } from '../src/actions/get-signature.js';
-import { runListFlakyTests } from '../src/actions/list-flaky-tests.js';
-import { runReportResolution } from '../src/actions/report-resolution.js';
-import { runConfirmResolution } from '../src/actions/confirm-resolution.js';
-import { runSearchFailures } from '../src/actions/search-failures.js';
-import { diagnoseFor } from '../src/actions/context.js';
-import { makeFakeEngine } from './fakes/engine.js';
+import * as actions from '../src/actions/index';
+import { runExplainBuildFailure } from '../src/actions/explain-build-failure';
+import { runGetSignature } from '../src/actions/get-signature';
+import { runListFlakyTests } from '../src/actions/list-flaky-tests';
+import { runReportResolution } from '../src/actions/report-resolution';
+import { runConfirmResolution } from '../src/actions/confirm-resolution';
+import { runSearchFailures } from '../src/actions/search-failures';
+import { diagnoseFor } from '../src/actions/context';
+import { makeFakeEngine } from './fakes/engine';
 import {
   EXACT_SIGNATURE,
   FAMILY_VARIANT_SIGNATURE,
@@ -25,7 +25,7 @@ import {
   RESOLVED_SIGNATURE,
   SEED,
   SEED_TWO_FLAKY,
-} from './fakes/fixtures.js';
+} from './fakes/fixtures';
 
 describe('actions du Cerveau (§ 13)', () => {
   it('expose exactement les six actions du contrat', () => {

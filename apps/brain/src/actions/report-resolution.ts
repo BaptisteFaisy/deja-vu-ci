@@ -8,9 +8,9 @@
  */
 
 import type { Resolution } from '@dejavu/core';
-import { fail, ok, nowIso, type ActionResult, type BrainEngine } from './engine.js';
-import { defineAction, type RawInput } from './descriptor.js';
-import { optionalText, requireText } from './validate.js';
+import { fail, ok, nowIso, type ActionResult, type BrainEngine } from './engine';
+import { defineAction, type RawInput } from './descriptor';
+import { optionalText, requireText } from './validate';
 
 /** Confiance d'une résolution candidate, sous le seuil de confirmation (0,6). */
 export const CANDIDATE_CONFIDENCE = 0.5;

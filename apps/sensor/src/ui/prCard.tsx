@@ -17,9 +17,9 @@ import { Box, Inline, SectionMessage, Spinner, Stack, Tag, Text } from '@forge/r
 import type { QueryResponse } from '@dejavu/core';
 import { t } from '@dejavu/present';
 import type { Lang } from '@dejavu/present';
-import { prCardView, type PrCardView } from '../pure/prCardView.js';
-import { loadData } from './data.js';
-import { LanguageButton, type ScreenProps } from './parts.js';
+import { prCardView, type PrCardView } from '../pure/prCardView';
+import { loadData } from './data';
+import { LanguageButton, type ScreenProps } from './parts';
 
 /** The diagnostic itself: what the developer reads first. */
 function Diagnostic({ view, lang }: { view: PrCardView; lang: Lang }): React.JSX.Element {

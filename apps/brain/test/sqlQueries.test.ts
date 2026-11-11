@@ -21,8 +21,8 @@ import {
   SETTINGS_KEY,
   isAlreadyExists,
   splitSchema,
-} from '../src/pure/sqlQueries.js';
-import { DEFAULT_SETTINGS } from '../src/pure/defaults.js';
+} from '../src/pure/sqlQueries';
+import { DEFAULT_SETTINGS } from '../src/pure/defaults';
 
 const signature: Signature = {
   id: 'sig1', familyId: 'fam1', category: 'test', errorType: 'AssertionError',

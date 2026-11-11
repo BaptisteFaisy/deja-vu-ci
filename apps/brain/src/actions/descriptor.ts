@@ -13,7 +13,7 @@
  * parallèle.
  */
 
-import { fail, getDefaultEngine, type ActionResult, type BrainEngine } from './engine.js';
+import { fail, getDefaultEngine, type ActionResult, type BrainEngine } from './engine';
 
 /** Verbe de l'action (colonne « Verbe » du § 13). */
 export type ActionVerb = 'GET' | 'CREATE' | 'UPDATE';

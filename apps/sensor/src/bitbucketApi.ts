@@ -11,7 +11,7 @@
  */
 
 import { assumeTrustedRoute, requestBitbucket } from '@forge/api';
-import type { ApiAnswer, BitbucketReader } from './pipelines.js';
+import type { ApiAnswer, BitbucketReader } from './pipelines';
 
 /** Reads a header without depending on its case. */
 function headerValue(headers: unknown, name: string): string | undefined {

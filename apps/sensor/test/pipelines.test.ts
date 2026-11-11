@@ -18,7 +18,7 @@ import {
   testReportPath,
   type ApiAnswer,
   type BitbucketReader,
-} from '../src/pipelines.js';
+} from '../src/pipelines';
 
 const COMMIT = 'a'.repeat(40);
 const BASE = repoPath('acme', 'payments');

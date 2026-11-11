@@ -14,7 +14,7 @@ import {
   parseFailedTestCases,
   readDurationS,
   splitLogBlocks,
-} from '../src/pure/pipeline.js';
+} from '../src/pure/pipeline';
 
 const COMMIT = 'a'.repeat(40);
 

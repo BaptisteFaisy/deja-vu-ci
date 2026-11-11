@@ -125,36 +125,42 @@ modules:
     # action) and either `actionType` or `actionVerb`. The descriptions below
     # mirror the descriptors of `src/actions/*.ts` (single source of truth).
     - key: explain-build-failure
-      function: actionExplainBuildFailure
+      name: Explain a build failure
+      function: actionExplainFailure
       actionVerb: GET
       description: >-
         Explain why a CI build failed: returns the diagnostic, its confidence,
         the facts behind it and the action to take.
     - key: search-failures
+      name: Search known failures
       function: actionSearchFailures
       actionVerb: GET
       description: >-
         Find the known failure signatures closest to a free-text error excerpt
         (same signature, same family, or close message).
     - key: get-signature
+      name: Get a failure signature
       function: actionGetSignature
       actionVerb: GET
       description: >-
         Get the history of a known failure signature: status, occurrences,
         resolution and Jira ticket.
     - key: list-flaky-tests
+      name: List flaky tests by cost
       function: actionListFlakyTests
       actionVerb: GET
       description: >-
         List the flaky tests of a repository, ranked by CI cost (minutes lost),
         over a rolling window.
     - key: report-resolution
+      name: Report a resolution
       function: actionReportResolution
       actionVerb: CREATE
       description: >-
         Record a candidate resolution for a known signature: the commit that
         fixed it, its author and an optional note.
     - key: confirm-resolution
+      name: Confirm or reject a resolution
       function: actionConfirmResolution
       actionVerb: UPDATE
       description: >-
@@ -198,7 +204,7 @@ modules:
     # Text context of a ticket, read by Rovo (`jira:issueContext`).
     - key: issueContextText
       handler: index.issueContextText
-    - key: actionExplainBuildFailure
+    - key: actionExplainFailure
       handler: index.explainBuildFailure
     - key: actionSearchFailures
       handler: index.searchFailures
@@ -229,10 +235,10 @@ resources:
   - key: main
     path: src/frontend.tsx
   - key: icon
-    path: static/icon.svg
+    path: static
 
 app:
-  id: ari:cloud:ecosystem::app/REPLACE-WITH-THE-REAL-APP-ID
+  id: ari:cloud:ecosystem::app/2abacda7-8c4f-4b29-9c97-7209dd240894
   description: >-
     Recognises a red build, tells in seconds whether it is new, known,
     flaky or an infrastructure failure, and keeps one ticket per problem.

@@ -10,7 +10,7 @@ import {
   keepTail,
   parseContentRangeTotal,
   tailRangeHeader,
-} from '../src/pure/range.js';
+} from '../src/pure/range';
 
 describe('tailRangeHeader', () => {
   it('asks for the last bytes of the resource (suffix range)', () => {

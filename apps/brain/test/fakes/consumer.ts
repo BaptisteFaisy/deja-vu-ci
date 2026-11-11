@@ -26,8 +26,8 @@ import type {
   ConsumerEngine,
   ConsumerStore,
   TicketApplier,
-} from '../../src/pure/consume.js';
-import { DEFAULT_SETTINGS } from '../../src/pure/defaults.js';
+} from '../../src/pure/consume';
+import { DEFAULT_SETTINGS } from '../../src/pure/defaults';
 
 /** In-memory store double implementing the consumer port. */
 export class FakeConsumerStore implements ConsumerStore {

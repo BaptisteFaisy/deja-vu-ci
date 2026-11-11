@@ -6,8 +6,8 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_SETTINGS as ENGINE_DEFAULTS } from '../../../packages/core/src/types.js';
-import { DEFAULT_SETTINGS } from '../src/pure/defaults.js';
+import { DEFAULT_SETTINGS as ENGINE_DEFAULTS } from '../../../packages/core/src/types';
+import { DEFAULT_SETTINGS } from '../src/pure/defaults';
 
 describe('DEFAULT_SETTINGS mirror', () => {
   it('is deep-equal to the engine table', () => {

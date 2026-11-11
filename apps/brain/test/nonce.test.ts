@@ -5,7 +5,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { createNonceCache } from '../src/pure/nonce.js';
+import { createNonceCache } from '../src/pure/nonce';
 
 describe('createNonceCache', () => {
   it('answers false the first time and true on replay', () => {

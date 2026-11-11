@@ -17,8 +17,8 @@ import {
   mapTemplateEntry,
   number,
   text,
-} from '../src/pure/sqlRows.js';
-import { DEFAULT_SETTINGS } from '../src/pure/defaults.js';
+} from '../src/pure/sqlRows';
+import { DEFAULT_SETTINGS } from '../src/pure/defaults';
 
 describe('scalar readers', () => {
   it('normalises strings, numbers and booleans', () => {

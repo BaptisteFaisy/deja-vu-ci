@@ -16,8 +16,8 @@
  * that a single edit fixes them all.
  */
 
-import { DEFAULT_TAIL_BYTES, keepTail, tailRangeHeader } from './pure/range.js';
-import type { CommitReader } from './ancestry.js';
+import { DEFAULT_TAIL_BYTES, keepTail, tailRangeHeader } from './pure/range';
+import type { CommitReader } from './ancestry';
 import {
   findFailedStep,
   findPipelineForCommit,
@@ -27,7 +27,7 @@ import {
   parseFailedTestCases,
   type PipelineSummary,
   type StepSummary,
-} from './pure/pipeline.js';
+} from './pure/pipeline';
 import type { FailedTestCase } from '@dejavu/core';
 
 /** Answer of the Bitbucket API, reduced to what the Sensor reads. */

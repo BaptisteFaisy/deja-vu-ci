@@ -6,7 +6,7 @@
  * `@forge/manifest` — la même source que `forge lint` — et non une copie.
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, readFileSync, statSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -39,7 +39,12 @@ describe('manifestes Forge vs schéma @forge/manifest', () => {
       expect(scopes, `scope manquant : ${expected}`).toContain(expected);
     }
     // Le pont signé (§ 15) : seul le web trigger du Cerveau est appelable.
-    expect(manifest.permissions.external.fetch.backend).toContain('*.webtrigger.atlassian.app');
+    // `forge lint --fix` réécrit les entrées d'egress en objets `{ address }` :
+    // les deux formes sont acceptées.
+    const backends = (manifest.permissions.external.fetch.backend ?? []).map((entry) =>
+      typeof entry === 'string' ? entry : entry.address,
+    );
+    expect(backends).toContain('*.webtrigger.atlassian.app');
   });
 
   it('le Cerveau déclare les modules Jira du § 15', () => {
@@ -255,7 +260,14 @@ function iconProblems(manifest, dir) {
         problems.push(`${where} : icône « ${ref.key} » sans ressource déclarée`);
         continue;
       }
-      const file = ref.file ? path.join(path.dirname(resource.path), ref.file) : resource.path;
+      // Une ressource peut être un dossier (`resource:cle;fichier` désigne alors
+      // le fichier dans ce dossier) ou un fichier直接. Les deux sont acceptés.
+      const base = path.join(dir, resource.path);
+      const file = ref.file
+        ? statSync(base, { throwIfNoEntry: false })?.isDirectory()
+          ? path.join(resource.path, ref.file)
+          : path.join(path.dirname(resource.path), ref.file)
+        : resource.path;
       if (!existsSync(path.join(dir, file))) problems.push(`${where} : icône ${file} absente du disque`);
     }
   }

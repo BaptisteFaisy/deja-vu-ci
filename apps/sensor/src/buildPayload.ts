@@ -12,8 +12,8 @@
  */
 
 import type { IngestPayload, QueryRequest, QueryResponse } from '@dejavu/core';
-import { buildIngestPayload, type Masker, type SensorInputs } from './pure/payload.js';
-import { parseBuildStatusEvent, type BuildStatusEvent } from './pure/event.js';
+import { buildIngestPayload, type Masker, type SensorInputs } from './pure/payload';
+import { parseBuildStatusEvent, type BuildStatusEvent } from './pure/event';
 import {
   commitReader,
   readBranchHistory,
@@ -21,9 +21,9 @@ import {
   readFailingStep,
   type BitbucketReader,
   type StepContext,
-} from './pipelines.js';
-import { containsCommit, toContainsResolution } from './ancestry.js';
-import type { StoragePort } from './settings.js';
+} from './pipelines';
+import { containsCommit, toContainsResolution } from './ancestry';
+import type { StoragePort } from './settings';
 
 /** The three routes of the Brain's web trigger (§ 15). */
 export type BrainRoute = 'ingest' | 'query' | 'universal';

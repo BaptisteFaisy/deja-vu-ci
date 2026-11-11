@@ -5,8 +5,8 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { coerceSettingsPatch, toSettingsPayload } from '../src/pure/settingsSchema.js';
-import { DEFAULT_SETTINGS } from '../src/pure/defaults.js';
+import { coerceSettingsPatch, toSettingsPayload } from '../src/pure/settingsSchema';
+import { DEFAULT_SETTINGS } from '../src/pure/defaults';
 
 describe('coerceSettingsPatch', () => {
   it('accepts a full valid patch and normalises the project key', () => {

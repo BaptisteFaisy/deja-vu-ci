@@ -13,10 +13,10 @@
  */
 
 import type { Occurrence, Settings, Signature } from '@dejavu/core';
-import { planAndApplyTickets, type ConsumerDeps } from './pure/consume.js';
-import { coreConsumerEngine, jiraTicketApplier } from './consumer.js';
-import { loadSettings } from './settings.js';
-import { migrateOnce, type BrainSqlStore } from './sql.js';
+import { planAndApplyTickets, type ConsumerDeps } from './pure/consume';
+import { coreConsumerEngine, jiraTicketApplier } from './consumer';
+import { loadSettings } from './settings';
+import { migrateOnce, type BrainSqlStore } from './sql';
 
 /** Summary of one daily run. */
 export type ScheduledAnswer =

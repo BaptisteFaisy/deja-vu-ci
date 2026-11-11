@@ -37,7 +37,7 @@ import type { IngestPayload } from '@dejavu/core';
 import type { DiagnoseHints } from '@dejavu/core';
 import type { DiagnoseContext } from '@dejavu/core';
 import type { TicketPlanInput } from '@dejavu/core';
-import { branchContainsResolution } from '../actions/context.js';
+import { branchContainsResolution } from '../actions/context';
 
 /** Memory subset the consumer needs — the core `Store` satisfies it. */
 export interface ConsumerStore {

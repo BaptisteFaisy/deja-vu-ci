@@ -7,7 +7,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { FALLBACK_SCREEN, SCREEN_RULES, resolveScreen } from '../src/pure/screens.js';
+import { FALLBACK_SCREEN, SCREEN_RULES, resolveScreen } from '../src/pure/screens';
 
 /** The `key` of every UI module of `apps/brain/manifest.yml`. */
 const MANIFEST_KEYS = {

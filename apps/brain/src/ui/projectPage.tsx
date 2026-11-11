@@ -21,10 +21,10 @@ import {
   type CostRow,
   type SignatureFilter,
   type SignatureSortKey,
-} from './format.js';
-import { loadData } from './data.js';
-import { t, type Lang } from './i18n.js';
-import { MemoryTabs, PageHeader, Toolbar } from './projectPageParts.js';
+} from './format';
+import { loadData } from './data';
+import { t, type Lang } from './i18n';
+import { MemoryTabs, PageHeader, Toolbar } from './projectPageParts';
 
 /** Ce que rend le Cerveau pour la page projet. */
 interface MemoryPayload {

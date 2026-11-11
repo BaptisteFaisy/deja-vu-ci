@@ -66,7 +66,7 @@ permissions:
   external:
     fetch:
       backend:
-        - '*.webtrigger.atlassian.app'
+        - address: "*.webtrigger.atlassian.app"
 
 # Hosted resources (§ 14): one UI Kit 2 entry point for the two Bitbucket
 # modules, and the icon the card displays. `path` is relative to the app root;
@@ -76,12 +76,12 @@ resources:
   - key: main
     path: src/frontend.tsx
   - key: icon
-    path: static/icon.svg
+    path: static
 
 app:
-  id: ari:cloud:ecosystem::app/REPLACE-WITH-THE-REAL-APP-ID
+  id: ari:cloud:ecosystem::app/f4c98609-1c94-4e98-9e26-89cec008d6d7
   description: >-
-    Recognises a red build, tells in seconds whether it is new, known,
-    flaky or an infrastructure failure, and keeps one ticket per problem.
+    Recognises a red build, tells in seconds whether it is new, known, flaky or
+    an infrastructure failure, and keeps one ticket per problem.
   runtime:
     name: nodejs22.x

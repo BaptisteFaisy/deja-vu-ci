@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { Button, FormFooter, Inline } from '@forge/react';
-import { t, type Lang } from './i18n.js';
+import { t, type Lang } from './i18n';
 
 export function SaveFooter(props: {
   lang: Lang;

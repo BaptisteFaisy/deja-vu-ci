@@ -9,7 +9,7 @@
  * returned to a resolver, or logged.
  */
 
-import { BRIDGE_SECRET_KEY, defaultSettings, readSettings, type SensorSettings } from './pure/settings.js';
+import { BRIDGE_SECRET_KEY, defaultSettings, readSettings, type SensorSettings } from './pure/settings';
 
 /** The part of the Forge storage API the Sensor uses. */
 export interface StoragePort {

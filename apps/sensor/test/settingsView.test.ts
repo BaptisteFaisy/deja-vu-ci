@@ -7,7 +7,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { MAX_EXCERPT_BYTES, MIN_EXCERPT_BYTES } from '../src/pure/settings.js';
+import { MAX_EXCERPT_BYTES, MIN_EXCERPT_BYTES } from '../src/pure/settings';
 import {
   MIN_SECRET_LENGTH,
   clampExcerptBytes,
@@ -16,7 +16,7 @@ import {
   parseRepositoryList,
   validateSettingsForm,
   type SettingsView,
-} from '../src/pure/settingsView.js';
+} from '../src/pure/settingsView';
 
 const PAIRED: SettingsView = {
   ok: true,

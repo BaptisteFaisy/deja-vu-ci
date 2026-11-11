@@ -8,7 +8,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { issueKeyFrom } from '../src/pure/invokeContext.js';
+import { issueKeyFrom } from '../src/pure/invokeContext';
 
 describe('clé de ticket d’une invocation', () => {
   it('lit une clé posée dans la charge utile', () => {

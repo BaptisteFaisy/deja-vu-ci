@@ -16,9 +16,9 @@ import {
   resolveEvent,
   type BrainTransport,
   type SensorDeps,
-} from '../src/buildPayload.js';
-import type { ApiAnswer, BitbucketReader } from '../src/pipelines.js';
-import { fakeMaskSecrets } from './fakes/mask.js';
+} from '../src/buildPayload';
+import type { ApiAnswer, BitbucketReader } from '../src/pipelines';
+import { fakeMaskSecrets } from './fakes/mask';
 
 const COMMIT = 'a'.repeat(40);
 const FIX = 'c'.repeat(40);

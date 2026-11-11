@@ -12,10 +12,10 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Heading, SectionMessage, Stack } from '@forge/react';
 import type { Diagnostic } from '@dejavu/core';
-import { toOccurrenceRows, type OccurrenceRow } from './format.js';
-import { loadData } from './data.js';
-import { t, type Lang } from './i18n.js';
-import { DiagnosticPanel, OccurrenceTable } from './issueContextParts.js';
+import { toOccurrenceRows, type OccurrenceRow } from './format';
+import { loadData } from './data';
+import { t, type Lang } from './i18n';
+import { DiagnosticPanel, OccurrenceTable } from './issueContextParts';
 
 /** Ce que rend le Cerveau pour l'encart de ticket. */
 interface IssueContextPayload {

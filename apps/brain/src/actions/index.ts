@@ -11,15 +11,15 @@
  * s'en servent ainsi :
  *
  * ```ts
- * import * as actions from './actions/index.js';
+ * import * as actions from './actions/index';
  * export const explainBuildFailure = async (payload) =>
  *   actions['explain-build-failure'](engine, payload);
  * ```
  */
 
-export { explainBuildFailure as 'explain-build-failure' } from './explain-build-failure.js';
-export { searchFailures as 'search-failures' } from './search-failures.js';
-export { getSignature as 'get-signature' } from './get-signature.js';
-export { listFlakyTests as 'list-flaky-tests' } from './list-flaky-tests.js';
-export { reportResolution as 'report-resolution' } from './report-resolution.js';
-export { confirmResolution as 'confirm-resolution' } from './confirm-resolution.js';
+export { explainBuildFailure as 'explain-build-failure' } from './explain-build-failure';
+export { searchFailures as 'search-failures' } from './search-failures';
+export { getSignature as 'get-signature' } from './get-signature';
+export { listFlakyTests as 'list-flaky-tests' } from './list-flaky-tests';
+export { reportResolution as 'report-resolution' } from './report-resolution';
+export { confirmResolution as 'confirm-resolution' } from './confirm-resolution';

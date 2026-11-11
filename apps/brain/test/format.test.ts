@@ -17,8 +17,8 @@ import {
   toOccurrenceRows,
   toSignatureRows,
   type SignatureRow,
-} from '../src/ui/format.js';
-import { FLAKY_OCCURRENCES, FLAKY_SIGNATURE, NEW_SIGNATURE } from './fakes/fixtures.js';
+} from '../src/ui/format';
+import { FLAKY_OCCURRENCES, FLAKY_SIGNATURE, NEW_SIGNATURE } from './fakes/fixtures';
 import type { CostReport, Signature } from '@dejavu/core';
 
 const shortId = (id: string): string => `S-${id.slice(-3)}`;

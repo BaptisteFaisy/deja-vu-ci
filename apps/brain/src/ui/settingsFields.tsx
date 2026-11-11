@@ -9,7 +9,7 @@
 
 import React from 'react';
 import { Label, Text, Textfield } from '@forge/react';
-import { t, type Lang } from './i18n.js';
+import { t, type Lang } from './i18n';
 
 /** Réglages éditables, tels que la page les porte. */
 export interface SettingsPayload {

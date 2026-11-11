@@ -9,10 +9,10 @@
  */
 
 import type { Signature } from '@dejavu/core';
-import { fail, ok, type ActionResult, type BrainEngine } from './engine.js';
-import { defineAction, type RawInput } from './descriptor.js';
-import { messageSimilarity, scoreMatch, type MatchKind } from './similarity.js';
-import { optionalText, requireText } from './validate.js';
+import { fail, ok, type ActionResult, type BrainEngine } from './engine';
+import { defineAction, type RawInput } from './descriptor';
+import { messageSimilarity, scoreMatch, type MatchKind } from './similarity';
+import { optionalText, requireText } from './validate';
 
 /** Un candidat trouvé. */
 export interface FailureMatch {

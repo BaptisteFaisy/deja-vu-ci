@@ -11,10 +11,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { Box, Button, Form, FormFooter, FormHeader, Heading, Inline, SectionMessage, Stack } from '@forge/react';
-import { loadData } from './data.js';
-import { t, type Lang } from './i18n.js';
-import { SettingsFields, type SettingsPayload } from './settingsFields.js';
-import { SaveFooter } from './settingsFooter.js';
+import { loadData } from './data';
+import { t, type Lang } from './i18n';
+import { SettingsFields, type SettingsPayload } from './settingsFields';
+import { SaveFooter } from './settingsFooter';
 
 /** Réglages vides, avant chargement. */
 const EMPTY: SettingsPayload = {
