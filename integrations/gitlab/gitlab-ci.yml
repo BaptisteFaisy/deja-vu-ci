@@ -1,0 +1,55 @@
+# Déjà-vu CI — GitLab CI snippet.
+#
+# Copy the `.deja-vu-report` block into your `.gitlab-ci.yml`, redirect the
+# output of the job you want to watch into `build.log`, and set two CI/CD
+# variables in the project settings:
+#
+#   DEJAVU_BRAIN_URL    → https://dejavu.webtrigger.atlassian.app/universal
+#   DEJAVU_PROJECT_KEY  → <your per-project key>   (masked, never echo it)
+#
+# Then extend the job: `extends: .deja-vu-report`.
+#
+# The report runs in `after_script` and never fails the pipeline: a red build
+# is reported, an unreachable Brain is a warning, a success is a no-op.
+
+.deja-vu-report:
+  artifacts:
+    when: on_failure
+    expire_in: 1 week
+    paths:
+      - build.log
+  after_script:
+    - |
+      if [ "$CI_JOB_STATUS" != "success" ]; then
+        URL="${DEJAVU_BRAIN_URL:-}"
+        KEY="${DEJAVU_PROJECT_KEY:-}"
+        LOG_FILE="$CI_PROJECT_DIR/build.log"
+        if [ -n "$URL" ] && [ -n "$KEY" ] && [ -f "$LOG_FILE" ]; then
+          LOG=$(tail -c 51200 "$LOG_FILE")
+          SIGNATURE=$(printf '%s' "$CI_PROJECT_PATH|$CI_COMMIT_REF_NAME|$CI_COMMIT_SHA|$CI_JOB_NAME|$LOG" | sha256sum | cut -d' ' -f1)
+          # Minimal JSON escaping for the log text (multi-line by nature).
+          esc() { printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'; }
+          BODY=$(printf '{"projectKey":"%s","repository":"%s","branch":"%s","commit":"%s","step":"%s","log":"%s","idempotencyKey":"%s"}' \
+            "$(esc "$KEY")" "$(esc "$CI_PROJECT_PATH")" "$(esc "$CI_COMMIT_REF_NAME")" \
+            "$(esc "$CI_COMMIT_SHA")" "$(esc "$CI_JOB_NAME")" "$(esc "$LOG")" "$SIGNATURE")
+          CODE=$(curl -s -m 20 -o /dev/null -w '%{http_code}' -X POST "$URL" \
+            -H 'Content-Type: application/json' --data-binary "$BODY" 2>/dev/null || true)
+          CODE="${CODE:-000}"
+          if [ "$CODE" = "202" ] || [ "$CODE" = "200" ]; then
+            echo "[deja-vu] reported (HTTP $CODE)"
+          else
+            echo "[deja-vu] Brain unreachable or refused (HTTP $CODE) — pipeline continues" >&2
+          fi
+        else
+          echo "[deja-vu] skipped: missing DEJAVU_BRAIN_URL, DEJAVU_PROJECT_KEY or build.log" >&2
+        fi
+      else
+        echo "[deja-vu] success — nothing to report"
+      fi
+
+# Example job that uses the snippet:
+#
+#   test:
+#     extends: .deja-vu-report
+#     script:
+#       - make test 2>&1 | tee build.log
