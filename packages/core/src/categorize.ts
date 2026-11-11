@@ -76,7 +76,7 @@ const PATTERNS: CategoryPattern[] = [
   {
     category: 'dependency',
     errorType: 'DependencyResolution',
-    re: /\b(?:npm (?:err!|error)\b|ERESOLVE|ENOTCACHED|could not resolve (?:dependency|dependencies|artifact|package)|no matching distribution found|could not find artifact|failed to download (?:package|artifact|module)|package .* not found in|unable to resolve (?:dependency|package)|no required module provides|modulenotfounderror)\b/i,
+    re: /(?:\bnpm\s+(?:err!|error\b)|\bERESOLVE\b|\bENOTCACHED\b|\bcould not resolve (?:dependency|dependencies|artifact|package)|\bno matching distribution found|\bcould not find artifact|\bfailed to download (?:package|artifact|module)|\bpackage .* not found in|\bunable to resolve (?:dependency|package)|\bno required module provides|\bmodulenotfounderror\b)/i,
   },
 
   // --- Style (§ 9.4: lint or formatting tool) ---
