@@ -35,10 +35,31 @@ immediately. The consumer does the heavy work.
   idempotently on first use.
 - `llm` — fallback normalisation only, when no pattern recognised a block
   (§ 9.5), cached by normalised text hash.
-- `jira:projectPage`, `jira:issueContext`, `jira:projectSettingsPage` — UI Kit
-  screens (lot G) rendered through resolvers.
+- `jira:projectPage`, `jira:issuePanel`, `jira:projectSettingsPage` — UI Kit 2
+  screens. All three render the same hosted resource (`resources: main` →
+  `src/frontend.tsx`), which routes on the module key and reads its data
+  through one resolver (`uiResolverHandler`).
+- `jira:issueContext` — kept in its **text** variant: what a Rovo agent reads
+  about a ticket (diagnostic, ticket, CI cost), built by
+  `src/pure/issueContextText.ts`.
 - `rovo:agent`, `action`, `rovo:mcp` — the six actions of § 13 (lot G),
   exposed identically to Rovo and to MCP clients.
+
+## UI Kit wiring (§ 14)
+
+| Piece | File | Role |
+|---|---|---|
+| Entry point | `src/frontend.tsx` | `ForgeReconciler.render(<App/>)`; routes `moduleKey` → screen |
+| Routing table | `src/pure/screens.ts` | Pure and unit-tested: no React needed to check it |
+| Screens | `src/ui/{projectPage,issueContext,settingsPage}.tsx` | The three screens of § 14 (lot G) |
+| Resolvers | `src/resolvers.ts` | Dispatches `invoke('memory-page' \| 'issue-context' \| 'settings' \| 'save-settings')` |
+| Shared words | `packages/present` | Labels, formatters and screen routing shared with the Sensor |
+| Icon | `static/icon.svg` | 32×32, referenced as `resource:icon;icon.svg` |
+
+A module declares `resource: main` + `render: native` + a `resolver.function`;
+the schema requires `icon` on `jira:issuePanel`. `tools/manifests.test.mjs`
+checks the wiring against the disk: every UI module resolves to a resource
+whose file exists, and every resolver is a declared function.
 
 ## Forge platform limits (design constraints)
 
@@ -82,7 +103,11 @@ of `@forge/sql`, `chat` of `@forge/llm`, the UI Kit of `@forge/react`. The
 Forge bundler still provides those packages at deploy time.
 
 The root test run stays free of any `@forge/*` runtime import: tests only
-cover `src/pure/`, `src/actions/`, `src/rovo/` and the UI helpers, which
-import types from `@dejavu/core` (erased at runtime) and never a runtime
-value of a platform package.
+cover `src/pure/`, `src/actions/`, `src/rovo/`, `src/resolvers.ts` and the UI
+helpers, which import types from `@dejavu/core` (erased at runtime) and never
+a runtime value of a platform package. `@dejavu/present` — the labels,
+formatters and screen routing shared with the Sensor — is resolved from its
+source by `vitest.config.ts`, so no build is needed to run the tests; a
+deployed bundle resolves the built package, so `npm run build` at the root
+comes before `forge deploy`.
 

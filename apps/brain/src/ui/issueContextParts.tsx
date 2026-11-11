@@ -1,43 +1,36 @@
 /**
- * Morceaux de l'encart ticket (§ 14, écran 4).
+ * Pieces of the issue panel (§ 14, screen 4).
  *
- * Deux affichages distincts : pour un ticket de développement, le diagnostic du
- * dernier build de sa branche ; pour un ticket de problème, le tableau des
- * occurrences. Les garder séparés évite un composant à deux responsabilités.
+ * Two distinct displays: a development ticket shows the diagnostic of the
+ * latest build of its branch, a problem ticket shows the occurrence table of
+ * its signature. Keeping them apart avoids one component with two jobs.
+ *
+ * The words come from `@dejavu/present`: the Bitbucket PR card says exactly
+ * the same thing about the same diagnostic.
  */
 
 import React from 'react';
 import { Box, Heading, Inline, Stack, Tag, Text } from '@forge/react';
 import type { Diagnostic } from '@dejavu/core';
+import { actionLabel, diagnosticLabel, formatConfidence } from '@dejavu/present';
+import type { Lang } from '@dejavu/present';
 import { formatDate, shortCommit, toOccurrenceRows, type OccurrenceRow } from './format.js';
-import { t, type Lang } from './i18n.js';
+import { t } from './i18n.js';
 
-/** Libellé traduit du diagnostic. */
-function diagnosisLabel(diagnostic: Diagnostic, lang: Lang): string {
-  const keys: Record<Diagnostic['kind'], string> = {
-    flaky: 'diagnosis.flaky',
-    'already-fixed': 'diagnosis.alreadyFixed',
-    new: 'diagnosis.new',
-    infrastructure: 'diagnosis.infrastructure',
-    uncertain: 'diagnosis.uncertain',
-  };
-  return t(keys[diagnostic.kind], lang);
-}
-
-/** Le diagnostic du dernier build rouge, avec sa résolution le cas échéant. */
+/** The diagnostic of the latest red build, with its fix when there is one. */
 export function DiagnosticPanel(props: {
   lang: Lang;
   diagnostic: Diagnostic | undefined;
 }): React.JSX.Element {
   const { lang, diagnostic } = props;
-  if (!diagnostic) return <Text>{t('issue.noFailure', lang)}</Text>;
+  if (!diagnostic) return <Text>{t('diagnostic.none', lang)}</Text>;
   return (
     <Box>
       <Inline alignInline="center" space="space.200">
-        <Text>{diagnosisLabel(diagnostic, lang)}</Text>
-        <Tag text={diagnostic.action} />
+        <Text>{diagnosticLabel(diagnostic.kind, lang)}</Text>
+        <Tag text={actionLabel(diagnostic.action, lang)} />
         <Text>
-          {t('confidence', lang)}: {Math.round(diagnostic.confidence * 100)}%
+          {t('diagnostic.confidence', lang)}: {formatConfidence(diagnostic.confidence)}
         </Text>
         {diagnostic.issueKey ? <Text>{diagnostic.issueKey}</Text> : null}
       </Inline>
@@ -47,7 +40,7 @@ export function DiagnosticPanel(props: {
   );
 }
 
-/** Le correctif cité par un diagnostic « déjà vu, déjà corrigé ». */
+/** The fix cited by an "already seen, already fixed" diagnostic. */
 function ResolutionLine({ lang, diagnostic }: { lang: Lang; diagnostic: Diagnostic }): React.JSX.Element {
   const resolution = diagnostic.resolution;
   // UI Kit 12: `Text` requires children — the defensive empty line renders
@@ -55,7 +48,7 @@ function ResolutionLine({ lang, diagnostic }: { lang: Lang; diagnostic: Diagnost
   if (!resolution) return <Text>{''}</Text>;
   return (
     <Inline space="space.200">
-      <Text>{t('issue.resolution', lang)}</Text>
+      <Text>{t('diagnostic.resolution', lang)}</Text>
       <Text>{shortCommit(resolution.commit)}</Text>
       <Text>{resolution.author}</Text>
       <Text>{resolution.note ?? ''}</Text>
@@ -63,7 +56,7 @@ function ResolutionLine({ lang, diagnostic }: { lang: Lang; diagnostic: Diagnost
   );
 }
 
-/** Le tableau des occurrences d'un ticket de problème. */
+/** The occurrence table of a problem ticket. */
 export function OccurrenceTable(props: { lang: Lang; rows: OccurrenceRow[] }): React.JSX.Element {
   const { lang, rows } = props;
   return (
@@ -84,5 +77,5 @@ export function OccurrenceTable(props: { lang: Lang; rows: OccurrenceRow[] }): R
   );
 }
 
-/** Convertit les occurrences du serveur en lignes affichables. */
+/** Converts the occurrences served by the Brain into displayable rows. */
 export { toOccurrenceRows };

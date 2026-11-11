@@ -4,9 +4,11 @@
  * The manifest points every module at an export of this file:
  *  - web triggers: `ingest`, `query`, `universal`,
  *  - the queue `consumer` and the daily `scheduled` run,
- *  - the UI Kit screens of lot G (`projectPage`, `issueContext`,
- *    `settingsPage`) and their data resolvers (`memoryPage`, `issueData`,
- *    `settingsData`, `saveSettingsData`),
+ *  - the UI Kit 2 screens: they are rendered by `src/frontend.tsx`
+ *    (`resources: main`) and read their data through `uiResolverHandler`,
+ *    which dispatches the `invoke()` names (`memory-page`, `issue-context`,
+ *    `settings`, `save-settings`) to the resolvers below,
+ *  - `issueContextText`, the text a Rovo agent reads on a ticket,
  *  - the six actions of § 13 (lot G), also exposed to Rovo and MCP.
  *
  * Wiring: one Forge SQL store (memory), one engine assembled from the real
@@ -35,12 +37,15 @@ import { settingsData, saveSettingsData } from './settings.js';
 import { toSettingsPayload } from './pure/settingsSchema.js';
 import { DEFAULT_SETTINGS } from './pure/defaults.js';
 import { brainStore } from './sql.js';
+import Resolver from '@forge/resolver';
+import { registerUiResolvers } from './resolvers.js';
+import { issueKeyFrom } from './pure/invokeContext.js';
+import {
+  issueContextText as renderIssueContextText,
+  type IssueContextInput,
+} from './pure/issueContextText.js';
 import type { IssueContextPayload, MemoryPagePayload } from './query.js';
 
-// Re-export the screens of lot G: a UI module resolver is its component.
-export { default as projectPage } from './ui/projectPage.js';
-export { default as issueContext } from './ui/issueContext.js';
-export { default as settingsPage } from './ui/settingsPage.js';
 export { ingest };
 
 /** The engine functions lot G's `createBrainEngine` expects. */
@@ -94,15 +99,15 @@ export async function memoryPage(): Promise<MemoryPagePayload> {
   return result.ok ? result.data : { signatures: [] };
 }
 
-/** Reads the issue key out of the invoke payload or the Forge context. */
+/**
+ * Reads the issue key out of the invoke payload or the Forge context.
+ *
+ * The lookup covers every shape the platform uses (`src/pure/invokeContext.ts`):
+ * a bare payload, a UI Kit 2 `invoke()` envelope, and the product context of
+ * an issue panel — so the panel and the Rovo text read the same issue.
+ */
 export function issueKeyOf(payload: unknown, context: unknown): string {
-  for (const source of [payload, context]) {
-    const record = (source ?? {}) as Record<string, unknown>;
-    if (typeof record.issueKey === 'string') return record.issueKey;
-    const issue = record.issue as Record<string, unknown> | undefined;
-    if (issue && typeof issue.key === 'string') return issue.key;
-  }
-  return '';
+  return issueKeyFrom({ payload, context });
 }
 
 /** Resolver `issue-context` (issue panel, § 14 screen 4). */
@@ -123,4 +128,43 @@ export async function settings(): Promise<ReturnType<typeof toSettingsPayload>> 
 export async function saveSettings(payload: unknown): Promise<{ ok: boolean; error?: string }> {
   const result = await saveSettingsData(store, payload);
   return result.ok ? { ok: true } : { ok: false, error: result.error };
+}
+
+// ---------------------------------------------------------------------------
+// UI Kit 2 wiring (§ 14, CI-08). The three Jira modules point at one resource
+// (`src/frontend.tsx`, `resources: main`) and at one resolver function: the
+// `invoke()` names of the screens are dispatched by `registerUiResolvers`,
+// which is where the platform routes every call of a UI module.
+// ---------------------------------------------------------------------------
+
+/** The resolver the UI modules of the manifest point at. */
+const uiResolver = new Resolver();
+registerUiResolvers(uiResolver, {
+  memoryPage,
+  issuePanel: issueData,
+  settings,
+  saveSettings,
+});
+
+/** Handler of `projectPageResolver`, `settingsPageResolver`, `issuePanelResolver`. */
+export const uiResolverHandler = uiResolver.getDefinitions();
+
+/**
+ * Data of the issue panel (`jira:issuePanel`, § 14 screen 4).
+ *
+ * The panel and the Rovo text read the same memory through the same call:
+ * one diagnostic, one place where it is computed.
+ */
+export const issuePanel = issueData;
+
+/**
+ * Text context of a ticket for Rovo (`jira:issueContext`, function variant):
+ * the current diagnostic, the ticket of the problem and what it already cost.
+ *
+ * The paragraph is built in `src/pure/issueContextText.ts` (tested); this
+ * function only feeds it with the data the panel already uses.
+ */
+export async function issueContextText(payload?: unknown, context?: unknown): Promise<string> {
+  const data = (await issueData(payload, context)) as IssueContextInput;
+  return renderIssueContextText(data);
 }
