@@ -207,12 +207,40 @@ function groupSignature(
 }
 
 /**
+ * Group occurrences by their discriminator, biggest group first (ties broken by
+ * value for determinism), each group sorted chronologically.
+ */
+function bucketBy(
+  occurrences: Occurrence[],
+  by: SplitCriterion,
+  fallbackTestName?: string,
+): Array<{ value: string; occurrences: Occurrence[] }> {
+  const buckets = new Map<string, Occurrence[]>();
+  for (const o of occurrences) {
+    const key = discriminator(o, by, fallbackTestName);
+    const list = buckets.get(key);
+    if (list) list.push(o);
+    else buckets.set(key, [o]);
+  }
+  return [...buckets.entries()]
+    .map(([value, occs]) => ({
+      value,
+      occurrences: [...occs].sort((a, b) => (a.occurredAt < b.occurredAt ? -1 : 1)),
+    }))
+    .sort((a, b) => b.occurrences.length - a.occurrences.length || a.value.localeCompare(b.value));
+}
+
+/**
  * Split a signature into several ones, one per group of occurrences.
  *
  * Groups are ordered by size (biggest first, ties broken by value) so the
  * majority group is always `groups[0]` and keeps the original signature.
  * Occurrences are sorted chronologically inside each group, and no occurrence
  * is ever invented: the concatenation of the groups is exactly the input.
+ *
+ * Documented effect: each occurrence is reassigned in place to its group
+ * signature (`signatureId`, `familyId`) — a no-op for the majority group, which
+ * keeps the original fingerprint — so the caller can persist the split as is.
  */
 export function splitSignature(
   signature: Signature,
@@ -220,30 +248,23 @@ export function splitSignature(
   by: SplitCriterion,
 ): SplitResult {
   const label = labelOf(by);
-  const buckets = new Map<string, Occurrence[]>();
-  for (const o of occurrences) {
-    const key = discriminator(o, by, signature.testName);
-    const list = buckets.get(key);
-    if (list) list.push(o);
-    else buckets.set(key, [o]);
-  }
-  const ordered = [...buckets.entries()]
-    .map(([value, occs]) => ({
-      value,
-      occurrences: [...occs].sort((a, b) => (a.occurredAt < b.occurredAt ? -1 : 1)),
-    }))
-    .sort((a, b) => b.occurrences.length - a.occurrences.length || a.value.localeCompare(b.value));
-  const groups = ordered.map((group, index) => ({
-    signature: groupSignature(
+  const ordered = bucketBy(occurrences, by, signature.testName);
+  const groups = ordered.map((group, index) => {
+    const major = index === 0;
+    const sig = groupSignature(
       signature,
       label,
       group.value,
       group.occurrences,
-      index === 0,
+      major,
       by === 'test-name' ? group.value : undefined,
-    ),
-    occurrences: group.occurrences,
-  }));
+    );
+    for (const occurrence of group.occurrences) {
+      occurrence.signatureId = sig.id;
+      occurrence.familyId = sig.familyId;
+    }
+    return { signature: sig, occurrences: group.occurrences };
+  });
   return { groups };
 }
 
