@@ -51,9 +51,22 @@ jobs:
           echo "$NODE_BIN" >> "$GITHUB_PATH"
           "$NODE_BIN/node" --version
 
-      - name: Dépendances (cache npm du worker)
+      # Dépendances : installées une fois par runner (node_modules survit au
+      # `git clean` ci-dessus), réinstallées seulement si le verrou change.
+      # Sans ce cache, `npm ci` coûte plus que le budget de 5 min quand la
+      # machine des runners est chargée.
+      - name: Dépendances (cache du runner, réinstallation si verrou changé)
         shell: bash
-        run: npm ci --prefer-offline --no-audit --no-fund
+        run: |
+          set -euo pipefail
+          HASH="$(sha256sum package-lock.json | cut -d' ' -f1)"
+          STAMP="node_modules/.ci-lock-hash"
+          if [ -d node_modules ] && [ -f "$STAMP" ] && [ "$(cat "$STAMP")" = "$HASH" ]; then
+            echo "cache node_modules à jour ($HASH) — pas de réinstallation"
+          else
+            npm ci --prefer-offline --no-audit --no-fund
+            printf '%s' "$HASH" > "$STAMP"
+          fi
 
       - name: Types (moteur + pont)
         shell: bash
