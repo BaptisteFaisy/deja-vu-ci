@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="840" viewBox="0 0 1200 840" font-family="Helvetica, Arial, sans-serif">
+  <title>Déjà-vu CI — architecture</title>
+  <desc>Deux apps Forge jumelées : le Capteur (Bitbucket) envoie les erreurs au Cerveau (Jira) par un pont signé ; le Cerveau garde la mémoire en SQL et alimente la carte de PR, l'encart de ticket, l'agent Rovo et les actions MCP.</desc>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#4a5568"/>
+    </marker>
+    <marker id="arrow-soft" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8a94a6"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="840" fill="#ffffff"/>
+
+  <text x="40" y="48" font-size="24" font-weight="bold" fill="#1f2733">Déjà-vu CI — two twin Forge apps, one signed bridge</text>
+  <text x="40" y="74" font-size="14" fill="#5a6472">The Sensor watches the red build; the Brain remembers, diagnoses and holds one ticket per problem.</text>
+
+  <!-- connecteurs (dessinés avant les boîtes : les boîtes les recouvrent) -->
+  <g stroke="#8a94a6" stroke-width="1.6" fill="none" stroke-dasharray="5 5">
+    <path d="M 165 280 L 165 656"/>
+    <path d="M 445 280 L 445 656"/>
+    <path d="M 620 360 L 620 656"/>
+  </g>
+
+  <g stroke="#4a5568" stroke-width="2" fill="none" marker-end="url(#arrow)">
+    <path d="M 292 195 L 334 195"/>
+    <path d="M 552 195 L 594 195"/>
+    <path d="M 872 145 L 914 145"/>
+    <path d="M 872 235 L 914 235"/>
+    <path d="M 872 325 L 914 325"/>
+    <path d="M 790 362 L 790 464"/>
+  </g>
+  <path d="M 312 525 L 575 525 L 575 235 L 594 235" stroke="#4a5568" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+
+  <!-- Sensor -->
+  <rect x="40" y="110" width="252" height="170" rx="8" fill="#eef3fa" stroke="#4a6fa5" stroke-width="1.6"/>
+  <text x="60" y="140" font-size="16" font-weight="bold" fill="#1f2733">Sensor</text>
+  <text x="60" y="159" font-size="12" fill="#5a6472">Forge app, Bitbucket side</text>
+  <text x="60" y="185" font-size="12" fill="#1f2733">• build-status triggers</text>
+  <text x="60" y="205" font-size="12" fill="#1f2733">• step log &amp; test reports</text>
+  <text x="60" y="225" font-size="12" fill="#1f2733">• secret masking, 50 KB cap</text>
+  <text x="60" y="245" font-size="12" fill="#1f2733">• changed files, linked ticket</text>
+  <text x="60" y="268" font-size="12" font-style="italic" fill="#5a6472">no durable data</text>
+
+  <!-- Bridge -->
+  <rect x="340" y="110" width="212" height="170" rx="8" fill="#f5f1fa" stroke="#6b5ca5" stroke-width="1.6"/>
+  <text x="358" y="140" font-size="16" font-weight="bold" fill="#1f2733">Signed bridge</text>
+  <text x="358" y="159" font-size="12" fill="#5a6472">packages/bridge</text>
+  <text x="358" y="185" font-size="12" fill="#1f2733">• HMAC-SHA256 body</text>
+  <text x="358" y="205" font-size="12" fill="#1f2733">• timestamp, nonce</text>
+  <text x="358" y="225" font-size="12" fill="#1f2733">• 300 s window, 5 MB cap</text>
+  <text x="358" y="245" font-size="12" fill="#1f2733">• constant-time compare</text>
+  <text x="358" y="268" font-size="12" font-style="italic" fill="#5a6472">shared pairing secret</text>
+
+  <!-- Brain -->
+  <rect x="600" y="110" width="272" height="252" rx="8" fill="#eef7f2" stroke="#3f7d5f" stroke-width="1.6"/>
+  <text x="618" y="140" font-size="16" font-weight="bold" fill="#1f2733">Brain</text>
+  <text x="618" y="159" font-size="12" fill="#5a6472">Forge app, Jira side</text>
+  <text x="618" y="185" font-size="12" fill="#1f2733">• /ingest, /query, /universal</text>
+  <text x="618" y="205" font-size="12" fill="#1f2733">• signature, family, category</text>
+  <text x="618" y="225" font-size="12" fill="#1f2733">• the four diagnostics</text>
+  <text x="618" y="245" font-size="12" fill="#1f2733">• one ticket per family</text>
+  <text x="618" y="265" font-size="12" fill="#1f2733">• LLM fallback, cached</text>
+  <text x="618" y="285" font-size="12" fill="#1f2733">• UI, Rovo agent, MCP</text>
+  <text x="618" y="312" font-size="12" font-style="italic" fill="#5a6472">queue: the 55 s trigger answers at once</text>
+  <text x="618" y="332" font-size="12" font-style="italic" fill="#5a6472">the 900 s consumer does the work</text>
+
+  <!-- PR card -->
+  <rect x="920" y="110" width="240" height="70" rx="8" fill="#ffffff" stroke="#8a94a6" stroke-width="1.4"/>
+  <text x="936" y="136" font-size="14" font-weight="bold" fill="#1f2733">Pull-request card</text>
+  <text x="936" y="156" font-size="12" fill="#5a6472">diagnostic + facts + ticket link</text>
+  <text x="936" y="172" font-size="12" font-style="italic" fill="#5a6472">queried at display time</text>
+
+  <!-- Issue panel -->
+  <rect x="920" y="200" width="240" height="70" rx="8" fill="#ffffff" stroke="#8a94a6" stroke-width="1.4"/>
+  <text x="936" y="226" font-size="14" font-weight="bold" fill="#1f2733">Jira issue panel</text>
+  <text x="936" y="246" font-size="12" fill="#5a6472">last build of the branch</text>
+  <text x="936" y="262" font-size="12" font-style="italic" fill="#5a6472">occurrences for a problem ticket</text>
+
+  <!-- Rovo / MCP -->
+  <rect x="920" y="290" width="240" height="92" rx="8" fill="#ffffff" stroke="#8a94a6" stroke-width="1.4"/>
+  <text x="936" y="316" font-size="14" font-weight="bold" fill="#1f2733">Rovo agent &amp; MCP</text>
+  <text x="936" y="336" font-size="12" fill="#5a6472">six actions, read and write</text>
+  <text x="936" y="354" font-size="12" font-style="italic" fill="#5a6472">explain · search · get · list</text>
+  <text x="936" y="370" font-size="12" font-style="italic" fill="#5a6472">report · confirm</text>
+
+  <!-- Universal entry -->
+  <rect x="40" y="470" width="272" height="110" rx="8" fill="#f4f4f6" stroke="#6f7683" stroke-width="1.6"/>
+  <text x="58" y="498" font-size="16" font-weight="bold" fill="#1f2733">Universal entry</text>
+  <text x="58" y="517" font-size="12" fill="#5a6472">any CI, one command</text>
+  <text x="58" y="543" font-size="12" fill="#1f2733">• log excerpt + project key</text>
+  <text x="58" y="563" font-size="12" fill="#1f2733">• validated, masked, then same path</text>
+
+  <!-- Forge SQL -->
+  <rect x="680" y="470" width="272" height="110" rx="8" fill="#fdf6ec" stroke="#a97b3c" stroke-width="1.6"/>
+  <text x="698" y="498" font-size="16" font-weight="bold" fill="#1f2733">Forge SQL — the memory</text>
+  <text x="698" y="517" font-size="12" fill="#5a6472">signature · occurrence · resolution</text>
+  <text x="698" y="543" font-size="12" fill="#1f2733">• raw excerpts purged after 30 days</text>
+  <text x="698" y="563" font-size="12" fill="#1f2733">• indexed screen queries, 5 s per SELECT</text>
+
+  <!-- engine band -->
+  <rect x="40" y="660" width="1120" height="112" rx="8" fill="#fafbfc" stroke="#a0a8b5" stroke-width="1.4" stroke-dasharray="7 5"/>
+  <text x="60" y="690" font-size="16" font-weight="bold" fill="#1f2733">packages/core — the engine</text>
+  <text x="60" y="711" font-size="12" fill="#5a6472">pure TypeScript, strict, ESM, no Forge import at all, runtime dependency: node:* only</text>
+  <text x="60" y="737" font-size="12" fill="#1f2733">mask · extract · normalize · categorize · sign · flaky · outbreak · diagnose · resolutions · tickets · cost · store · replay · llm · universal</text>
+  <text x="60" y="757" font-size="12" font-style="italic" fill="#5a6472">the apps are adapters: they read Forge events, call the engine, and render its output — the same diagnostic everywhere</text>
+
+  <!-- étiquettes d'axes -->
+  <text x="292" y="188" font-size="11" fill="#5a6472">payload</text>
+  <text x="548" y="186" font-size="11" fill="#5a6472">signed POST</text>
+  <text x="318" y="518" font-size="11" fill="#5a6472">log excerpt</text>
+  <text x="800" y="440" font-size="11" fill="#5a6472">store</text>
+  <text x="920" y="98" font-size="11" fill="#5a6472">the three surfaces</text>
+  <text x="150" y="650" font-size="11" fill="#8a94a6">adapter</text>
+  <text x="430" y="650" font-size="11" fill="#8a94a6">adapter</text>
+  <text x="600" y="650" font-size="11" fill="#8a94a6">adapter</text>
+</svg>
