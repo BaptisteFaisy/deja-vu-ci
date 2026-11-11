@@ -327,15 +327,46 @@ describe('câblage UI Kit des deux apps', () => {
     }
   });
 
-  it('les deux apps pointent leurs ressources vers un point d’entrée UI Kit', () => {
-    for (const app of apps()) {
-      const main = resourcesOf(app.manifest).get('main');
-      expect(main, `${app.name} : pas de ressource « main »`).toBeTruthy();
-      expect(main.path.endsWith('.tsx'), `${app.name} : ${main.path} n'est pas un .tsx`).toBe(true);
-      const source = readFileSync(path.join(app.dir, main.path), 'utf8');
-      // Le point d'entrée UI Kit 2 rend quelque chose : sans cet appel, le
-      // module s'installe et n'affiche rien.
-      expect(source, `${app.name} : ${main.path} ne rend rien`).toContain('ForgeReconciler.render');
+  it('le Cerveau pointe sa ressource principale vers un point d’entrée UI Kit', () => {
+    const brain = apps().find((app) => app.name === 'brain');
+    const main = resourcesOf(brain.manifest).get('main');
+    expect(main, 'brain : pas de ressource « main »').toBeTruthy();
+    expect(main.path.endsWith('.tsx'), `brain : ${main.path} n'est pas un .tsx`).toBe(true);
+    const source = readFileSync(path.join(brain.dir, main.path), 'utf8');
+    // Le point d'entrée UI Kit 2 rend quelque chose : sans cet appel, le
+    // module s'installe et n'affiche rien.
+    expect(source, `brain : ${main.path} ne rend rien`).toContain('ForgeReconciler.render');
+  });
+
+  it('le Capteur pointe sa ressource principale vers un dossier Custom UI complet', () => {
+    // Les modules `bitbucket:*` du schéma ne déclinent aucune propriété
+    // `render` : pas d'UI Kit pour Bitbucket, l'UI est un dossier statique
+    // (iframe) — `forge lint` refuse une ressource qui n'est pas un dossier.
+    const sensor = apps().find((app) => app.name === 'sensor');
+    const main = resourcesOf(sensor.manifest).get('main');
+    expect(main, 'sensor : pas de ressource « main »').toBeTruthy();
+    const dir = path.join(sensor.dir, main.path);
+    expect(statSync(dir, { throwIfNoEntry: false })?.isDirectory(), `${main.path} n'est pas un dossier`).toBe(true);
+
+    // La page charge le bundle et la feuille de style, et rien d'externe :
+    // la CSP de l'iframe Forge interdit les CDN.
+    const html = readFileSync(path.join(dir, 'index.html'), 'utf8');
+    expect(html, 'index.html ne charge pas ./index.js').toContain('./index.js');
+    expect(html, 'index.html ne charge pas ./styles.css').toContain('./styles.css');
+    expect(html, 'index.html charge une ressource externe').not.toMatch(/https?:\/\//);
+    expect(existsSync(path.join(dir, 'styles.css')), 'styles.css absent').toBe(true);
+
+    // Le bundle est **commité** (un juge déploie sans outillage de build) :
+    // présent, d'une taille qui dit qu'il embarque React DOM, et construit
+    // des sources actuelles — les marqueurs du routage et des résolveurs
+    // survivent à la minification.
+    const bundle = path.join(dir, 'index.js');
+    expect(existsSync(bundle), 'static/index.js absent du dépôt').toBe(true);
+    const size = statSync(bundle).size;
+    expect(size, `bundle trop petit (${size} octets) : rebuild requis ?`).toBeGreaterThan(40_000);
+    const code = readFileSync(bundle, 'utf8');
+    for (const marker of ['deja-vu-pr-card', 'deja-vu-workspace-settings', 'getPrCard', 'saveSettings']) {
+      expect(code, `marqueur « ${marker} » absent du bundle : rebuild requis`).toContain(marker);
     }
   });
 

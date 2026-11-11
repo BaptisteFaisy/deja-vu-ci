@@ -1,0 +1,21 @@
+<!doctype html>
+<!--
+  Déjà-vu CI — Sensor (Bitbucket) Custom UI.
+
+  One page for both modules (pull-request card and workspace settings):
+  the bundle reads the module key from the platform context and renders the
+  right screen. Everything is self-hosted: the Forge iframe enforces a strict
+  Content-Security-Policy, so no CDN, no external font, no external script.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Déjà-vu CI</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="./index.js"></script>
+  </body>
+</html>
