@@ -9,8 +9,8 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "tsc -p packages/core && tsc -p packages/bridge",
-    "typecheck": "tsc -p packages/core --noEmit && tsc -p packages/bridge --noEmit",
+    "build": "tsc -p packages/core && tsc -p packages/bridge && tsc -p packages/present",
+    "typecheck": "tsc -p packages/core --noEmit && tsc -p packages/bridge --noEmit && tsc -p packages/present --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "replay": "npm run build --silent && node tools/replay.mjs",

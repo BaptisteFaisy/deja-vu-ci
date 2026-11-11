@@ -1,87 +1,58 @@
 /**
- * Mise en forme des écrans du Cerveau (§ 14) — module **pur**.
+ * How a signature reads on the CI Memory page (§ 14, screen 3) — pure module.
  *
- * Tout ce qui transforme des données en libellés, en couleurs, en tris et en
- * filtres vit ici : pas de JSX, pas d'import `@forge/react`, pas d'accès
- * réseau. Les composants `.tsx` ne font que placer ces valeurs.
+ * Rows, filters and sorts stay here because only this screen has them. The
+ * labels and formatters both apps share (`statusLabel`, `categoryLabel`,
+ * `formatDate`, `formatMinutes`, `shortCommit`) come from `@dejavu/present`:
+ * they are written once and displayed identically on the Bitbucket card.
+ *
+ * No JSX, no `@forge/react` import, no network: the components `.tsx` only
+ * place these values.
  */
 
-import type {
-  Category,
-  CostReport,
-  Occurrence,
-  Signature,
-  SignatureStatus,
-} from '@dejavu/core';
+import {
+  categoryLabel,
+  formatDate,
+  formatMinutes,
+  shortCommit,
+  statusLabel,
+  statusNeedsAttention,
+  statusTone,
+} from '@dejavu/present';
+import type { Lang, Tone } from '@dejavu/present';
+import type { Category, CostReport, Occurrence, Signature, SignatureStatus } from '@dejavu/core';
 
-/** Langues de l'interface (§ 18). */
-export type Lang = 'en' | 'fr';
+export { categoryLabel, formatDate, formatMinutes, shortCommit };
+export type { Lang };
 
-/** Statut affiché avec sa couleur (jetons Atlassian, pas de classes CSS). */
+/** A status with its colour (Atlassian tokens, no CSS class). */
 export interface StatusBadge {
   label: string;
-  /** Jeton de couleur : `green`, `yellow`, `red`, `blue`, `grey`, `purple`. */
-  tone: 'green' | 'yellow' | 'red' | 'blue' | 'grey' | 'purple';
-  /** Vrai si la signature demande une action du développeur. */
+  /** Colour token: `green`, `yellow`, `red`, `blue`, `grey`, `purple`. */
+  tone: Tone;
+  /** True when the signature asks the developer to do something. */
   attention: boolean;
 }
 
-/** Libellé et couleur d'un statut de signature. */
+/** Label and colour of a signature status. */
 export function statusBadge(status: SignatureStatus, lang: Lang): StatusBadge {
-  const en: Record<SignatureStatus, [string, StatusBadge['tone']]> = {
-    new: ['New', 'blue'],
-    known: ['Known', 'grey'],
-    flaky: ['Flaky', 'yellow'],
-    resolved: ['Resolved', 'green'],
-    regression: ['Regression', 'red'],
+  return {
+    label: statusLabel(status, lang),
+    tone: statusTone(status),
+    attention: statusNeedsAttention(status),
   };
-  const fr: Record<SignatureStatus, [string, StatusBadge['tone']]> = {
-    new: ['Nouvelle', 'blue'],
-    known: ['Connue', 'grey'],
-    flaky: ['Instable', 'yellow'],
-    resolved: ['Résolue', 'green'],
-    regression: ['Régression', 'red'],
-  };
-  const table = lang === 'fr' ? fr : en;
-  const [label, tone] = table[status] ?? en[status];
-  return { label, tone, attention: status === 'flaky' || status === 'regression' };
 }
 
-/** Libellé d'une catégorie d'erreur. */
-export function categoryLabel(category: Category, lang: Lang): string {
-  const en: Record<Category, string> = {
-    test: 'Test',
-    compile: 'Compile',
-    style: 'Style',
-    dependency: 'Dependency',
-    infrastructure: 'Infrastructure',
-    timeout: 'Timeout',
-    config: 'Configuration',
-    unknown: 'Unknown',
-  };
-  const fr: Record<Category, string> = {
-    test: 'Test',
-    compile: 'Compilation',
-    style: 'Style',
-    dependency: 'Dépendance',
-    infrastructure: 'Infrastructure',
-    timeout: 'Délai',
-    config: 'Configuration',
-    unknown: 'Inconnue',
-  };
-  return (lang === 'fr' ? fr : en)[category] ?? en[category];
-}
-
-/** Filtres de la page « Mémoire de CI ». */
+/** Filters of the CI Memory page. */
 export interface SignatureFilter {
   status?: SignatureStatus;
   category?: Category;
-  /** Recherche libre sur le gabarit, le type d'erreur et le nom du test. */
+  /** Free text over the template, the error type and the test name. */
   text?: string;
   repository?: string;
 }
 
-/** Une ligne du tableau des signatures. */
+/** One row of the signature table. */
 export interface SignatureRow {
   id: string;
   shortId: string;
@@ -97,10 +68,10 @@ export interface SignatureRow {
   issueKey?: string;
 }
 
-/** Champs de tri du tableau des signatures. */
+/** Sort keys of the signature table. */
 export type SignatureSortKey = 'lastSeen' | 'occurrences' | 'status' | 'category';
 
-/** Prépare les lignes du tableau à partir des signatures. */
+/** Builds the table rows out of the signatures. */
 export function toSignatureRows(
   signatures: Signature[],
   shortId: (id: string) => string,
@@ -122,7 +93,7 @@ export function toSignatureRows(
   }));
 }
 
-/** Une ligne de recherche est retenue si elle contient le texte cherché. */
+/** A row is kept when it contains the searched text. */
 function matchesText(row: SignatureRow, text: string): boolean {
   const needle = text.trim().toLowerCase();
   if (needle.length === 0) return true;
@@ -132,7 +103,7 @@ function matchesText(row: SignatureRow, text: string): boolean {
     .includes(needle);
 }
 
-/** Applique les filtres de la page projet. */
+/** Applies the filters of the project page. */
 export function filterSignatureRows(
   rows: SignatureRow[],
   filter: SignatureFilter,
@@ -144,7 +115,7 @@ export function filterSignatureRows(
   });
 }
 
-/** Compare deux lignes selon une clé de tri. */
+/** Compares two rows along one sort key. */
 function compareRows(a: SignatureRow, b: SignatureRow, key: SignatureSortKey): number {
   switch (key) {
     case 'occurrences':
@@ -159,7 +130,7 @@ function compareRows(a: SignatureRow, b: SignatureRow, key: SignatureSortKey): n
   }
 }
 
-/** Trie les lignes du tableau (tri stable, la dernière vue d'abord). */
+/** Sorts the table rows (stable sort, latest seen first). */
 export function sortSignatureRows(
   rows: SignatureRow[],
   key: SignatureSortKey,
@@ -169,7 +140,7 @@ export function sortSignatureRows(
   return descending ? sorted.reverse() : sorted;
 }
 
-/** Une ligne du tableau des occurrences. */
+/** One row of the occurrence table. */
 export interface OccurrenceRow {
   occurredAt: string;
   repo: string;
@@ -181,7 +152,7 @@ export interface OccurrenceRow {
   buildUrl?: string;
 }
 
-/** Prépare les lignes d'occurrences, de la plus récente à la plus ancienne. */
+/** Builds the occurrence rows, most recent first. */
 export function toOccurrenceRows(occurrences: Occurrence[]): OccurrenceRow[] {
   return [...occurrences]
     .sort((a, b) => (a.occurredAt < b.occurredAt ? 1 : -1))
@@ -197,7 +168,7 @@ export function toOccurrenceRows(occurrences: Occurrence[]): OccurrenceRow[] {
     }));
 }
 
-/** Une ligne de l'onglet « Coût ». */
+/** One row of the Cost tab. */
 export interface CostRow {
   signatureId: string;
   shortId: string;
@@ -208,11 +179,8 @@ export interface CostRow {
   retries: number;
 }
 
-/** Prépare les lignes de l'onglet « Coût », de la plus coûteuse à la moins chère. */
-export function toCostRows(
-  report: CostReport,
-  shortId: (id: string) => string,
-): CostRow[] {
+/** Builds the Cost tab rows, most expensive first. */
+export function toCostRows(report: CostReport, shortId: (id: string) => string): CostRow[] {
   return report.perSignature.map((cost) => ({
     signatureId: cost.signatureId,
     shortId: shortId(cost.signatureId),
@@ -222,25 +190,4 @@ export function toCostRows(
     peopleAffected: cost.peopleAffected,
     retries: cost.retries,
   }));
-}
-
-/** Formate une durée en minutes pour l'affichage. */
-export function formatMinutes(seconds: number): string {
-  const minutes = Math.round((seconds / 60) * 10) / 10;
-  return `${minutes} min`;
-}
-
-/** Formate une date ISO en date lisible (JJ/MM/AAAA ou MM/DD/YYYY). */
-export function formatDate(iso: string, lang: Lang): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return iso;
-  const day = String(date.getUTCDate()).padStart(2, '0');
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const year = date.getUTCFullYear();
-  return lang === 'fr' ? `${day}/${month}/${year}` : `${month}/${day}/${year}`;
-}
-
-/** Abrège un commit pour l'affichage. */
-export function shortCommit(commit: string): string {
-  return commit.slice(0, 7);
 }

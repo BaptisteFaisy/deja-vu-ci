@@ -2,6 +2,8 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "noEmit": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "lib": ["ES2022", "DOM"],
     "baseUrl": ".",
     "jsx": "react-jsx",
@@ -11,7 +13,8 @@
         "../../packages/core/src/index.ts",
         "../../packages/core/src/types.ts"
       ],
-      "@dejavu/bridge": ["../../packages/bridge/src/index.ts"]
+      "@dejavu/bridge": ["../../packages/bridge/src/index.ts"],
+      "@dejavu/present": ["../../packages/present/src/index.ts"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],

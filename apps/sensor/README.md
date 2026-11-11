@@ -22,16 +22,37 @@ pairing with a Brain and the preferences of the workspace.
 | Module | Function | Role |
 |---|---|---|
 | `trigger` (`avi:bitbucket:created:build-status`, `avi:bitbucket:updated:build-status`) | `onBuildStatus` | A build turned red: read it, mask it, sign it, forward it. |
-| `bitbucket:repoPullRequestCard` | `getPrCard` | The card in the pull request asks the Brain for the diagnostic (§ 14, screen 1). |
-| `bitbucket:workspaceSettingsMenuPage` | `getSettings` | Pairing, watched repositories, maximum excerpt size (§ 14, screen 2). |
-| `bitbucket:workspaceSettingsMenuPage` | `saveSettings` | Saves the same page, and writes the shared secret to the Forge secret storage. |
+| `bitbucket:repoPullRequestCard` | `prCardResolver` → `getPrCard` | The card in the pull request asks the Brain for the diagnostic (§ 14, screen 1). |
+| `bitbucket:workspaceSettingsMenuPage` | `settingsResolver` → `getSettings`, `saveSettings` | Pairing, watched repositories, maximum excerpt size (§ 14, screen 2). |
+
+Both UI modules render the **same hosted resource** (`resources: main` →
+`src/frontend.tsx`), which routes on the module key (`src/pure/screens.ts`) and
+reads its data through `invoke()`. The card is a React component
+(`src/ui/prCard.tsx`), the settings page another (`src/ui/settingsPage.tsx`);
+their words come from `packages/present`, the same table the Brain uses.
 
 Scopes: `read:repository:bitbucket`, `read:pipeline:bitbucket`,
 `read:pullrequest:bitbucket`, `storage:app`.
 `permissions.external.fetch.backend` allows `*.webtrigger.atlassian.app`
 only — the address of the Brain. Nothing else can be called from here.
 
-Runtime: `nodejs20.x`.
+Runtime: `nodejs22.x`.
+
+### `@forge/api` stays on 7.x — on purpose
+
+`@forge/api` **8.0.0 removed the `storage` export**, which this app uses for
+the pairing and the workspace preferences (`src/settings.ts`,
+`src/bitbucketApi.ts`). The Brain moved to Forge SQL and could take 8.x; the
+Sensor keeps `@forge/api ^7.2.2` because migrating it to SQL would mean a
+`sql` module and a schema for two settings rows — more moving parts for the
+same behaviour. Check it any time with:
+
+```bash
+cd apps/sensor && node -e "console.log(typeof require('@forge/api').storage)"   # → object
+```
+
+The UI Kit packages (`@forge/react`, `react`, `@types/react`) are independent
+of that choice: the frontend only talks to `@forge/bridge`.
 
 ### Uncertainties (to confirm with `forge lint` and a prototype)
 
@@ -43,11 +64,11 @@ here so that the next reader knows what is assumed:
    manifest schema shipped with `@forge/manifest` 12.9.0; the closest real
    keys are used here: `bitbucket:repoPullRequestCard` and
    `bitbucket:workspaceSettingsMenuPage`.
-2. **Two entries for the settings page.** A page module declares one
-   function, so the save action is declared as a second
-   `bitbucket:workspaceSettingsMenuPage` entry with its own key. If Forge
-   prefers a single page with a resolver, the two entries collapse into one
-   and `saveSettings` becomes a resolver key.
+2. **Two entries for the settings page.** ~~The save action is declared as a
+   second `bitbucket:workspaceSettingsMenuPage` entry.~~ **Resolved**: with a
+   resolver, one page module answers both `invoke('getSettings')` and
+   `invoke('saveSettings')`, so the manifest declares a single page and
+   `saveSettings` is a resolver key (`src/index.ts` → `settingsResolver`).
 3. **Event names.** `avi:bitbucket:created:build-status` and
    `avi:bitbucket:updated:build-status` are the names given by the
    specification; they are absent from the product-event mapping of
@@ -79,7 +100,11 @@ here so that the next reader knows what is assumed:
 
 | Path | Role |
 |---|---|
-| `src/index.ts` | The Forge functions and the `handler` entry point. Wiring only; never throws. |
+| `src/index.ts` | The Forge functions and the module resolvers (`prCardResolver`, `settingsResolver`, `handler`). Wiring only; never throws. |
+| `src/frontend.tsx` | UI Kit 2 entry point (`resources: main`): routes the module key to the card or the settings page. |
+| `src/ui/prCard.tsx` | The pull-request card (§ 14, screen 1). |
+| `src/ui/settingsPage.tsx` | The workspace settings page (§ 14, screen 2). The secret field is write-only. |
+| `static/icon.svg` | The 32×32 icon the card declares (`resource:icon;icon.svg`). |
 | `src/pipelines.ts` | Reads the Pipelines API through an injected reader: pipeline of a commit, steps, log tail, test reports, commits, diffstat. |
 | `src/bitbucketApi.ts` | The only file that talks to `@forge/api`: the Bitbucket reader used in production. |
 | `src/buildPayload.ts` | Collects one failing build and builds the `IngestPayload`. |
@@ -87,8 +112,8 @@ here so that the next reader knows what is assumed:
 | `src/send.ts` | Signs with `@dejavu/bridge` and posts to the Brain. |
 | `src/settings.ts` | Pairing and settings in `storage:app`; the secret lives in the Forge secret storage. |
 | `src/ancestry.ts` | Pure ancestor comparison (§ 10.2) with an injected commit reader. |
-| `src/pure/*.ts` | Everything testable without Forge: payload construction, block selection and truncation, `Range` computation, event and API parsing, settings. |
-| `test/*.test.ts` | Unit tests of the pure modules; no network, no `@forge/api`. |
+| `src/pure/*.ts` | Everything testable without Forge: payload construction, block selection and truncation, `Range` computation, event and API parsing, settings, the card's view model (`prCardView.ts`), the page's form (`settingsView.ts`), the resolver dispatch (`dispatch.ts`) and the screen routing (`screens.ts`). |
+| `test/*.test.ts` | Unit tests of the pure modules; no network, no `@forge/api`, no React. |
 
 ## Reading a failure, and what happens when it cannot be read
 
@@ -148,10 +173,13 @@ build event is lost anyway.
 ```bash
 cd apps/sensor
 npm install                 # the app is not part of the root npm workspace
-npm run typecheck           # tsc -p . --noEmit
+npm run typecheck           # tsc -p . --noEmit (checks the .tsx screens too)
 cd ../.. && npx vitest run apps/sensor/test --reporter=dot
 ```
 
-The root CI typechecks `packages/core` and `packages/bridge` and runs every
-test of `packages/**` and `apps/**/test/**`; the Sensor tests are part of it
-and need no network, no Forge runtime and no built engine.
+The root CI typechecks `packages/core`, `packages/bridge` and `packages/present`
+and runs every test of `packages/**` and `apps/**/test/**`; the Sensor tests are
+part of it and need no network, no Forge runtime, no React and no built engine.
+The screens import `@dejavu/present` (labels, formatters, routing) through the
+`paths` of `tsconfig.json`; a deployed bundle resolves the built package, so
+`npm run build` at the root comes before `forge deploy`.

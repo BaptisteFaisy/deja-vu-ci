@@ -1,35 +1,23 @@
 /**
- * Accès aux données du Cerveau pour les écrans (§ 14).
+ * How the Brain's screens reach its data (§ 14).
  *
- * Les composants `.tsx` ne parlent pas directement à `invoke()` : ils
- * appellent `loadData`, qui fait l'appel, déballe la réponse de Forge
- * (`body` quand la plateforme ajoute des métadonnées) et rend une erreur
- * explicite plutôt qu'une exception.
+ * The components `.tsx` never call `invoke()` directly: they call `loadData`,
+ * which makes the call and hands back the resolver's body. The unwrapping is
+ * shared with the Sensor (`@dejavu/present`), so both apps read a Forge
+ * answer the same way.
  *
- * Ce module n'importe pas `@forge/react` : il reste testable.
+ * This module is the only one importing `@forge/bridge`, and it exports no
+ * JSX: it stays testable.
  */
 
 import { invoke } from '@forge/bridge';
+import { createLoader, unwrapBody, type InvokeFn } from '@dejavu/present';
 
-/** Enveloppe possible de la réponse de Forge (corps + métadonnées). */
-interface ForgeEnvelope {
-  body: unknown;
-  metadata?: unknown;
-}
+/** Unwraps a Forge answer: the body, wrapped or not. */
+export const unwrap = unwrapBody;
 
-/** Déballe une réponse de Forge : rend le corps, qu'il soit enveloppé ou non. */
-export function unwrap<T>(response: unknown): T {
-  if (response && typeof response === 'object' && 'body' in response) {
-    return (response as ForgeEnvelope).body as T;
-  }
-  return response as T;
-}
+/** The bridge call, shaped for the shared loader. */
+const bridgeInvoke: InvokeFn = (functionKey, payload) => invoke(functionKey, payload);
 
-/** Appelle un résolveur du Cerveau et rend son corps. */
-export async function loadData<T>(
-  functionKey: string,
-  payload: Record<string, unknown> = {},
-): Promise<T> {
-  const response = await invoke<Record<string, unknown>>(functionKey, payload);
-  return unwrap<T>(response);
-}
+/** Calls a resolver of the Brain and returns its body. */
+export const loadData = createLoader(bridgeInvoke);

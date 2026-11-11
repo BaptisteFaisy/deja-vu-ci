@@ -48,22 +48,51 @@ modules:
         - claude
 
   jira:projectPage:
+    # UI Kit 2: the page is rendered by the shared resource `main`
+    # (src/frontend.tsx), which routes on the module key. `render: native`
+    # is what UI Kit 2 asks for; `resolver.function` receives every
+    # `invoke()` of the screen (`memory-page`).
     - key: deja-vu-project-page
       title: Déjà-vu CI
-      function: projectPageResolver
+      resource: main
+      resolver:
+        function: projectPageResolver
+      render: native
+      icon: resource:icon;icon.svg
+
+  jira:issuePanel:
+    # The panel on the ticket (CI-08: "show the diagnostic on the ticket"):
+    # the diagnosis of the latest build of the branch, or the occurrences of
+    # the problem when this ticket is the problem ticket. `icon` is required
+    # by the schema on this module.
+    - key: deja-vu-issue-panel
+      title: Déjà-vu CI
+      resource: main
+      resolver:
+        function: issuePanelResolver
+      render: native
+      icon: resource:icon;icon.svg
+      viewportSize: medium
 
   jira:issueContext:
     # Schema: the function variant of the issue context requires `label`
     # (short title of the panel) next to `key`, `title` and `function`.
+    # Kept as **text**: it is what a Rovo agent reads about the ticket —
+    # the current diagnostic, its ticket and what the failure already cost
+    # (`src/pure/issueContextText.ts`). The panel above is the human view.
     - key: deja-vu-issue-context
       title: Déjà-vu CI
       label: Déjà-vu CI
-      function: issueContextResolver
+      function: issueContextText
 
   jira:projectSettingsPage:
     - key: deja-vu-project-settings
       title: Déjà-vu CI
-      function: settingsPageResolver
+      resource: main
+      resolver:
+        function: settingsPageResolver
+      render: native
+      icon: resource:icon;icon.svg
 
   rovo:agent:
     - key: deja-vu-rovo-agent
@@ -157,21 +186,18 @@ modules:
       handler: index.consumer
     - key: scheduledHandler
       handler: index.scheduled
+    # The three UI modules share one resolver handler: `invoke('<name>')` is
+    # routed to the resolver of the module, and `src/resolvers.ts` dispatches
+    # on the name (`memory-page`, `issue-context`, `settings`, `save-settings`).
     - key: projectPageResolver
-      handler: index.projectPage
-    - key: issueContextResolver
-      handler: index.issueContext
+      handler: index.uiResolverHandler
+    - key: issuePanelResolver
+      handler: index.uiResolverHandler
     - key: settingsPageResolver
-      handler: index.settingsPage
-    # Data resolvers called by the UI Kit screens through invoke() (lot G).
-    - key: memory-page
-      handler: index.memoryPage
-    - key: issue-context
-      handler: index.issueData
-    - key: settings
-      handler: index.settings
-    - key: save-settings
-      handler: index.saveSettings
+      handler: index.uiResolverHandler
+    # Text context of a ticket, read by Rovo (`jira:issueContext`).
+    - key: issueContextText
+      handler: index.issueContextText
     - key: actionExplainBuildFailure
       handler: index.explainBuildFailure
     - key: actionSearchFailures
@@ -195,10 +221,25 @@ permissions:
     fetch:
       backend: []
 
+# Hosted resources (§ 14): one UI Kit 2 entry point for the three Jira
+# modules, and the icon they all display. `path` is relative to the app root,
+# and a module refers to an entry with `resource: <key>` — an icon with
+# `resource:<key>;<file>`.
+resources:
+  - key: main
+    path: src/frontend.tsx
+  - key: icon
+    path: static/icon.svg
+
 app:
   id: ari:cloud:ecosystem::app/REPLACE-WITH-THE-REAL-APP-ID
   description: >-
     Recognises a red build, tells in seconds whether it is new, known,
     flaky or an infrastructure failure, and keeps one ticket per problem.
   runtime:
-    name: nodejs20.x
+    name: nodejs22.x
+  # The Brain is the Jira half of the pair: it creates and comments tickets,
+  # so Jira is required (the Sensor, its Bitbucket twin, is a separate app).
+  compatibility:
+    jira:
+      required: true
