@@ -118,6 +118,7 @@ modules:
         - list-flaky-tests
         - report-resolution
         - confirm-resolution
+        - propose-quarantine
 
   action:
     # Schema: every action requires `key`, `function`, `description` (1–255
@@ -166,6 +167,14 @@ modules:
       description: >-
         Confirm or reject a candidate resolution for a signature. A confirmed
         resolution is cited to the next developers.
+    - key: propose-quarantine
+      name: Propose a test quarantine
+      function: actionProposeQuarantine
+      actionVerb: GET
+      description: >-
+        Draft the quarantine of an unstable test: the idiomatic skip snippet of
+        its ecosystem, the repair ticket (owner, 14-day deadline) and whether
+        it is worth it. Proposes nothing when the test is not unstable.
 
   rovo:mcp:
     # Schema: the MCP server accepts exactly `key`, `name` (1–30 characters)
@@ -180,6 +189,7 @@ modules:
         - list-flaky-tests
         - report-resolution
         - confirm-resolution
+        - propose-quarantine
 
   function:
     - key: ingest
@@ -222,6 +232,8 @@ modules:
       handler: index.reportResolution
     - key: actionConfirmResolution
       handler: index.confirmResolution
+    - key: actionProposeQuarantine
+      handler: index.proposeQuarantine
 
 permissions:
   scopes:

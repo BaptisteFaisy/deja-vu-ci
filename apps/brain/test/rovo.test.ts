@@ -1,7 +1,8 @@
 /**
  * Tests de l'agent Rovo et de l'exposition MCP (`src/rovo/`).
  *
- * Le serveur MCP doit exposer **exactement** les six actions du § 13, avec les
+ * Le serveur MCP doit exposer **exactement** les six actions du § 13 plus
+ * `propose-quarantine` (CI-19), avec les
  * mêmes noms et les mêmes schémas d'entrées que le module `action` de Forge.
  */
 
@@ -11,18 +12,19 @@ import { MCP_TOOLS, callTool, findTool } from '../src/rovo/mcp';
 import { makeFakeEngine } from './fakes/engine';
 import { FLAKY_SIGNATURE, SEED } from './fakes/fixtures';
 
-const SIX = [
+const SEVEN = [
   'confirm-resolution',
   'explain-build-failure',
   'get-signature',
   'list-flaky-tests',
+  'propose-quarantine',
   'report-resolution',
   'search-failures',
 ];
 
 describe('agent Rovo', () => {
-  it('câble les six actions', () => {
-    expect(Object.keys(AGENT_ACTIONS).sort()).toEqual(SIX);
+  it('câble les sept actions', () => {
+    expect(Object.keys(AGENT_ACTIONS).sort()).toEqual(SEVEN);
   });
 
   it('interdit d\'affirmer « sans rapport avec ta PR » sous le seuil', () => {
@@ -39,7 +41,7 @@ describe('agent Rovo', () => {
     expect(TYPICAL_QUESTIONS).toHaveLength(4);
     for (const question of TYPICAL_QUESTIONS) {
       expect(question.question.length).toBeGreaterThan(10);
-      expect(SIX).toContain(question.action);
+      expect(SEVEN).toContain(question.action);
     }
   });
 
@@ -47,7 +49,7 @@ describe('agent Rovo', () => {
     const agent = describeAgent();
     expect(agent.name).toBe('Déjà-vu CI');
     expect(agent.instructions).toBe(AGENT_INSTRUCTIONS);
-    expect(agent.actions.map((a) => a.key).sort()).toEqual(SIX);
+    expect(agent.actions.map((a) => a.key).sort()).toEqual(SEVEN);
   });
 
   it('exécute une action par son nom', async () => {
@@ -66,8 +68,8 @@ describe('agent Rovo', () => {
 });
 
 describe('serveur MCP', () => {
-  it('expose les six actions avec les mêmes noms', () => {
-    expect(MCP_TOOLS.map((tool) => tool.name).sort()).toEqual(SIX);
+  it('expose les sept actions avec les mêmes noms', () => {
+    expect(MCP_TOOLS.map((tool) => tool.name).sort()).toEqual(SEVEN);
   });
 
   it('donne à chaque outil un schéma JSON exploitable', () => {
