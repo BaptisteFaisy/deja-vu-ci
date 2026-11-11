@@ -1,0 +1,16 @@
+{
+  "name": "@dejavu/sensor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Capteur — the Bitbucket Forge app of Déjà-vu CI: reads a failing step, masks it, signs it, sends it to the Brain",
+  "scripts": {
+    "typecheck": "tsc -p . --noEmit"
+  },
+  "dependencies": {
+    "@dejavu/bridge": "file:../../packages/bridge",
+    "@dejavu/core": "file:../../packages/core",
+    "@forge/api": "^4.0.0",
+    "@forge/bridge": "^5.0.0"
+  }
+}

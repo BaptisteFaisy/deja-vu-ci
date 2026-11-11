@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "baseUrl": ".",
+    "types": ["node"],
+    "paths": {
+      "@dejavu/core": [
+        "../../packages/core/src/index.ts",
+        "../../packages/core/src/types.ts"
+      ],
+      "@dejavu/bridge": ["../../packages/bridge/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist", "node_modules"]
+}
