@@ -3,12 +3,14 @@
 Le résolveur de conflits de la file est `.github/fireworks/conflict_agent.py` :
 appelé par le balayeur (`pr-auto-merge`) quand une PR est `DIRTY`, il fait
 résoudre chaque conflit élémentaire par un modèle, recopie le reste du fichier
-intact, pousse sur la branche de la PR et rend compte.
+intact, pousse sur la branche de la PR et rend compte. Son fournisseur par
+défaut est **InferHub** (`combo/cheap`).
 
-Ce dossier ajoute le **repli** : quand l'API Fireworks refuse (clé expirée,
-`HTTP 412`, modèle retiré), la même question est posée à l'agent `hermes` du
-daemon ZeroClaw de la machine du runner, via A2A (`POST /a2a/hermes`,
-JSON-RPC `SendMessage`). Un seul pilote de résolution, deux fournisseurs.
+Ce dossier ajoute le **second repli** : quand l'API du fournisseur refuse (clé
+expirée, quota, `HTTP 412`, modèle retiré), la même question est posée à l'agent
+`hermes` du daemon ZeroClaw de la machine du runner, via A2A
+(`POST /a2a/hermes`, JSON-RPC `SendMessage`). Un seul pilote de résolution,
+deux chemins vers le modèle.
 
 ## Fichiers
 

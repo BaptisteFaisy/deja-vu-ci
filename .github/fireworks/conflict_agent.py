@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Agent de conflit Fireworks pour la file pr-auto-merge.
+"""Agent de conflit pour la file pr-auto-merge (fournisseur InferHub par défaut).
 
 Appelé par le sweep DANS son clone quand un rebase bute sur un conflit : il
-fait résoudre chaque conflit élémentaire par un modèle Fireworks, recopie le
+fait résoudre chaque conflit élémentaire par un modèle (InferHub `combo/cheap`
+par défaut, Fireworks accepté en repli historique), recopie le
 reste du fichier intact (jamais de réécriture complète : un gros fichier serait
 tronqué), boucle sur les arrêts (commits vidés sautés), pousse et rend compte.
 `union_journal.py` réunit les journaux sans modèle ; `quota.py` borne les
@@ -28,62 +29,6 @@ import time
 import types
 import urllib.request
 
-def _charger_module(chemin, source=None):
-    """Charge un module Python depuis un chemin (ou un texte source)."""
-    try:
-        if source is None:
-            spec = importlib.util.spec_from_file_location("a2a", chemin)
-        else:
-            spec = importlib.util.spec_from_loader(
-                "a2a", importlib.machinery.SourceFileLoader("a2a", chemin)
-            )
-            with open(chemin, "w", encoding="utf-8") as fh:
-                fh.write(source)
-        module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(module)
-        return module
-    except Exception:  # noqa: BLE001 - un repli cassé ne doit rien casser
-        return None
-
-
-def _a2a_depuis_main():
-    """Le module de repli lu sur `origin/main`, comme les modules voisins.
-
-    Le balayeur extrait ce script seul dans un fichier temporaire : le voisin
-    `hermes/a2a.py` n'est donc pas à côté. On le relit sur la branche protégée
-    (jamais sur la branche de la PR — un juge ne s'écrit pas dans le prétoire).
-    """
-    try:
-        proc = subprocess.run(
-            ["git", "show", "origin/main:.github/hermes/a2a.py"],
-            capture_output=True, text=True, timeout=60,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return None
-    if proc.returncode != 0 or not proc.stdout.strip():
-        return None
-    cible = os.path.join(tempfile.gettempdir(), "deja-vu-a2a-%d.py" % os.getpid())
-    return _charger_module(cible, proc.stdout)
-
-
-def _charger_a2a():
-    """Charge `.github/hermes/a2a.py` (repli local) sans dépendre du sys.path.
-
-    Deux chemins : le voisin dans l'arbre (exécution normale), sinon la copie
-    lue sur `origin/main` (le balayeur extrait ce script seul). Sans aucun des
-    deux, le repli est simplement indisponible.
-    """
-    chemin = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "hermes", "a2a.py")
-    if os.path.exists(chemin):
-        module = _charger_module(chemin)
-        if module is not None:
-            return module
-    return _a2a_depuis_main()
-
-
-a2a = _charger_a2a()
-
-
 def _charger(nom):
     """Module voisin : import direct, sinon `origin/main` (branche antérieure)."""
     try:
@@ -104,12 +49,28 @@ def _charger(nom):
 
 
 union_journal = _charger("union_journal")
+fournisseur = _charger("fournisseur")
+if fournisseur is None:  # sans lui aucun modèle n'est joignable : échec explicite
+    raise RuntimeError("module fournisseur.py introuvable (ni voisin, ni origin/main)")
+provider_settings = fournisseur.provider_settings
+a2a = fournisseur.a2a
+texte = _charger("texte")
+if texte is None:  # sans lui l'agent ne peut rien résoudre : échec explicite
+    raise RuntimeError("module texte.py introuvable (ni voisin, ni origin/main)")
+split_hunks = texte.split_hunks
+build_hunk_messages = texte.build_hunk_messages
+extract_file = texte.extract_file
+still_marked = texte.still_marked
 quota = _charger("quota")
 # v3 : porte de compilation à côté (`compilation_gate.py`) : plafond de 500 lignes.
 compilation_gate = _charger("compilation_gate")
 
-MODEL_DEFAULT = "accounts/fireworks/models/minimax-m3p1-flash"
-API_DEFAULT = "https://api.fireworks.ai/inference/v1/chat/completions"
+# Fournisseur par défaut : InferHub (API compatible OpenAI). Les noms
+# d'environnement historiques FIREWORKS_* restent acceptés en repli, et les
+# noms génériques MODEL_* ont la priorité — changer de fournisseur ne demande
+# plus de toucher au code.
+MODEL_DEFAULT = fournisseur.MODEL_DEFAULT
+API_DEFAULT = fournisseur.API_DEFAULT
 MAX_FILES = 100
 MAX_FILE_BYTES = 200_000
 MAX_HUNKS = 20
@@ -121,7 +82,7 @@ MAX_TOKENS = 8_000
 TEMPERATURE = 0.2
 LABEL_OK = "agent-conflit"
 LABEL_HUMAN = "intervention-humaine"
-COMMENT_PREFIX = "_fireworks · agent de conflit (MiniMax M3.1 Flash)_"
+COMMENT_PREFIX = "_agent de conflit · résolution automatique_"
 REFUSED_PREFIXES = (".github/", ".mergify.yml")
 
 
@@ -187,67 +148,8 @@ def unmerged_files():
     return [line for line in out.splitlines() if line]
 
 
-def split_hunks(text):
-    """Découpe un fichier marqué : ("clean", txt) / ("hunk", dict).
-
-    Gère diff et diff3 (avec ou sans base). En rebase, le premier bloc
-    ("head") est main (destination) et le second ("saved") la branche.
-    """
-    segments, buf = [], []
-    lines = text.split("\n")
-    n, i = len(lines), 0
-    while i < n:
-        if not lines[i].startswith("<<<<<<<"):
-            buf.append(lines[i])
-            i += 1
-            continue
-        if buf:
-            segments.append(("clean", "\n".join(buf)))
-            del buf[:]
-        head, base, saved = [], None, []
-        i += 1
-        while (i < n and lines[i] != "======="
-               and not lines[i].startswith("|||||||")):
-            head.append(lines[i])
-            i += 1
-        if i < n and lines[i].startswith("|||||||"):
-            base = []
-            i += 1
-            while i < n and lines[i] != "=======":
-                base.append(lines[i])
-                i += 1
-        if i < n and lines[i] == "=======":
-            i += 1
-        while i < n and not lines[i].startswith(">>>>>>>"):
-            saved.append(lines[i])
-            i += 1
-        i += 1
-        segments.append(("hunk", {"head": head, "base": base, "saved": saved}))
-    if buf:
-        segments.append(("clean", "\n".join(buf)))
-    return segments
-
-
-def build_hunk_messages(path, hunk):
-    """Prompt de résolution pour UN conflit élémentaire (rebase)."""
-    system = ("Tu résous UN conflit de fusion git (un seul morceau de "
-              "fichier). Tu rends UNIQUEMENT le texte résolu de ce morceau, "
-              "sans aucun marqueur, en gardant les deux intentions (jamais "
-              "un bord choisi à l'aveugle). Tu ne réponds que par le texte, "
-              "dans un seul bloc de code.")
-    parts = ["Fichier : %s (extrait)" % path,
-             "--- Version de la branche (à garder en priorité en cas de doute) ---",
-             "\n".join(hunk["saved"])]
-    if hunk["base"] is not None:
-        parts += ["--- Version ancêtre commun ---", "\n".join(hunk["base"])]
-    parts += ["--- Version de main ---", "\n".join(hunk["head"]),
-              "Rends le morceau résolu, dans un seul bloc de code."]
-    return [{"role": "system", "content": system},
-            {"role": "user", "content": "\n".join(parts)}]
-
-
 def fw_complete(api_url, key, model, messages):
-    """Un appel chat/completions Fireworks, rend le texte réponse."""
+    """Un appel chat/completions au fournisseur de modèle, rend le texte réponse."""
     payload = json.dumps({"model": model, "messages": messages,
                           "temperature": TEMPERATURE,
                           "max_tokens": MAX_TOKENS}).encode("utf-8")
@@ -258,52 +160,32 @@ def fw_complete(api_url, key, model, messages):
         with urllib.request.urlopen(req, timeout=CALL_TIMEOUT_S) as resp:
             data = json.loads(resp.read().decode("utf-8"))
     except Exception as exc:                                   # noqa: BLE001
-        raise AgentError("appel Fireworks : %s" % str(exc)[:200])
+        raise AgentError("appel du fournisseur : %s" % str(exc)[:200])
     try:
         return data["choices"][0]["message"]["content"]
     except (KeyError, IndexError, TypeError):
-        raise AgentError("réponse Fireworks illisible (pas de choices[0])")
+        raise AgentError("réponse du fournisseur illisible (pas de choices[0])")
 
 
 def completion(api_url, key, model, messages):
-    """Répond au conflit : API Fireworks d'abord, agent `hermes` en repli.
+    """Répond au conflit : API du fournisseur d'abord, agent `hermes` en repli.
 
-    L'API Fireworks peut refuser (clé expirée, HTTP 412, modèle retiré). Le
-    repli est le daemon ZeroClaw de la machine du runner, alias `hermes` :
-    même question, autre fournisseur. Sans repli disponible, l'erreur
-    d'origine est renvoyée telle quelle.
+    L'API peut refuser (clé expirée, quota, modèle retiré). Le repli est le
+    daemon ZeroClaw de la machine du runner, alias `hermes` : même question,
+    autre chemin. Sans repli disponible, l'erreur d'origine est renvoyée telle
+    quelle.
     """
     try:
         return fw_complete(api_url, key, model, messages)
     except AgentError as exc:
         if a2a is None:
             raise
-        log("Fireworks refuse (%s) — repli sur l'agent hermes" % str(exc)[:120])
+        log("le fournisseur refuse (%s) — repli sur l'agent hermes" % str(exc)[:120])
         texte = a2a.hermes_complete(messages)
         if texte is None:
             raise
         log("réponse obtenue de l'agent hermes")
         return texte
-
-
-def extract_file(text):
-    """Extrait le fichier résolu : bloc de code, sinon texte brut."""
-    cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.S)
-    match = re.search(r"```[^\n]*\n(.*?)```", cleaned, flags=re.S)
-    body = match.group(1) if match else cleaned
-    return body.strip("\n") + "\n"
-
-
-def still_marked(content):
-    """Vrai s'il reste des marqueurs de conflit git."""
-    for line in content.splitlines():
-        if line.startswith("<<<<<<< ") or line == "<<<<<<<":
-            return True
-        if line.startswith(">>>>>>> ") or line == ">>>>>>>":
-            return True
-        if line == "=======":
-            return True
-    return False
 
 
 def resolve_one(api_url, key, model, path, deadline, dry_run):
@@ -372,19 +254,14 @@ class _SaisineLocale(Exception):
 Skip = quota.Saisine if quota else _SaisineLocale
 
 
-def env_or(name, default):
-    """Variable d'env ou défaut. GitHub injecte une var absente comme ""
-    (et non unset) : `os.environ.get(n, d)` rendrait "" → 400 Fireworks."""
-    return os.environ.get(name) or default
-
-
+env_or = fournisseur.env_or  # une seule définition, chez le fournisseur
 def preflight(repo, pr, sha, dry_run, now):
     """Garde-fous et lecture des fichiers en conflit. Rend (clé, modèle, url, fichiers)."""
     if os.environ.get("FIREWORKS_AGENT_RESOLVE", "1") == "0":
         raise Skip("désactivé (FIREWORKS_AGENT_RESOLVE=0)")
-    key = os.environ.get("FIREWORKS_API_KEY", "")
+    key, model, api_url = provider_settings()
     if not key and not dry_run:
-        raise Skip("pas de clé FIREWORKS_API_KEY")
+        raise Skip("pas de clé de modèle (MODEL_API_KEY ou FIREWORKS_API_KEY)")
     if quota is not None:
         quota.gc_stamps(now)
     labels = pr_labels(repo, pr)
@@ -399,8 +276,6 @@ def preflight(repo, pr, sha, dry_run, now):
     if not files:
         raise Skip("aucun fichier en conflit")
     check_round_files(files)
-    model = env_or("FIREWORKS_MODEL", MODEL_DEFAULT)
-    api_url = env_or("FIREWORKS_BASE_URL", API_DEFAULT)
     return key, model, api_url, files
 
 
