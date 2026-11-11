@@ -1,2 +1,11 @@
 __pycache__/
 *.py[cod]
+
+# Déjà-vu CI — Node/TypeScript
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.vitest/
+.env
+*.log

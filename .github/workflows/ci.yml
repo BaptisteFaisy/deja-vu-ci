@@ -1,9 +1,12 @@
 name: CI
 
-# CI générique pour un dépôt de thèses/docs : contrôles rapides, stdlib
-# uniquement, verdict en quelques secondes. Le check publié s'appelle `ci`
-# (c'est le nom du job qui nomme le check) : il est exigé par le ruleset de
-# `main` et par la file Mergify, comme `ci-budget` et `couche0`.
+# CI du dépôt Déjà-vu CI : types + moteur testé, gardes anti-régression.
+# Le check publié s'appelle `ci` (nom du job) : il est exigé par le ruleset de
+# `main` et par la file Mergify, avec `ci-budget` et `couche0`.
+#
+# Budget : règle user 2026-10-24 — verdict en 5 minutes maximum. Les runners
+# self-hosted n'ont pas Node sur le PATH : il est installé une fois pour
+# l'utilisateur du runner dans ~/.local/node (voir docs/ARCHITECTURE.md).
 on:
   pull_request:
   # File de merge : même contrôle sur le commit temporaire du groupe.
@@ -30,34 +33,58 @@ jobs:
           clean: false
 
       # Runners self-hosted persistants : un sous-dossier parasite d'un run
-      # précédent peut survivre et fausser le sanity docs (flaky constaté sur
-      # les dépôts frères). Nettoyage complet du workspace — pas de sorties
-      # de build à préserver sur ce dépôt docs ; si un jour il y a des
-      # builds, exclure leurs dossiers ici comme vision (`-e`).
+      # précédent peut survivre et fausser les contrôles. node_modules est
+      # exclu (npm ci le remplace de toute façon) pour garder le run court.
       - name: Nettoyage du workspace
         shell: bash
-        run: git clean -ffdx
+        run: git clean -ffdx -e node_modules
+
+      - name: Node du worker (hors PATH par défaut)
+        shell: bash
+        run: |
+          set -euo pipefail
+          NODE_BIN="$HOME/.local/node/bin"
+          if [ ! -x "$NODE_BIN/node" ]; then
+            echo "::error::Node introuvable dans $NODE_BIN (installation du worker absente)"
+            exit 1
+          fi
+          echo "$NODE_BIN" >> "$GITHUB_PATH"
+          "$NODE_BIN/node" --version
+
+      - name: Dépendances (cache npm du worker)
+        shell: bash
+        run: npm ci --prefer-offline --no-audit --no-fund
+
+      - name: Types (moteur + pont)
+        shell: bash
+        run: |
+          npx tsc -p packages/core --noEmit
+          npx tsc -p packages/bridge --noEmit
+
+      - name: Tests du moteur, du pont et des apps
+        shell: bash
+        run: npx vitest run --reporter=dot
 
       - name: Sanity docs (UTF-8, non vides)
+        shell: bash
         run: |
           python3 - <<'EOF'
           import pathlib
-          racines = [pathlib.Path(".")]
           exts = {".md", ".mdx", ".txt"}
           vides, illisibles, total = [], [], 0
-          for racine in racines:
-              for f in sorted(racine.rglob("*")):
-                  if ".git/" in f.as_posix() or f.suffix.lower() not in exts:
-                      continue
-                  total += 1
-                  try:
-                      contenu = f.read_text(encoding="utf-8")
-                  except (OSError, UnicodeError):
-                      illisibles.append(f.as_posix())
-                      continue
-                  if not contenu.strip():
-                      vides.append(f.as_posix())
-          print("%d doc(s) contrôlé(s)" % total)
+          for f in sorted(pathlib.Path(".").rglob("*")):
+              posix = f.as_posix()
+              if ".git/" in posix or "node_modules/" in posix or f.suffix.lower() not in exts:
+                  continue
+              total += 1
+              try:
+                  contenu = f.read_text(encoding="utf-8")
+              except (OSError, UnicodeError):
+                  illisibles.append(posix)
+                  continue
+              if not contenu.strip():
+                  vides.append(posix)
+          print("%d doc(s) contrôle(s)" % total)
           for f in illisibles:
               print("::error::illisible en UTF-8 : %s" % f)
           for f in vides:
@@ -65,9 +92,10 @@ jobs:
           raise SystemExit(1 if (illisibles or vides) else 0)
           EOF
 
-      # Les gardes de la CI se testent elles-mêmes : couche0 + agents
-      # fireworks — stdlib, quelques secondes, aucun réseau.
-      - name: Tests des gardes CI (couche0, fireworks)
+      # Les gardes de la CI se testent elles-mêmes : couche0 + agents de
+      # conflit — stdlib, quelques secondes, aucun réseau.
+      - name: Tests des gardes CI (couche0, conflit)
+        shell: bash
         run: |
           python3 .github/couche0/test_check_couche0.py
           python3 .github/fireworks/test_conflict_agent.py
