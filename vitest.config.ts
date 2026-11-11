@@ -13,6 +13,12 @@ export default defineConfig({
   resolve: {
     alias: {
       '@dejavu/present': fileURLToPath(new URL('./packages/present/src/index.ts', import.meta.url)),
+      // Le Cerveau importe le moteur en **valeurs** (`src/seed.ts` : rejeu,
+      // diagnostic, tickets). Le paquet publié pointe vers `dist/`, qui
+      // n'existe qu'après `npm run build` : sans cet alias, le test du rejeu
+      // ne trouve pas le moteur. Les apps Forge, elles, résolvent le paquet
+      // publié au moment du bundle.
+      '@dejavu/core': fileURLToPath(new URL('./packages/core/src/index.ts', import.meta.url)),
     },
   },
   test: {

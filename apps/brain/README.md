@@ -103,11 +103,36 @@ of `@forge/sql`, `chat` of `@forge/llm`, the UI Kit of `@forge/react`. The
 Forge bundler still provides those packages at deploy time.
 
 The root test run stays free of any `@forge/*` runtime import: tests only
-cover `src/pure/`, `src/actions/`, `src/rovo/`, `src/resolvers.ts` and the UI
-helpers, which import types from `@dejavu/core` (erased at runtime) and never
-a runtime value of a platform package. `@dejavu/present` — the labels,
-formatters and screen routing shared with the Sensor — is resolved from its
-source by `vitest.config.ts`, so no build is needed to run the tests; a
-deployed bundle resolves the built package, so `npm run build` at the root
-comes before `forge deploy`.
+cover `src/pure/`, `src/actions/`, `src/rovo/`, `src/resolvers.ts`, `src/seed.ts`
+and the UI helpers, which import types from `@dejavu/core` (erased at runtime)
+and never a runtime value of a platform package. `@dejavu/present` — the labels,
+formatters and screen routing shared with the Sensor — and `@dejavu/core` are
+resolved from their **source** by `vitest.config.ts`, so no build is needed to
+run the tests; the seeding of `src/seed.ts` is the one place where an app imports
+runtime values of the engine (the real replay, the real diagnostics). A deployed
+bundle resolves the built packages, so `npm run build` at the root comes before
+`forge deploy`.
+
+## Sample replay (§ 22, CI-11)
+
+A judge installs the Brain, opens the project page **Déjà-vu CI** and clicks
+**Replay the sample set**: the 40 failures of `data/sample/occurrences.json`
+(14 days, one fictional payments monorepo) are replayed through the real engine
+into the real Forge SQL memory, and the tickets they imply are created on the
+real Jira — one ticket per problem family, at most one synthesis comment per
+day (§ 11).
+
+- `src/seed.ts` — the seeding itself: no `@forge/*` import, the memory and the
+  Jira side are injected, so it is unit-tested with `MemoryStore` and a fake
+  applier. **Idempotent**: on a memory that already holds signatures nothing is
+  injected, and the screen says so.
+- `src/ui/sampleReplay.tsx` + `src/ui/sampleSummary.ts` — the button, its
+  "running" state and the summary it renders (both languages, `src/ui/i18n.ts`).
+- The dataset is embedded in the bundle: `apps/brain/src/data/sample-dataset.json`
+  is a **copy** made by `tools/copy-sample.mjs` (`npm run build:seed` in this
+  directory). Never edit the copy by hand — `tools/copy-sample.test.mjs`
+  compares it with the tracked dataset and fails on any drift.
+- The Forge bundler builds from this directory, hence the copy: the placeholder
+  issue keys the replay writes (`CI-1`, `CI-2`…) are replaced by the keys Jira
+  really answered with before the memory is read again.
 

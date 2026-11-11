@@ -1,0 +1,781 @@
+{
+  "name": "payments-api-ci-memory",
+  "description": "40 failures over 14 days on a fictional payments monorepo, built to produce the four diagnostics of Déjà-vu CI and the three status moves (flaky, resolved, regression).",
+  "repository": "payments-api",
+  "days": 14,
+  "occurrences": [
+    {
+      "at": "2026-11-01T07:10:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/refund-limit",
+      "commit": "00f1aky0000",
+      "author": "dev-1",
+      "step": "gradle test",
+      "durationS": 96,
+      "buildUrl": "https://bitbucket.org/payments/payments-api/pipelines/results/00f1aky0000",
+      "outcome": "failure",
+      "log": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuite name=\"com.payments.RefundLimiterTest\" tests=\"37\" failures=\"1\" errors=\"0\" skipped=\"0\" time=\"9.412\">\n  <testcase classname=\"com.payments.RefundLimiterTest\" name=\"limitsRefundAmount\" time=\"0.081\">\n    <failure message=\"expected:<100> but was:<0>\" type=\"java.lang.AssertionError\">java.lang.AssertionError: expected:<100> but was:<0>\nrequest-id: d3b0c442-98fc-1c14-9afb-00f1aky0000\n\tat com.payments.settlement.SettlementService.round(SettlementService.java:41)\n\tat com.payments.RefundLimiterTest.limitsRefundAmount(RefundLimiterTest.java:41)\n    </failure>\n  </testcase>\n</testsuite>",
+      "expected": {
+        "category": "test",
+        "testName": "com.payments.RefundLimiterTest#limitsRefundAmount"
+      }
+    },
+    {
+      "at": "2026-11-01T07:16:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/refund-limit",
+      "commit": "00f1aky0000",
+      "author": "pipeline-retry",
+      "step": "gradle test",
+      "durationS": 92,
+      "outcome": "success"
+    },
+    {
+      "at": "2026-11-02T07:20:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/payout-window",
+      "commit": "01f1aky0001",
+      "author": "dev-2",
+      "step": "gradle test",
+      "durationS": 96,
+      "buildUrl": "https://bitbucket.org/payments/payments-api/pipelines/results/01f1aky0001",
+      "outcome": "failure",
+      "log": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuite name=\"com.payments.RefundLimiterTest\" tests=\"37\" failures=\"1\" errors=\"0\" skipped=\"0\" time=\"9.412\">\n  <testcase classname=\"com.payments.RefundLimiterTest\" name=\"limitsRefundAmount\" time=\"0.081\">\n    <failure message=\"expected:<100> but was:<0>\" type=\"java.lang.AssertionError\">java.lang.AssertionError: expected:<100> but was:<0>\nrequest-id: d3b0c442-98fc-1c14-9afb-01f1aky0001\n\tat com.payments.settlement.SettlementService.round(SettlementService.java:57)\n\tat com.payments.RefundLimiterTest.limitsRefundAmount(RefundLimiterTest.java:57)\n    </failure>\n  </testcase>\n</testsuite>",
+      "expected": {
+        "category": "test",
+        "testName": "com.payments.RefundLimiterTest#limitsRefundAmount"
+      }
+    },
+    {
+      "at": "2026-11-02T07:26:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/payout-window",
+      "commit": "01f1aky0001",
+      "author": "pipeline-retry",
+      "step": "gradle test",
+      "durationS": 92,
+      "outcome": "success"
+    },
+    {
+      "at": "2026-11-03T07:30:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/ledger-export",
+      "commit": "02f1aky0002",
+      "author": "dev-3",
+      "step": "gradle test",
+      "durationS": 96,
+      "buildUrl": "https://bitbucket.org/payments/payments-api/pipelines/results/02f1aky0002",
+      "outcome": "failure",
+      "log": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuite name=\"com.payments.RefundLimiterTest\" tests=\"37\" failures=\"1\" errors=\"0\" skipped=\"0\" time=\"9.412\">\n  <testcase classname=\"com.payments.RefundLimiterTest\" name=\"limitsRefundAmount\" time=\"0.081\">\n    <failure message=\"expected:<100> but was:<0>\" type=\"java.lang.AssertionError\">java.lang.AssertionError: expected:<100> but was:<0>\nrequest-id: d3b0c442-98fc-1c14-9afb-02f1aky0002\n\tat com.payments.settlement.SettlementService.round(SettlementService.java:41)\n\tat com.payments.RefundLimiterTest.limitsRefundAmount(RefundLimiterTest.java:41)\n    </failure>\n  </testcase>\n</testsuite>",
+      "expected": {
+        "category": "test",
+        "testName": "com.payments.RefundLimiterTest#limitsRefundAmount"
+      }
+    },
+    {
+      "at": "2026-11-03T07:36:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/ledger-export",
+      "commit": "02f1aky0002",
+      "author": "pipeline-retry",
+      "step": "gradle test",
+      "durationS": 92,
+      "outcome": "success"
+    },
+    {
+      "at": "2026-11-03T08:00:00.000Z",
+      "repo": "payments-api",
+      "branch": "main",
+      "commit": "cli0001aaaaaa",
+      "author": "marie",
+      "step": "integration-tests",
+      "durationS": 140,
+      "outcome": "failure",
+      "log": "2026-11-03T08:00:00.000Z ./gradlew integrationTest\ncom.payments.http.ClientException: token descriptor is null\n\tat com.payments.http.Client.refreshToken(Client.java:88)\n\tat com.payments.RefundService.charge(RefundService.java:41)\n\tat java.base/java.lang.Thread.run(Thread.java:840)",
+      "expected": {
+        "diagnostic": "already-fixed"
+      }
+    },
+    {
+      "at": "2026-11-03T10:20:00.000Z",
+      "repo": "payments-api",
+      "branch": "main",
+      "commit": "grn0001aaaaaa",
+      "author": "pipeline",
+      "step": "gradle test",
+      "durationS": 88,
+      "outcome": "success"
+    },
+    {
+      "at": "2026-11-04T07:15:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/fx-rounding",
+      "commit": "03f1aky0003",
+      "author": "dev-4",
+      "step": "gradle test",
+      "durationS": 96,
+      "buildUrl": "https://bitbucket.org/payments/payments-api/pipelines/results/03f1aky0003",
+      "outcome": "failure",
+      "log": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuite name=\"com.payments.RefundLimiterTest\" tests=\"37\" failures=\"1\" errors=\"0\" skipped=\"0\" time=\"9.412\">\n  <testcase classname=\"com.payments.RefundLimiterTest\" name=\"limitsRefundAmount\" time=\"0.081\">\n    <failure message=\"expected:<100> but was:<0>\" type=\"java.lang.AssertionError\">java.lang.AssertionError: expected:<100> but was:<0>\nrequest-id: d3b0c442-98fc-1c14-9afb-03f1aky0003\n\tat com.payments.settlement.SettlementService.round(SettlementService.java:63)\n\tat com.payments.RefundLimiterTest.limitsRefundAmount(RefundLimiterTest.java:63)\n    </failure>\n  </testcase>\n</testsuite>",
+      "expected": {
+        "category": "test",
+        "testName": "com.payments.RefundLimiterTest#limitsRefundAmount"
+      }
+    },
+    {
+      "at": "2026-11-04T07:40:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/refund-window",
+      "commit": "new0001aaaaaaa",
+      "author": "amal",
+      "step": "gradle test",
+      "durationS": 61,
+      "prId": 431,
+      "outcome": "failure",
+      "log": "2026-11-04T07:40:00.000Z ./gradlew test\ncom.payments.refund.LimiterTest > rejectsOverLimit FAILED\n    java.lang.AssertionError: limit should reject 120 EUR\n\tat com.payments.refund.Limiter.apply(Limiter.java:57)\n\tat com.payments.refund.LimiterTest.rejectsOverLimit(LimiterTest.java:22)",
+      "changedFiles": [
+        "src/main/java/com/payments/refund/Limiter.java"
+      ],
+      "expected": {
+        "category": "test",
+        "diagnostic": "new"
+      }
+    },
+    {
+      "at": "2026-11-04T08:05:00.000Z",
+      "repo": "payments-api",
+      "branch": "main",
+      "commit": "abc1234deadbeef",
+      "author": "marie",
+      "step": "integration-tests",
+      "durationS": 128,
+      "outcome": "success"
+    },
+    {
+      "at": "2026-11-05T07:45:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/settlement-batch",
+      "commit": "04f1aky0004",
+      "author": "dev-5",
+      "step": "gradle test",
+      "durationS": 96,
+      "buildUrl": "https://bitbucket.org/payments/payments-api/pipelines/results/04f1aky0004",
+      "outcome": "failure",
+      "log": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuite name=\"com.payments.RefundLimiterTest\" tests=\"37\" failures=\"1\" errors=\"0\" skipped=\"0\" time=\"9.412\">\n  <testcase classname=\"com.payments.RefundLimiterTest\" name=\"limitsRefundAmount\" time=\"0.081\">\n    <failure message=\"expected:<100> but was:<0>\" type=\"java.lang.AssertionError\">java.lang.AssertionError: expected:<100> but was:<0>\nrequest-id: d3b0c442-98fc-1c14-9afb-04f1aky0004\n\tat com.payments.settlement.SettlementService.round(SettlementService.java:57)\n\tat com.payments.RefundLimiterTest.limitsRefundAmount(RefundLimiterTest.java:57)\n    </failure>\n  </testcase>\n</testsuite>",
+      "expected": {
+        "category": "test",
+        "testName": "com.payments.RefundLimiterTest#limitsRefundAmount",
+        "diagnostic": "flaky"
+      }
+    },
+    {
+      "at": "2026-11-05T08:35:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/payout-export",
+      "commit": "new0002bbbbbbb",
+      "author": "bilal",
+      "step": "unit-tests (pytest)",
+      "durationS": 68,
+      "prId": 436,
+      "outcome": "failure",
+      "log": "2026-11-05T08:35:00.000Z pytest session start\nplatform linux -- Python 3.12.3, pytest-8.3.2, pluggy-1.5.0\nrootdir: /opt/atlassian/pipelines/agent/build\nplugins: timeout-2.3.1, xdist-3.5.0\ncollected 42 items\n\ntests/test_export.py::test_csv_columns FAILED\n\n=================================== FAILURES ===================================\n________________________________ test_csv_columns __________________________________\n    def test_csv_columns():\n>       KeyError: 'settled_at'\nE       AssertionError: KeyError: 'settled_at'\nE        request-id: b7e2f0a1-4444-4a2b-8c3d-0123456789ab\ntests/test_export.py:88: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_export.py::test_csv_columns - AssertionError: KeyError: 'settled_at'\n========================= 1 failed, 41 passed in 12.84s ===========================",
+      "changedFiles": [
+        "ledger/export.py"
+      ],
+      "expected": {
+        "category": "test",
+        "diagnostic": "new"
+      }
+    },
+    {
+      "at": "2026-11-06T07:25:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/fee-schedule",
+      "commit": "05f1aky0005",
+      "author": "dev-1",
+      "step": "gradle test",
+      "durationS": 96,
+      "buildUrl": "https://bitbucket.org/payments/payments-api/pipelines/results/05f1aky0005",
+      "outcome": "failure",
+      "log": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuite name=\"com.payments.RefundLimiterTest\" tests=\"37\" failures=\"1\" errors=\"0\" skipped=\"0\" time=\"9.412\">\n  <testcase classname=\"com.payments.RefundLimiterTest\" name=\"limitsRefundAmount\" time=\"0.081\">\n    <failure message=\"expected:<100> but was:<0>\" type=\"java.lang.AssertionError\">java.lang.AssertionError: expected:<100> but was:<0>\nrequest-id: d3b0c442-98fc-1c14-9afb-05f1aky0005\n\tat com.payments.settlement.SettlementService.round(SettlementService.java:41)\n\tat com.payments.RefundLimiterTest.limitsRefundAmount(RefundLimiterTest.java:41)\n    </failure>\n  </testcase>\n</testsuite>",
+      "expected": {
+        "category": "test",
+        "testName": "com.payments.RefundLimiterTest#limitsRefundAmount",
+        "diagnostic": "flaky"
+      }
+    },
+    {
+      "at": "2026-11-06T09:10:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/fx-table",
+      "commit": "new0003ccccccc",
+      "author": "chloé",
+      "step": "tsc --noEmit",
+      "durationS": 40,
+      "prId": 440,
+      "outcome": "failure",
+      "log": "2026-11-06T09:10:00.000Z tsc --noEmit\nsrc/fx/table.ts(63,18): error TS2322: Type 'string' is not assignable to type 'number'.\n\nFound 1 error in src/fx/table.ts:63\n",
+      "changedFiles": [
+        "src/fx/table.ts"
+      ],
+      "expected": {
+        "category": "compile",
+        "diagnostic": "new"
+      }
+    },
+    {
+      "at": "2026-11-07T07:25:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/fee-grid",
+      "commit": "new0004ddddddd",
+      "author": "david",
+      "step": "eslint",
+      "durationS": 47,
+      "prId": 444,
+      "outcome": "failure",
+      "log": "2026-11-07T07:25:00.000Z eslint .\n\nsrc/fees/grid.js\n  31:5  error  'rate' is assigned a value but never used  no-unused-vars\n\n✖ 1 problem (1 error, 0 warnings)",
+      "changedFiles": [
+        "src/fees/grid.js"
+      ],
+      "expected": {
+        "category": "style",
+        "diagnostic": "new"
+      }
+    },
+    {
+      "at": "2026-11-07T07:50:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/audit-trail",
+      "commit": "06f1aky0006",
+      "author": "dev-2",
+      "step": "gradle test",
+      "durationS": 96,
+      "buildUrl": "https://bitbucket.org/payments/payments-api/pipelines/results/06f1aky0006",
+      "outcome": "failure",
+      "log": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuite name=\"com.payments.RefundLimiterTest\" tests=\"37\" failures=\"1\" errors=\"0\" skipped=\"0\" time=\"9.412\">\n  <testcase classname=\"com.payments.RefundLimiterTest\" name=\"limitsRefundAmount\" time=\"0.081\">\n    <failure message=\"expected:<100> but was:<0>\" type=\"java.lang.AssertionError\">java.lang.AssertionError: expected:<100> but was:<0>\nrequest-id: d3b0c442-98fc-1c14-9afb-06f1aky0006\n\tat com.payments.settlement.SettlementService.round(SettlementService.java:72)\n\tat com.payments.RefundLimiterTest.limitsRefundAmount(RefundLimiterTest.java:72)\n    </failure>\n  </testcase>\n</testsuite>",
+      "expected": {
+        "category": "test",
+        "testName": "com.payments.RefundLimiterTest#limitsRefundAmount",
+        "diagnostic": "flaky"
+      }
+    },
+    {
+      "at": "2026-11-07T09:30:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/legacy-refund",
+      "commit": "cli0002bbbbbb",
+      "author": "samir",
+      "step": "integration-tests",
+      "durationS": 140,
+      "outcome": "failure",
+      "log": "2026-11-07T09:30:00.000Z ./gradlew integrationTest\ncom.payments.http.ClientException: token descriptor is null\n\tat com.payments.http.Client.refreshToken(Client.java:88)\n\tat com.payments.RefundService.charge(RefundService.java:41)\n\tat java.base/java.lang.Thread.run(Thread.java:840)",
+      "containsCommits": [],
+      "expected": {
+        "diagnostic": "already-fixed"
+      }
+    },
+    {
+      "at": "2026-11-07T11:00:00.000Z",
+      "repo": "payments-web",
+      "branch": "main",
+      "commit": "grn0002bbbbbb",
+      "author": "pipeline",
+      "step": "jest",
+      "durationS": 61,
+      "outcome": "success"
+    },
+    {
+      "at": "2026-11-08T07:35:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/idempotency-key",
+      "commit": "07f1aky0007",
+      "author": "dev-3",
+      "step": "gradle test",
+      "durationS": 96,
+      "buildUrl": "https://bitbucket.org/payments/payments-api/pipelines/results/07f1aky0007",
+      "outcome": "failure",
+      "log": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuite name=\"com.payments.RefundLimiterTest\" tests=\"37\" failures=\"1\" errors=\"0\" skipped=\"0\" time=\"9.412\">\n  <testcase classname=\"com.payments.RefundLimiterTest\" name=\"limitsRefundAmount\" time=\"0.081\">\n    <failure message=\"expected:<100> but was:<0>\" type=\"java.lang.AssertionError\">java.lang.AssertionError: expected:<100> but was:<0>\nrequest-id: d3b0c442-98fc-1c14-9afb-07f1aky0007\n\tat com.payments.settlement.SettlementService.round(SettlementService.java:57)\n\tat com.payments.RefundLimiterTest.limitsRefundAmount(RefundLimiterTest.java:57)\n    </failure>\n  </testcase>\n</testsuite>",
+      "expected": {
+        "category": "test",
+        "testName": "com.payments.RefundLimiterTest#limitsRefundAmount",
+        "diagnostic": "flaky"
+      }
+    },
+    {
+      "at": "2026-11-08T08:10:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/go-settle",
+      "commit": "new0005eeeeeee",
+      "author": "emma",
+      "step": "go test ./...",
+      "durationS": 54,
+      "prId": 449,
+      "outcome": "failure",
+      "log": "2026-11-08T08:10:00.000Z go test settlement\n=== RUN   TestBatchCutOff\n    settlement/batch.go:104: cut-off should include 18:00 UTC\n    request-id: c9d0e1f2-5555-4a2b-8c3d-0123456789ab\n--- FAIL: TestBatchCutOff (0.00s)\nFAIL\nFAIL\tsettlement\t0.032s\nFAIL",
+      "changedFiles": [
+        "settlement/batch.go"
+      ],
+      "expected": {
+        "category": "test",
+        "diagnostic": "new"
+      }
+    },
+    {
+      "at": "2026-11-09T07:12:00.000Z",
+      "repo": "payments-api",
+      "branch": "main",
+      "commit": "08f1aky0008",
+      "author": "dev-4",
+      "step": "gradle test",
+      "durationS": 96,
+      "buildUrl": "https://bitbucket.org/payments/payments-api/pipelines/results/08f1aky0008",
+      "outcome": "failure",
+      "log": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuite name=\"com.payments.RefundLimiterTest\" tests=\"37\" failures=\"1\" errors=\"0\" skipped=\"0\" time=\"9.412\">\n  <testcase classname=\"com.payments.RefundLimiterTest\" name=\"limitsRefundAmount\" time=\"0.081\">\n    <failure message=\"expected:<100> but was:<0>\" type=\"java.lang.AssertionError\">java.lang.AssertionError: expected:<100> but was:<0>\nrequest-id: d3b0c442-98fc-1c14-9afb-08f1aky0008\n\tat com.payments.settlement.SettlementService.round(SettlementService.java:41)\n\tat com.payments.RefundLimiterTest.limitsRefundAmount(RefundLimiterTest.java:41)\n    </failure>\n  </testcase>\n</testsuite>",
+      "expected": {
+        "category": "test",
+        "testName": "com.payments.RefundLimiterTest#limitsRefundAmount",
+        "diagnostic": "flaky"
+      }
+    },
+    {
+      "at": "2026-11-09T08:50:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/jest-ledger",
+      "commit": "new0006fffffff",
+      "author": "farid",
+      "step": "jest",
+      "durationS": 61,
+      "prId": 452,
+      "outcome": "failure",
+      "log": "2026-11-09T08:50:00.000Z jest run\nFAIL src/ledger/entry.test.ts\n  ● balances to zero\n\n    expected 0 received 12\n    request-id: d1e2f3a4-6666-4a2b-8c3d-0123456789ab\n\n    at Object.<anonymous> (src/ledger/entry.test.ts:44:18)\n    at balances to zero (src/ledger/entry.test.ts:44:9)\n\nTest Suites: 1 failed, 11 passed, 12 total\nTests:       1 failed, 218 passed, 219 total\nTime:        4.812 s",
+      "changedFiles": [
+        "src/ledger/entry.ts"
+      ],
+      "expected": {
+        "category": "test",
+        "diagnostic": "new"
+      }
+    },
+    {
+      "at": "2026-11-10T07:15:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/gradle-compile",
+      "commit": "new0007aaaaaaa",
+      "author": "gwen",
+      "step": "gradle compileJava",
+      "durationS": 68,
+      "prId": 458,
+      "outcome": "failure",
+      "log": "2026-11-10T07:15:00.000Z gradle compileJava\n> Task :compileJava FAILED\nFAILURE: Build failed with an exception.\n\n* What went wrong:\nExecution failed for task ':compileJava'.\n> Compilation failed; see the compiler error output for details.\n\nsrc/main/java/com/payments/fx/Rate.java:27: error: cannot find symbol: method scale()\n  27 errors\n\n* Try:\n> Run with --stacktrace option to get the stack trace.",
+      "changedFiles": [
+        "src/main/java/com/payments/fx/Rate.java"
+      ],
+      "expected": {
+        "category": "compile",
+        "diagnostic": "new"
+      }
+    },
+    {
+      "at": "2026-11-10T07:40:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/refund-limit",
+      "commit": "09f1aky0009",
+      "author": "dev-5",
+      "step": "gradle test",
+      "durationS": 96,
+      "buildUrl": "https://bitbucket.org/payments/payments-api/pipelines/results/09f1aky0009",
+      "outcome": "failure",
+      "log": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuite name=\"com.payments.RefundLimiterTest\" tests=\"37\" failures=\"1\" errors=\"0\" skipped=\"0\" time=\"9.412\">\n  <testcase classname=\"com.payments.RefundLimiterTest\" name=\"limitsRefundAmount\" time=\"0.081\">\n    <failure message=\"expected:<100> but was:<0>\" type=\"java.lang.AssertionError\">java.lang.AssertionError: expected:<100> but was:<0>\nrequest-id: d3b0c442-98fc-1c14-9afb-09f1aky0009\n\tat com.payments.settlement.SettlementService.round(SettlementService.java:63)\n\tat com.payments.RefundLimiterTest.limitsRefundAmount(RefundLimiterTest.java:63)\n    </failure>\n  </testcase>\n</testsuite>",
+      "expected": {
+        "category": "test",
+        "testName": "com.payments.RefundLimiterTest#limitsRefundAmount",
+        "diagnostic": "flaky"
+      }
+    },
+    {
+      "at": "2026-11-10T11:20:00.000Z",
+      "repo": "billing-service",
+      "branch": "main",
+      "commit": "grn0003cccccc",
+      "author": "pipeline",
+      "step": "unit-tests (pytest)",
+      "durationS": 47,
+      "outcome": "success"
+    },
+    {
+      "at": "2026-11-11T07:55:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/payout-window",
+      "commit": "0af1aky0010",
+      "author": "dev-1",
+      "step": "gradle test",
+      "durationS": 96,
+      "buildUrl": "https://bitbucket.org/payments/payments-api/pipelines/results/0af1aky0010",
+      "outcome": "failure",
+      "log": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuite name=\"com.payments.RefundLimiterTest\" tests=\"37\" failures=\"1\" errors=\"0\" skipped=\"0\" time=\"9.412\">\n  <testcase classname=\"com.payments.RefundLimiterTest\" name=\"limitsRefundAmount\" time=\"0.081\">\n    <failure message=\"expected:<100> but was:<0>\" type=\"java.lang.AssertionError\">java.lang.AssertionError: expected:<100> but was:<0>\nrequest-id: d3b0c442-98fc-1c14-9afb-0af1aky0010\n\tat com.payments.settlement.SettlementService.round(SettlementService.java:57)\n\tat com.payments.RefundLimiterTest.limitsRefundAmount(RefundLimiterTest.java:57)\n    </failure>\n  </testcase>\n</testsuite>",
+      "expected": {
+        "category": "test",
+        "testName": "com.payments.RefundLimiterTest#limitsRefundAmount",
+        "diagnostic": "flaky"
+      }
+    },
+    {
+      "at": "2026-11-11T09:25:00.000Z",
+      "repo": "payments-web",
+      "branch": "feature/checkout-ui",
+      "commit": "new0008bbbbbbb",
+      "author": "hugo",
+      "step": "jest",
+      "durationS": 40,
+      "prId": 210,
+      "outcome": "failure",
+      "log": "2026-11-11T09:25:00.000Z jest run\nFAIL src/checkout/Form.test.tsx\n  ● renders the summary\n\n    Unable to find an element with the text: Total\n    request-id: e3f4a5b6-7777-4a2b-8c3d-0123456789ab\n\n    at Object.<anonymous> (src/checkout/Form.test.tsx:19:18)\n    at renders the summary (src/checkout/Form.test.tsx:19:9)\n\nTest Suites: 1 failed, 11 passed, 12 total\nTests:       1 failed, 218 passed, 219 total\nTime:        4.812 s",
+      "changedFiles": [
+        "src/checkout/Form.tsx"
+      ],
+      "expected": {
+        "category": "test",
+        "diagnostic": "new"
+      }
+    },
+    {
+      "at": "2026-11-11T10:00:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/sdk-bump",
+      "commit": "out0001aaaaaa",
+      "author": "marc",
+      "step": "install-dependencies",
+      "durationS": 18,
+      "outcome": "failure",
+      "log": "2026-11-11T10:00:00.000Z npm ci\nnpm error code ECONNREFUSED\nnpm error 404 Not Found - GET https://registry.npmjs.org/@payments%2fsdk - Not found\nnpm error 404 '@payments/sdk' is not in this registry.\nnpm error\nnpm error A complete log of this run can be found in:\nnpm error     /opt/atlassian/pipelines/agent/build/npm-debug-0.log\nnpm error\nnpm error ERR! code ECONNREFUSED\nnpm error ERR! 404 @payments/sdk is not in this registry.",
+      "expected": {
+        "category": "dependency",
+        "diagnostic": "infrastructure"
+      }
+    },
+    {
+      "at": "2026-11-11T10:02:00.000Z",
+      "repo": "payments-web",
+      "branch": "feature/sdk-bump",
+      "commit": "out0002bbbbbb",
+      "author": "nadia",
+      "step": "install-dependencies",
+      "durationS": 18,
+      "outcome": "failure",
+      "log": "2026-11-11T10:02:00.000Z npm ci\nnpm error code ECONNREFUSED\nnpm error 404 Not Found - GET https://registry.npmjs.org/@payments%2fsdk - Not found\nnpm error 404 '@payments/sdk' is not in this registry.\nnpm error\nnpm error A complete log of this run can be found in:\nnpm error     /opt/atlassian/pipelines/agent/build/npm-debug-0.log\nnpm error\nnpm error ERR! code ECONNREFUSED\nnpm error ERR! 404 @payments/sdk is not in this registry.",
+      "expected": {
+        "category": "dependency",
+        "diagnostic": "infrastructure"
+      }
+    },
+    {
+      "at": "2026-11-11T10:03:00.000Z",
+      "repo": "billing-service",
+      "branch": "feature/sdk-bump",
+      "commit": "out0003cccccc",
+      "author": "omar",
+      "step": "install-dependencies",
+      "durationS": 18,
+      "outcome": "failure",
+      "log": "2026-11-11T10:03:00.000Z npm ci\nnpm error code ECONNREFUSED\nnpm error 404 Not Found - GET https://registry.npmjs.org/@payments%2fsdk - Not found\nnpm error 404 '@payments/sdk' is not in this registry.\nnpm error\nnpm error A complete log of this run can be found in:\nnpm error     /opt/atlassian/pipelines/agent/build/npm-debug-0.log\nnpm error\nnpm error ERR! code ECONNREFUSED\nnpm error ERR! 404 @payments/sdk is not in this registry.",
+      "expected": {
+        "category": "dependency",
+        "diagnostic": "infrastructure"
+      }
+    },
+    {
+      "at": "2026-11-11T10:05:00.000Z",
+      "repo": "payments-api",
+      "branch": "main",
+      "commit": "out0004dddddd",
+      "author": "pipeline",
+      "step": "install-dependencies",
+      "durationS": 18,
+      "outcome": "failure",
+      "log": "2026-11-11T10:05:00.000Z npm ci\nnpm error code ECONNREFUSED\nnpm error 404 Not Found - GET https://registry.npmjs.org/@payments%2fsdk - Not found\nnpm error 404 '@payments/sdk' is not in this registry.\nnpm error\nnpm error A complete log of this run can be found in:\nnpm error     /opt/atlassian/pipelines/agent/build/npm-debug-0.log\nnpm error\nnpm error ERR! code ECONNREFUSED\nnpm error ERR! 404 @payments/sdk is not in this registry.",
+      "expected": {
+        "category": "dependency",
+        "diagnostic": "infrastructure"
+      }
+    },
+    {
+      "at": "2026-11-11T10:07:00.000Z",
+      "repo": "payments-web",
+      "branch": "main",
+      "commit": "out0005eeeeee",
+      "author": "pipeline",
+      "step": "install-dependencies",
+      "durationS": 18,
+      "outcome": "failure",
+      "log": "2026-11-11T10:07:00.000Z npm ci\nnpm error code ECONNREFUSED\nnpm error 404 Not Found - GET https://registry.npmjs.org/@payments%2fsdk - Not found\nnpm error 404 '@payments/sdk' is not in this registry.\nnpm error\nnpm error A complete log of this run can be found in:\nnpm error     /opt/atlassian/pipelines/agent/build/npm-debug-0.log\nnpm error\nnpm error ERR! code ECONNREFUSED\nnpm error ERR! 404 @payments/sdk is not in this registry.",
+      "expected": {
+        "category": "dependency",
+        "diagnostic": "infrastructure"
+      }
+    },
+    {
+      "at": "2026-11-11T10:08:00.000Z",
+      "repo": "billing-service",
+      "branch": "main",
+      "commit": "out0006ffffff",
+      "author": "pipeline",
+      "step": "install-dependencies",
+      "durationS": 18,
+      "outcome": "failure",
+      "log": "2026-11-11T10:08:00.000Z npm ci\nnpm error code ECONNREFUSED\nnpm error 404 Not Found - GET https://registry.npmjs.org/@payments%2fsdk - Not found\nnpm error 404 '@payments/sdk' is not in this registry.\nnpm error\nnpm error A complete log of this run can be found in:\nnpm error     /opt/atlassian/pipelines/agent/build/npm-debug-0.log\nnpm error\nnpm error ERR! code ECONNREFUSED\nnpm error ERR! 404 @payments/sdk is not in this registry.",
+      "expected": {
+        "category": "dependency",
+        "diagnostic": "infrastructure"
+      }
+    },
+    {
+      "at": "2026-11-11T10:10:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/checkout-v2",
+      "commit": "out0007aaaaaa",
+      "author": "prune",
+      "step": "install-dependencies",
+      "durationS": 18,
+      "outcome": "failure",
+      "log": "2026-11-11T10:10:00.000Z npm ci\nnpm error code ECONNREFUSED\nnpm error 404 Not Found - GET https://registry.npmjs.org/@payments%2fsdk - Not found\nnpm error 404 '@payments/sdk' is not in this registry.\nnpm error\nnpm error A complete log of this run can be found in:\nnpm error     /opt/atlassian/pipelines/agent/build/npm-debug-0.log\nnpm error\nnpm error ERR! code ECONNREFUSED\nnpm error ERR! 404 @payments/sdk is not in this registry.",
+      "expected": {
+        "category": "dependency",
+        "diagnostic": "infrastructure"
+      }
+    },
+    {
+      "at": "2026-11-11T10:12:00.000Z",
+      "repo": "payments-web",
+      "branch": "feature/checkout-v2",
+      "commit": "out0008bbbbbb",
+      "author": "quentin",
+      "step": "install-dependencies",
+      "durationS": 18,
+      "outcome": "failure",
+      "log": "2026-11-11T10:12:00.000Z npm ci\nnpm error code ECONNREFUSED\nnpm error 404 Not Found - GET https://registry.npmjs.org/@payments%2fsdk - Not found\nnpm error 404 '@payments/sdk' is not in this registry.\nnpm error\nnpm error A complete log of this run can be found in:\nnpm error     /opt/atlassian/pipelines/agent/build/npm-debug-0.log\nnpm error\nnpm error ERR! code ECONNREFUSED\nnpm error ERR! 404 @payments/sdk is not in this registry.",
+      "expected": {
+        "category": "dependency",
+        "diagnostic": "infrastructure"
+      }
+    },
+    {
+      "at": "2026-11-12T07:18:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/ledger-export",
+      "commit": "0bf1aky0011",
+      "author": "dev-2",
+      "step": "gradle test",
+      "durationS": 96,
+      "buildUrl": "https://bitbucket.org/payments/payments-api/pipelines/results/0bf1aky0011",
+      "outcome": "failure",
+      "log": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuite name=\"com.payments.RefundLimiterTest\" tests=\"37\" failures=\"1\" errors=\"0\" skipped=\"0\" time=\"9.412\">\n  <testcase classname=\"com.payments.RefundLimiterTest\" name=\"limitsRefundAmount\" time=\"0.081\">\n    <failure message=\"expected:<100> but was:<0>\" type=\"java.lang.AssertionError\">java.lang.AssertionError: expected:<100> but was:<0>\nrequest-id: d3b0c442-98fc-1c14-9afb-0bf1aky0011\n\tat com.payments.settlement.SettlementService.round(SettlementService.java:41)\n\tat com.payments.RefundLimiterTest.limitsRefundAmount(RefundLimiterTest.java:41)\n    </failure>\n  </testcase>\n</testsuite>",
+      "expected": {
+        "category": "test",
+        "testName": "com.payments.RefundLimiterTest#limitsRefundAmount",
+        "diagnostic": "flaky"
+      }
+    },
+    {
+      "at": "2026-11-12T08:00:00.000Z",
+      "repo": "billing-service",
+      "branch": "feature/invoice-pdf",
+      "commit": "new0009ccccccc",
+      "author": "ines",
+      "step": "unit-tests (pytest)",
+      "durationS": 47,
+      "prId": 88,
+      "outcome": "failure",
+      "log": "2026-11-12T08:00:00.000Z pytest session start\nplatform linux -- Python 3.12.3, pytest-8.3.2, pluggy-1.5.0\nrootdir: /opt/atlassian/pipelines/agent/build\nplugins: timeout-2.3.1, xdist-3.5.0\ncollected 42 items\n\ntests/test_pdf.py::test_invoice_footer FAILED\n\n=================================== FAILURES ===================================\n________________________________ test_invoice_footer __________________________________\n    def test_invoice_footer():\n>       assert None != \"TVA intracommunautaire\"\nE       AssertionError: assert None != \"TVA intracommunautaire\"\nE        request-id: f5a6b7c8-8888-4a2b-8c3d-0123456789ab\ntests/test_pdf.py:51: AssertionError\n=========================== short test summary info ============================\nFAILED tests/test_pdf.py::test_invoice_footer - AssertionError: assert None != \"TVA intracommunautaire\"\n========================= 1 failed, 41 passed in 12.84s ===========================",
+      "changedFiles": [
+        "billing/pdf.py"
+      ],
+      "expected": {
+        "category": "test",
+        "diagnostic": "new"
+      }
+    },
+    {
+      "at": "2026-11-13T07:33:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/fx-rounding",
+      "commit": "0cf1aky0012",
+      "author": "dev-3",
+      "step": "gradle test",
+      "durationS": 96,
+      "buildUrl": "https://bitbucket.org/payments/payments-api/pipelines/results/0cf1aky0012",
+      "outcome": "failure",
+      "log": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuite name=\"com.payments.RefundLimiterTest\" tests=\"37\" failures=\"1\" errors=\"0\" skipped=\"0\" time=\"9.412\">\n  <testcase classname=\"com.payments.RefundLimiterTest\" name=\"limitsRefundAmount\" time=\"0.081\">\n    <failure message=\"expected:<100> but was:<0>\" type=\"java.lang.AssertionError\">java.lang.AssertionError: expected:<100> but was:<0>\nrequest-id: d3b0c442-98fc-1c14-9afb-0cf1aky0012\n\tat com.payments.settlement.SettlementService.round(SettlementService.java:72)\n\tat com.payments.RefundLimiterTest.limitsRefundAmount(RefundLimiterTest.java:72)\n    </failure>\n  </testcase>\n</testsuite>",
+      "expected": {
+        "category": "test",
+        "testName": "com.payments.RefundLimiterTest#limitsRefundAmount",
+        "diagnostic": "flaky"
+      }
+    },
+    {
+      "at": "2026-11-13T08:25:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/audit-export",
+      "commit": "new0010ddddddd",
+      "author": "julie",
+      "step": "go build ./...",
+      "durationS": 54,
+      "prId": 471,
+      "outcome": "failure",
+      "log": "2026-11-13T08:25:00.000Z go build ./...\n# audit\naudit/export.go:38:38: undefined: csvWriter.Flush\nFAIL\taudit\t0.412s",
+      "changedFiles": [
+        "audit/export.go"
+      ],
+      "expected": {
+        "category": "compile",
+        "diagnostic": "new"
+      }
+    },
+    {
+      "at": "2026-11-13T09:50:00.000Z",
+      "repo": "payments-api",
+      "branch": "main",
+      "commit": "cli0003cccccc",
+      "author": "tarik",
+      "step": "integration-tests",
+      "durationS": 140,
+      "outcome": "failure",
+      "log": "2026-11-13T09:50:00.000Z ./gradlew integrationTest\ncom.payments.http.ClientException: token descriptor is null\n\tat com.payments.http.Client.refreshToken(Client.java:88)\n\tat com.payments.RefundService.charge(RefundService.java:41)\n\tat java.base/java.lang.Thread.run(Thread.java:840)",
+      "containsCommits": [
+        "abc1234deadbeef"
+      ],
+      "expected": {
+        "diagnostic": "uncertain"
+      }
+    },
+    {
+      "at": "2026-11-13T10:10:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/settlement-batch",
+      "commit": "0df1aky0013",
+      "author": "dev-4",
+      "step": "gradle test",
+      "durationS": 96,
+      "buildUrl": "https://bitbucket.org/payments/payments-api/pipelines/results/0df1aky0013",
+      "outcome": "failure",
+      "log": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuite name=\"com.payments.RefundLimiterTest\" tests=\"37\" failures=\"1\" errors=\"0\" skipped=\"0\" time=\"9.412\">\n  <testcase classname=\"com.payments.RefundLimiterTest\" name=\"limitsRefundAmount\" time=\"0.081\">\n    <failure message=\"expected:<100> but was:<0>\" type=\"java.lang.AssertionError\">java.lang.AssertionError: expected:<100> but was:<0>\nrequest-id: d3b0c442-98fc-1c14-9afb-0df1aky0013\n\tat com.payments.settlement.SettlementService.round(SettlementService.java:41)\n\tat com.payments.RefundLimiterTest.limitsRefundAmount(RefundLimiterTest.java:41)\n    </failure>\n  </testcase>\n</testsuite>",
+      "expected": {
+        "category": "test",
+        "testName": "com.payments.RefundLimiterTest#limitsRefundAmount",
+        "diagnostic": "flaky"
+      }
+    },
+    {
+      "at": "2026-11-14T07:22:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/fee-schedule",
+      "commit": "0ef1aky0014",
+      "author": "dev-5",
+      "step": "gradle test",
+      "durationS": 96,
+      "buildUrl": "https://bitbucket.org/payments/payments-api/pipelines/results/0ef1aky0014",
+      "outcome": "failure",
+      "log": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuite name=\"com.payments.RefundLimiterTest\" tests=\"37\" failures=\"1\" errors=\"0\" skipped=\"0\" time=\"9.412\">\n  <testcase classname=\"com.payments.RefundLimiterTest\" name=\"limitsRefundAmount\" time=\"0.081\">\n    <failure message=\"expected:<100> but was:<0>\" type=\"java.lang.AssertionError\">java.lang.AssertionError: expected:<100> but was:<0>\nrequest-id: d3b0c442-98fc-1c14-9afb-0ef1aky0014\n\tat com.payments.settlement.SettlementService.round(SettlementService.java:57)\n\tat com.payments.RefundLimiterTest.limitsRefundAmount(RefundLimiterTest.java:57)\n    </failure>\n  </testcase>\n</testsuite>",
+      "expected": {
+        "category": "test",
+        "testName": "com.payments.RefundLimiterTest#limitsRefundAmount",
+        "diagnostic": "flaky"
+      }
+    },
+    {
+      "at": "2026-11-14T08:00:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/audit-trail",
+      "commit": "0ff1aky0015",
+      "author": "dev-1",
+      "step": "gradle test",
+      "durationS": 96,
+      "buildUrl": "https://bitbucket.org/payments/payments-api/pipelines/results/0ff1aky0015",
+      "outcome": "failure",
+      "log": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuite name=\"com.payments.RefundLimiterTest\" tests=\"37\" failures=\"1\" errors=\"0\" skipped=\"0\" time=\"9.412\">\n  <testcase classname=\"com.payments.RefundLimiterTest\" name=\"limitsRefundAmount\" time=\"0.081\">\n    <failure message=\"expected:<100> but was:<0>\" type=\"java.lang.AssertionError\">java.lang.AssertionError: expected:<100> but was:<0>\nrequest-id: d3b0c442-98fc-1c14-9afb-0ff1aky0015\n\tat com.payments.settlement.SettlementService.round(SettlementService.java:63)\n\tat com.payments.RefundLimiterTest.limitsRefundAmount(RefundLimiterTest.java:63)\n    </failure>\n  </testcase>\n</testsuite>",
+      "expected": {
+        "category": "test",
+        "testName": "com.payments.RefundLimiterTest#limitsRefundAmount",
+        "diagnostic": "flaky"
+      }
+    },
+    {
+      "at": "2026-11-14T09:00:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/idempotency-key",
+      "commit": "10f1aky0016",
+      "author": "dev-2",
+      "step": "gradle test",
+      "durationS": 96,
+      "buildUrl": "https://bitbucket.org/payments/payments-api/pipelines/results/10f1aky0016",
+      "outcome": "failure",
+      "log": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuite name=\"com.payments.RefundLimiterTest\" tests=\"37\" failures=\"1\" errors=\"0\" skipped=\"0\" time=\"9.412\">\n  <testcase classname=\"com.payments.RefundLimiterTest\" name=\"limitsRefundAmount\" time=\"0.081\">\n    <failure message=\"expected:<100> but was:<0>\" type=\"java.lang.AssertionError\">java.lang.AssertionError: expected:<100> but was:<0>\nrequest-id: d3b0c442-98fc-1c14-9afb-10f1aky0016\n\tat com.payments.settlement.SettlementService.round(SettlementService.java:57)\n\tat com.payments.RefundLimiterTest.limitsRefundAmount(RefundLimiterTest.java:57)\n    </failure>\n  </testcase>\n</testsuite>",
+      "expected": {
+        "category": "test",
+        "testName": "com.payments.RefundLimiterTest#limitsRefundAmount",
+        "diagnostic": "flaky"
+      }
+    },
+    {
+      "at": "2026-11-14T09:20:00.000Z",
+      "repo": "payments-api",
+      "branch": "feature/timeout-tuning",
+      "commit": "new0011eeeeeee",
+      "author": "karim",
+      "step": "integration-tests",
+      "durationS": 61,
+      "prId": 479,
+      "outcome": "failure",
+      "log": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<testsuite name=\"com.payments.config.TimeoutsTest\" tests=\"22\" failures=\"1\" errors=\"1\" skipped=\"0\" time=\"300.109\">\n  <testcase classname=\"com.payments.config.TimeoutsTest\" name=\"testHttpTimeoutIsApplied\" time=\"300.109\">\n    <error message=\"Test timed out after 300 seconds\" type=\"org.junit.jupiter.api.TimeoutException\">\nrequest-id: a7b8c9d0-9999-4a2b-8c3d-0123456789ab\n\tat com.payments.config.TimeoutsTest.testHttpTimeoutIsApplied(TimeoutsTest.java:210)\n    </error>\n  </testcase>\n</testsuite>",
+      "changedFiles": [
+        "src/main/java/com/payments/config/Timeouts.java"
+      ],
+      "expected": {
+        "category": "timeout",
+        "diagnostic": "new"
+      }
+    },
+    {
+      "at": "2026-11-14T10:20:00.000Z",
+      "repo": "payments-web",
+      "branch": "feature/docker-base",
+      "commit": "new0012fffffff",
+      "author": "lina",
+      "step": "docker build",
+      "durationS": 61,
+      "prId": 223,
+      "outcome": "failure",
+      "log": "2026-11-14T10:20:00.000Z docker build\nUnable to find image 'registry.internal.example/payments/web:3.1.0' locally\npull access denied for registry.internal.example/payments/web\ndocker: Error response from daemon: pull access denied for registry.internal.example/payments/web:3.1.0, repository does not exist or may require 'docker login'\nSee https://docs.docker.com/engine/reference/commandline/pull/",
+      "changedFiles": [
+        "Dockerfile"
+      ],
+      "expected": {
+        "category": "infrastructure",
+        "diagnostic": "infrastructure"
+      }
+    },
+    {
+      "at": "2026-11-14T11:40:00.000Z",
+      "repo": "payments-api",
+      "branch": "main",
+      "commit": "grn0004dddddd",
+      "author": "pipeline",
+      "step": "integration-tests",
+      "durationS": 132,
+      "outcome": "success"
+    }
+  ],
+  "resolutions": [
+    {
+      "match": {
+        "contains": "token descriptor is null"
+      },
+      "commit": "abc1234deadbeef",
+      "author": "marie",
+      "note": "HTTP client refreshed the token descriptor before every call",
+      "files": [
+        "src/main/java/com/payments/http/Client.java"
+      ],
+      "confirmed": true
+    }
+  ]
+}

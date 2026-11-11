@@ -69,6 +69,19 @@ const TABLE: Record<string, [string, string]> = {
     'The key a CI must send to push its own excerpt.',
     'La clé qu’une CI doit envoyer pour pousser son propre extrait.',
   ],
+  'sample.button': ['Replay the sample set', 'Rejouer le jeu d’exemple'],
+  'sample.running': ['Replaying the sample set…', 'Rejeu du jeu d’exemple…'],
+  'sample.seeded': ['Sample set replayed: the memory is filled.', 'Jeu d’exemple rejoué : la mémoire est remplie.'],
+  'sample.already': [
+    'The memory already holds failures: nothing was injected.',
+    'La mémoire contient déjà des échecs : rien n’a été injecté.',
+  ],
+  'sample.failed': ['The replay failed.', 'Le rejeu a échoué.'],
+  'sample.signatures': ['Signatures', 'Signatures'],
+  'sample.occurrences': ['Failures replayed', 'Échecs rejoués'],
+  'sample.tickets': ['Tickets created', 'Tickets créés'],
+  'sample.comments': ['Comments posted', 'Commentaires publiés'],
+  'sample.kinds': ['Diagnostics', 'Diagnostics'],
 };
 
 /**
