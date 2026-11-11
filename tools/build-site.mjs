@@ -82,6 +82,22 @@ async function esbuildDuSite() {
 export async function buildSite() {
   const esbuild = await esbuildDuSite();
   mkdirSync(PUBLIC, { recursive: true });
+  // `packages/core/src/universal.ts` charge son module de masquage en différé
+  // (`import('./mask.js')`, enregistré au chargement) : dans un bundle
+  // navigateur, cet import devient une requête vers `./mask.js` à côté du
+  // bundle. On publie donc ce petit module ESM — l'entrée universelle reste
+  // fonctionnelle dans le navigateur, et aucune requête ne part en 404.
+  await esbuild.build({
+    entryPoints: [join(RACINE, 'packages/core/src/mask.ts')],
+    outfile: join(PUBLIC, 'mask.js'),
+    bundle: true,
+    minify: true,
+    format: 'esm',
+    target: ['es2020'],
+    sourcemap: false,
+    legalComments: 'none',
+    logLevel: 'warning',
+  });
   const resultat = await esbuild.build({
     entryPoints: [join(SITE, 'src/main.ts')],
     outfile: join(PUBLIC, 'bundle.js'),

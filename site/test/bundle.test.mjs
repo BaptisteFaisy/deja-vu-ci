@@ -13,6 +13,7 @@
 import { describe, expect, it } from 'vitest';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { PUBLIC, fingerprint } from '../../tools/build-site.mjs';
 
 /** Lit un fichier publié, en texte. */
@@ -22,7 +23,7 @@ function publie(nom) {
 
 describe('site public publié', () => {
   it('a été construit et contient les quatre fichiers servis', () => {
-    for (const nom of ['index.html', 'styles.css', 'bundle.js', 'build-manifest.json', 'icon.svg']) {
+    for (const nom of ['index.html', 'styles.css', 'bundle.js', 'mask.js', 'build-manifest.json', 'icon.svg']) {
       expect(existsSync(join(PUBLIC, nom)), nom).toBe(true);
     }
     expect(statSync(join(PUBLIC, 'bundle.js')).size).toBeGreaterThan(50_000);
@@ -59,5 +60,13 @@ describe('site public publié', () => {
     expect(publie('bundle.js')).not.toMatch(/\bfetch\(/);
     expect(publie('bundle.js')).not.toContain('XMLHttpRequest');
     expect(publie('bundle.js')).not.toContain('importScripts');
+  });
+
+  it('publie le module de masquage chargé en différé par l’entrée universelle', async () => {
+    const module = await import(pathToFileURL(join(PUBLIC, 'mask.js')).href);
+    expect(typeof module.maskSecrets).toBe('function');
+    const masque = module.maskSecrets('Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0In0');
+    expect(masque.masked).toBeGreaterThan(0);
+    expect(masque.text).not.toContain('eyJhbGciOiJIUzI1NiJ9');
   });
 });
