@@ -22,7 +22,16 @@ export default defineConfig({
     },
   },
   test: {
-    include: ['packages/**/*.test.ts', 'apps/**/test/**/*.test.ts', 'tools/**/*.test.mjs'],
+    include: [
+      'packages/**/*.test.ts',
+      'apps/**/test/**/*.test.ts',
+      'tools/**/*.test.mjs',
+      // Le site public : la démo (moteur réel), ses textes, et la fraîcheur du
+      // bundle commité. Comme les apps, `site/` installe ses propres
+      // dépendances (esbuild) hors du workspace racine.
+      'site/**/*.test.ts',
+      'site/**/*.test.mjs',
+    ],
     environment: 'node',
     testTimeout: 20000,
     reporters: ['dot'],

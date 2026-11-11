@@ -24,6 +24,28 @@ threshold: the app then shows the facts instead of blaming (or exonerating) the 
 
 ---
 
+## The public site — zero install, zero account
+
+**https://baptistefaisy.github.io/deja-vu-ci/** — the real engine, running in your browser.
+
+The site bundles `packages/core` (unmodified) together with the sample dataset tracked by git, and
+replays it in one click: signatures, diagnostics with the facts that justify them, the ticket plan
+and the cost. Nothing is fetched and nothing is sent — the page proves the engine, not a mock of
+it. English and French; `?lang=en` and `?demo=1` share a ready-made view.
+
+![The public site: one click replays the sample set in the browser](docs/images/site-hero.png)
+
+One replay, rendered in the visitor's browser — every row below is computed there, from the public
+source:
+
+![Diagnostics produced by the in-browser replay](docs/images/site-results.png)
+
+`site/public/` is **committed**: the Pages workflow only uploads it (no `npm ci`, so the 5-minute
+budget is wide), and `site/test/bundle.test.mjs` fails the CI if the committed bundle ever drifts
+from its sources (fingerprint of `site/src`, `packages/core`, `packages/present` and the dataset).
+
+---
+
 ## Try it in 2 minutes without Bitbucket
 
 ```bash

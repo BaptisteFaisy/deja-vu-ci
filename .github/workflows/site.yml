@@ -1,0 +1,80 @@
+name: site
+
+# Site public — https://baptistefaisy.github.io/deja-vu-ci/
+#
+# `site/public/` est **commité** (bundle, feuille de style, page, empreinte) :
+# ce workflow ne construit donc rien, il téléverse et publie. Deux raisons :
+#   - aucun `npm ci` en CI, donc le budget de 5 minutes (règle user 2026-10-24)
+#     est large même sur des runners self-hosted chargés ;
+#   - ce qui est publié est exactement ce que le dépôt contient : la fraîcheur
+#     du bundle est vérifiée AVANT le merge par `site/test/bundle.test.mjs`
+#     (empreinte des sources recalculée), dans le job `ci` de chaque PR.
+#
+# Déclenché sur `main` seulement : une PR ne publie rien.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - 'packages/core/src/**'
+      - 'packages/present/src/**'
+      - 'data/sample/**'
+      - 'tools/build-site.mjs'
+      - '.github/workflows/site.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Un seul déploiement à la fois ; on n'annule pas celui qui est en cours
+# (annuler une publication laisse Pages dans un état intermédiaire).
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: site-build
+    runs-on: [self-hosted, linux, x64, deja-vu-ci-worker]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      # L'artefact Pages est le dossier publié, tel quel. `_site` est recréé à
+      # chaque run : les runners self-hosted conservent leur workspace.
+      - name: Préparer l'artefact Pages
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf _site
+          mkdir -p _site
+          cp -r site/public/. _site/
+          test -s _site/index.html
+          test -s _site/bundle.js
+          echo "artefact : $(du -sh _site | cut -f1), $(find _site -type f | wc -l) fichier(s)"
+
+      - name: Configurer Pages
+        uses: actions/configure-pages@v5
+
+      - name: Téléverser l'artefact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    name: site-deploy
+    needs: build
+    runs-on: [self-hosted, linux, x64, deja-vu-ci-worker]
+    timeout-minutes: 5
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publier sur GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

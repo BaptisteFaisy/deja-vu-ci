@@ -1,0 +1,16 @@
+{
+  "name": "@dejavu/site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Site public Déjà-vu CI — la démo du moteur dans le navigateur (GitHub Pages)",
+  "scripts": {
+    "build": "node ../tools/build-site.mjs",
+    "typecheck": "tsc -p . --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "esbuild": "^0.21.5",
+    "typescript": "^5.7.2"
+  }
+}

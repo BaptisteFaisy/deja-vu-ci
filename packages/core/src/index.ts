@@ -39,6 +39,7 @@ export * from './curate.js';
 // Where it lives (§ 15, § 16, CI-11, CI-16).
 export * from './store.js';
 export * from './replay.js';
+export * from './engine.js';
 export * from './llm.js';
 export * from './universal.js';
 export * from './quarantine.js';

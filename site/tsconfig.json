@@ -1,0 +1,19 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM"],
+    "baseUrl": ".",
+    "outDir": "dist-types",
+    "declaration": false,
+    "sourceMap": false,
+    "types": ["node"],
+    "paths": {
+      "@dejavu/core": ["../packages/core/src/index.ts"],
+      "@dejavu/present": ["../packages/present/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": ["dist", "dist-types", "node_modules"]
+}

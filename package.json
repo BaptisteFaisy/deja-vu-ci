@@ -17,6 +17,7 @@
     "eval": "npm run build --silent && node tools/eval-accuracy.mjs",
     "check:data": "node tools/check-dataset.mjs",
     "lint:manifests": "node tools/validate-manifest.mjs",
+    "build:site": "node tools/build-site.mjs",
     "gen:data": "node tools/gen/sample.mjs && node tools/gen/corpus.mjs && npm run check:data --silent",
     "typecheck:apps": "npm --prefix apps/sensor run typecheck && npm --prefix apps/brain run typecheck"
   },

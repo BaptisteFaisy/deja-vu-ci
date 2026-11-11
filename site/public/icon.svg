@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Déjà-vu CI">
+  <rect width="32" height="32" rx="7" fill="#0b1220" />
+  <path d="M7 20a9 9 0 1 1 3.2 6.4" fill="none" stroke="#4ea1ff" stroke-width="2.6" stroke-linecap="round" />
+  <path d="M7 26v-6h6" fill="none" stroke="#4ea1ff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+  <circle cx="16" cy="15" r="3.1" fill="#f2b134" />
+</svg>
