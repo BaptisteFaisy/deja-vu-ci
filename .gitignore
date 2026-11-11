@@ -9,3 +9,13 @@ coverage/
 .vitest/
 .env
 *.log
+
+# Sorties de compilation émises à côté des sources (un `tsc` sans --noEmit
+# dans un sous-dossier laisse des .js/.d.ts/.js.map à côté des .ts : ils ne
+# doivent jamais être versionnés, seul `dist/` porte le code compilé).
+packages/*/src/**/*.js
+packages/*/src/**/*.js.map
+packages/*/src/**/*.d.ts
+apps/*/src/**/*.js
+apps/*/src/**/*.js.map
+apps/*/src/**/*.d.ts
