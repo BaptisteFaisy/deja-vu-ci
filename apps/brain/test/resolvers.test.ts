@@ -51,12 +51,16 @@ function fakePorts(): { ports: UiDataPorts; calls: string[] } {
         calls.push(`saveSettings:${JSON.stringify(payload)}`);
         return { ok: true };
       },
+      async replaySample() {
+        calls.push('replaySample');
+        return { ok: true, seeded: true };
+      },
     },
   };
 }
 
 describe('résolveurs des écrans UI Kit', () => {
-  it('enregistre les quatre noms appelés par l’interface', () => {
+  it('enregistre les cinq noms appelés par l’interface', () => {
     const { resolver, defined } = fakeResolver();
     const { ports } = fakePorts();
     registerUiResolvers(resolver, ports);
@@ -87,5 +91,14 @@ describe('résolveurs des écrans UI Kit', () => {
     await defined.get('settings')?.({ payload: undefined, context: undefined });
     await defined.get('save-settings')?.({ payload: { issueProjectKey: 'CI' }, context: undefined });
     expect(calls).toEqual(['settings', 'saveSettings:{"issueProjectKey":"CI"}']);
+  });
+
+  it('route `replay-sample` vers le rejeu du jeu d’exemple', async () => {
+    const { resolver, defined } = fakeResolver();
+    const { ports, calls } = fakePorts();
+    registerUiResolvers(resolver, ports);
+    const answer = await defined.get('replay-sample')?.({ payload: undefined, context: undefined });
+    expect(calls).toEqual(['replaySample']);
+    expect(answer).toEqual({ ok: true, seeded: true });
   });
 });

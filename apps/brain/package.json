@@ -5,6 +5,7 @@
   "type": "module",
   "description": "Cerveau \u2014 the Jira Forge app of D\u00e9j\u00e0-vu CI: memory, diagnostics, unique tickets, and Rovo/MCP actions",
   "scripts": {
+    "build:seed": "node ../../tools/copy-sample.mjs",
     "typecheck": "tsc -p . --noEmit"
   },
   "dependencies": {

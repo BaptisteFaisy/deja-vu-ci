@@ -204,6 +204,12 @@ modules:
     # Text context of a ticket, read by Rovo (`jira:issueContext`).
     - key: issueContextText
       handler: index.issueContextText
+    # « Replay the sample set » (§ 22, CI-11): fills the memory with the
+    # 40 failures of the sample dataset and creates the tickets they imply.
+    # The button of the project page reaches it through the UI resolver
+    # (`replay-sample`); declaring the function keeps it callable on its own.
+    - key: replaySample
+      handler: index.replaySample
     - key: actionExplainFailure
       handler: index.explainBuildFailure
     - key: actionSearchFailures
