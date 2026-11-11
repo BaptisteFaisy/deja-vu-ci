@@ -98,3 +98,7 @@ Ligne ajoutée par la branche A : la mémoire des signatures est partagée entre
 ## Sonde A — mémoire partagée entre organisations
 
 Les erreurs d'outils publics (registres, images de base) sont reconnues partout, sans partager une ligne de code.
+
+## Sonde B — quarantaine proposée
+
+Pour un test instable coûteux, l'app rédige la modification qui l'isole et le ticket qui engage à le réparer.
