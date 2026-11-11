@@ -43,12 +43,11 @@ prints, with no network access and no Atlassian tenant:
 npm run eval     # accuracy of grouping and false-"flaky" rate on the 100-failure labelled corpus
 ```
 
-> **Status of the commands:** `npm run replay` and `npm run eval` are declared in `package.json`
-> and are delivered by the sample-data-and-tools lot (`data/**`, `tools/**`). On this branch the
-> scripts and the sample dataset are still landing in a parallel pull request — the honest status of
-> every command is listed in [docs/JUDGES.md](docs/JUDGES.md). The engine itself
-> (`packages/core/src/**`) is likewise delivered by parallel pull requests; see the traceability
-> table below, whose *Status* column is the single source of truth.
+> **Status of the commands:** everything above is in this repository — the engine
+> (`packages/core/src/**`), the sample dataset (`data/sample/occurrences.json`), the labeled corpus
+> (`data/labeled/100-failures.json`) and the tools (`tools/**`). Measured on the current `main`:
+> grouping **100 %**, categories **100 %**, false "flaky" **0 %**, 336 automated tests green, and
+> the § 20 acceptance recipe replayed end to end by `npm run replay`.
 
 ---
 
@@ -72,10 +71,11 @@ Full details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Installing the two apps
 
-> **Status:** the manifests (`apps/sensor/manifest.yml`, `apps/brain/manifest.yml`) and their
-> resolvers are delivered by the Forge-app lots (sensor, brain-server, brain-UI). They are not
-> installable from this branch yet; the steps below are the intended procedure and the pairing
-> contract they implement.
+> **Status:** both manifests (`apps/sensor/manifest.yml`, `apps/brain/manifest.yml`) and their
+> resolvers are in this repository. Deploying them needs a Forge API token and an Atlassian site
+> (`forge deploy` / `forge install`), which this repository does not ship: the steps below are the
+> procedure to run on your own tenant, and the pairing contract they implement. Everything the apps
+> compute is exercised here without a tenant — `npm run replay` and the 336 automated tests.
 
 **1. The Brain (Jira side) — the useful one on its own**
 
@@ -120,8 +120,9 @@ tools/universal-entry.sh --project-key CI --repository my-repo --branch main --l
 The payload is validated, capped at 50 KB, masked, and then follows exactly the same path as the
 Sensor. GitHub Actions, GitLab CI and Jenkins are the intended first users.
 
-> **Status:** `tools/universal-entry.sh` and the `/universal` route are delivered by the
-> universal-entry lot (`packages/core/src/universal.ts`) and the tools lot.
+> **Status:** `tools/universal-entry.sh` is in this repository, and so is the validation and
+> conversion it relies on (`packages/core/src/universal.ts`) and the `/universal` route of the Brain
+> (`apps/brain/src/universal.ts`).
 
 ---
 
@@ -150,29 +151,28 @@ The same six actions are exposed to external MCP clients (`rovo:mcp`):
 ## Requirements traceability (CI-01 … CI-19)
 
 Source of truth: the frozen contract `docs/CONTRACTS.md`. *Status* tells what is really in this
-repository at the time of writing — `shipped` = present in the tree today; `lot X` = delivered by
-the parallel pull request of that lot; `planned` = not implemented yet.
+repository — `shipped` = present in the tree today; `planned` = deliberately not implemented yet.
 
 | # | Requirement | Where it lives | Status |
 |---|---|---|---|
-| CI-01 | Capture every failed build status | `apps/sensor/manifest.yml` triggers, `apps/sensor/src/index.ts` | lot E |
-| CI-02 | Read the failed step log and failed test cases | `apps/sensor/src/pipelines.ts` | lot E |
-| CI-03 | Mask secrets before anything leaves Bitbucket | `packages/core/src/mask.ts` | lot A |
-| CI-04 | Signature, family and category (§ 9) | `packages/core/src/sign.ts`, `packages/core/src/categorize.ts` | lot A |
-| CI-05 | One of four diagnostics, with confidence and justification | `packages/core/src/diagnose.ts`, `apps/brain/src/ingest.ts` | lot B, lot F |
-| CI-06 | Flaky detection (§ 10.1) | `packages/core/src/flaky.ts` | lot B |
-| CI-07 | One ticket per problem (§ 11) | `packages/core/src/tickets.ts` | lot C |
-| CI-08 | Diagnostic on the pull request and on the Jira ticket | `apps/sensor` PR card, `apps/brain/src/ui/` issue panel | lot E, lot G |
-| CI-09 | "CI Memory" project page | `apps/brain/src/ui/` project page | lot G |
-| CI-10 | Rovo agent and MCP tools (§ 13) | `apps/brain/src/rovo/`, `apps/brain/src/actions/` | lot G |
-| CI-11 | Replayable sample set without Bitbucket | `packages/core/src/replay.ts`, `data/sample/`, `tools/replay.mjs` | lot D, lot H |
-| CI-12 | Deduce then confirm resolutions | `packages/core/src/resolutions.ts`, `apps/brain/src/actions/` | lot C, lot G |
-| CI-13 | Detect regressions, reopen the ticket, mention the fix author | `packages/core/src/resolutions.ts` (`detectRegression`), `packages/core/src/tickets.ts` | lot C |
-| CI-14 | Cost: red builds, CI minutes lost, people affected | `packages/core/src/cost.ts`, `apps/brain/src/ui/` cost tab | lot C, lot G |
-| CI-15 | Detect infrastructure outbreaks, open one incident | `packages/core/src/outbreak.ts` | lot B |
-| CI-16 | Universal entry for any CI | `packages/core/src/universal.ts`, `tools/universal-entry.sh` | lot D, lot H |
+| CI-01 | Capture every failed build status | `apps/sensor/manifest.yml` triggers, `apps/sensor/src/index.ts` | shipped |
+| CI-02 | Read the failed step log and failed test cases | `apps/sensor/src/pipelines.ts` | shipped |
+| CI-03 | Mask secrets before anything leaves Bitbucket | `packages/core/src/mask.ts` | shipped |
+| CI-04 | Signature, family and category (§ 9) | `packages/core/src/sign.ts`, `packages/core/src/categorize.ts` | shipped |
+| CI-05 | One of four diagnostics, with confidence and justification | `packages/core/src/diagnose.ts`, `apps/brain/src/ingest.ts` | shipped |
+| CI-06 | Flaky detection (§ 10.1) | `packages/core/src/flaky.ts` | shipped |
+| CI-07 | One ticket per problem (§ 11) | `packages/core/src/tickets.ts` | shipped |
+| CI-08 | Diagnostic on the pull request and on the Jira ticket | `apps/sensor` PR card, `apps/brain/src/ui/` issue panel | shipped |
+| CI-09 | "CI Memory" project page | `apps/brain/src/ui/` project page | shipped |
+| CI-10 | Rovo agent and MCP tools (§ 13) | `apps/brain/src/rovo/`, `apps/brain/src/actions/` | shipped |
+| CI-11 | Replayable sample set without Bitbucket | `packages/core/src/replay.ts`, `data/sample/`, `tools/replay.mjs` | shipped |
+| CI-12 | Deduce then confirm resolutions | `packages/core/src/resolutions.ts`, `apps/brain/src/actions/` | shipped |
+| CI-13 | Detect regressions, reopen the ticket, mention the fix author | `packages/core/src/resolutions.ts` (`detectRegression`), `packages/core/src/tickets.ts` | shipped |
+| CI-14 | Cost: red builds, CI minutes lost, people affected | `packages/core/src/cost.ts`, `apps/brain/src/ui/` cost tab | shipped |
+| CI-15 | Detect infrastructure outbreaks, open one incident | `packages/core/src/outbreak.ts` | shipped |
+| CI-16 | Universal entry for any CI | `packages/core/src/universal.ts`, `tools/universal-entry.sh` | shipped |
 | CI-17 | Manually merge or split signatures | — | planned (not in the frozen contract) |
-| CI-18 | Adjustable retention of raw excerpts | `packages/core/src/store.ts` (`purgeExpired`), `rawRetentionDays` setting | lot D |
+| CI-18 | Adjustable retention of raw excerpts | `packages/core/src/store.ts` (`purgeExpired`), `rawRetentionDays` setting | shipped |
 | CI-19 | Propose quarantining a test | — | planned (post-hackathon, § 6 "Vision") |
 
 Also shipped today, as part of the foundation: the frozen domain types
