@@ -49,11 +49,6 @@ const TABLE: Record<string, [string, string]> = {
   'empty.flaky': ['No flaky test in this window.', 'Aucun test instable sur cette fenêtre.'],
   'empty.pending': ['No resolution to confirm.', 'Aucune résolution à confirmer.'],
   'empty.cost': ['No cost recorded yet.', 'Aucun coût enregistré.'],
-  'cost.redBuilds': ['Red builds', 'Builds rouges'],
-  'cost.minutesLost': ['CI minutes lost', 'Minutes de CI perdues'],
-  'cost.peopleAffected': ['People affected', 'Personnes touchées'],
-  'cost.retries': ['Retries', 'Relances'],
-  'cost.window': ['Window (days)', 'Fenêtre (jours)'],
   'issue.diagnostic': ['Last build of this branch', 'Dernier build de cette branche'],
   'issue.occurrences': ['Occurrences of this problem', 'Occurrences de ce problème'],
   'issue.confirm': ['Confirm', 'Confirmer'],
@@ -103,6 +98,11 @@ const SHARED_USED: string[] = [
   'settings.save',
   'settings.saved',
   'settings.saveFailed',
+  'cost.redBuilds',
+  'cost.minutesLost',
+  'cost.peopleAffected',
+  'cost.retries',
+  'cost.window',
 ];
 
 /** Every key this app can translate: its own, then the shared ones it uses. */

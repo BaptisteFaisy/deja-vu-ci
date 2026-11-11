@@ -94,6 +94,13 @@ const MESSAGES: Record<string, [string, string]> = {
     'The shared secret must be at least 16 characters long.',
     'Le secret partagé doit compter au moins 16 caractères.',
   ],
+  // Cost (§ 14, CI-14): the same five numbers are displayed by the Brain's
+  // Cost tab and by the public site's in-browser demo — one table, not two.
+  'cost.redBuilds': ['Red builds', 'Builds rouges'],
+  'cost.minutesLost': ['CI minutes lost', 'Minutes de CI perdues'],
+  'cost.peopleAffected': ['People affected', 'Personnes touchées'],
+  'cost.retries': ['Retries', 'Relances'],
+  'cost.window': ['Window (days)', 'Fenêtre (jours)'],
 };
 
 /** Keys of the shared table — an app lists them with its own keys. */

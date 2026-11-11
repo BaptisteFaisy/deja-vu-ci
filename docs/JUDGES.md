@@ -22,10 +22,25 @@ at the time this file was written. **Nothing in this guide promises more than th
 | Brain app (server) | `apps/brain/src/*.ts`, `apps/brain/manifest.yml` | shipped |
 | Brain UI, Rovo agent, MCP actions | `apps/brain/src/{ui,rovo,actions}/**` | shipped |
 | Sample dataset, labelled corpus, tools | `data/**`, `tools/**` | shipped |
+| Public site (GitHub Pages, in-browser demo) | `site/**`, `.github/workflows/site.yml` | shipped |
 
 The parallel lots land as separate pull requests. **Once they are merged, every command below
 works as written** — the commands are the contract the lots were built against
 (`docs/CONTRACTS.md`).
+
+---
+
+## 0. Path 0 — nothing to install (30 seconds)
+
+**https://baptistefaisy.github.io/deja-vu-ci/** — open it, click **Replay the sample set**.
+
+The page runs the real engine (`packages/core`, unmodified) on the real sample dataset, in your
+browser: signatures, diagnostics with their facts, the ticket plan and the cost appear in one
+click, with no account, no clone and no network call. It is the fastest honest look at what the
+engine decides; the paths below show the same numbers with the repository in your hands, and the
+installed apps show them where developers live (Jira and Bitbucket).
+
+`?demo=1` replays on load; `?lang=fr` switches the interface to French.
 
 ---
 

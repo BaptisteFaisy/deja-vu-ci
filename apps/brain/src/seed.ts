@@ -22,14 +22,8 @@
  */
 
 import {
-  assessFlakiness,
-  diagnose,
-  extractErrorBlocks,
-  familyOf,
-  inferCandidateResolution,
-  planTicketActions,
   replayWithEngine,
-  signatureOf,
+  staticReplayEngine,
   type DiagnosticKind,
   type ReplayEngine,
   type ReplayResult,
@@ -75,17 +69,11 @@ export interface SeedDeps {
   now?: Date;
 }
 
-/** The real engine, assembled from the core functions the replay expects. */
-export function replayEngine(): ReplayEngine {
-  return {
-    extraction: { extractErrorBlocks },
-    signing: { signatureOf, familyOf },
-    diagnosis: { diagnose },
-    flakiness: { assessFlakiness },
-    tickets: { planTicketActions },
-    resolutions: { inferCandidateResolution },
-  };
-}
+/**
+ * The real engine, assembled **once** in the core package (`staticReplayEngine`)
+ * and shared with the public site's in-browser demo: one implementation, no copy.
+ */
+export const replayEngine: () => ReplayEngine = staticReplayEngine;
 
 /** One error message, whatever was thrown. */
 function messageOf(error: unknown): string {
