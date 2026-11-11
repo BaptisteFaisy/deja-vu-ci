@@ -1,0 +1,163 @@
+# Déjà-vu CI — Cerveau (Brain): the Jira Forge app.
+#
+# The Brain receives signed failure payloads from the Sensor (Bitbucket)
+# and from the universal entry (any CI), computes signatures, stores the
+# memory in Forge SQL, diagnoses failures, keeps one Jira ticket per
+# failure family, and exposes the six actions to Rovo and MCP.
+#
+# Module keys and scopes follow the Forge manifest schema for Jira apps.
+# `app.id` is a placeholder: `forge create` / `forge install` replaces it
+# with the ari of the real app. Never commit a real app id with a secret.
+
+modules:
+  webtrigger:
+    - key: deja-vu-ingest
+      function: ingestTrigger
+    - key: deja-vu-query
+      function: queryTrigger
+    - key: deja-vu-universal
+      function: universalTrigger
+
+  consumer:
+    - key: deja-vu-consumer
+      queue: deja-vu-ingest-queue
+      function: consumerHandler
+      # The consumer is idempotent: replaying a message changes nothing.
+      retry:
+        maxAttempts: 3
+
+  scheduledTrigger:
+    - key: deja-vu-daily
+      function: scheduledHandler
+      interval: day
+
+  sql:
+    - key: deja-vu-sql
+
+  llm:
+    - key: deja-vu-llm
+
+  jira:projectPage:
+    - key: deja-vu-project-page
+      title: Déjà-vu CI
+      function: projectPageResolver
+
+  jira:issueContext:
+    - key: deja-vu-issue-context
+      title: Déjà-vu CI
+      function: issueContextResolver
+
+  jira:projectSettingsPage:
+    - key: deja-vu-project-settings
+      title: Déjà-vu CI
+      function: settingsPageResolver
+
+  rovo:agent:
+    - key: deja-vu-rovo-agent
+      name: Déjà-vu CI
+      description: >-
+        CI memory: explains red builds, finds flaky tests, tracks fixes.
+      prompt: >-
+        You are Déjà-vu CI, the CI memory of this Jira project. Answer with
+        a diagnosis and one action (retry, rebase, fix, wait, none). Cite
+        the Jira ticket of the problem when there is one, and the fix
+        (commit and author) when the failure was already fixed. Never
+        invent a commit, an author or a ticket: if the memory does not
+        know, say so.
+      conversationStarters:
+        - Why is the build of PAY-123 red?
+        - Have we already seen this error?
+        - What are our most flaky tests?
+        - Who fixed the database connection error last time?
+      actions:
+        - explain-build-failure
+        - search-failures
+        - get-signature
+        - list-flaky-tests
+        - report-resolution
+        - confirm-resolution
+
+  action:
+    - key: explain-build-failure
+      function: actionExplainBuildFailure
+      actionVerb: GET
+    - key: search-failures
+      function: actionSearchFailures
+      actionVerb: GET
+    - key: get-signature
+      function: actionGetSignature
+      actionVerb: GET
+    - key: list-flaky-tests
+      function: actionListFlakyTests
+      actionVerb: GET
+    - key: report-resolution
+      function: actionReportResolution
+      actionVerb: CREATE
+    - key: confirm-resolution
+      function: actionConfirmResolution
+      actionVerb: UPDATE
+
+  rovo:mcp:
+    - key: deja-vu-mcp
+      name: Déjà-vu CI MCP
+      description: >-
+        The six Déjà-vu CI actions over MCP: same keys, inputs and outputs
+        as the Forge actions.
+      cloud:
+        transport: streamable-http
+      resources:
+        - action:
+            - explain-build-failure
+            - search-failures
+            - get-signature
+            - list-flaky-tests
+            - report-resolution
+            - confirm-resolution
+
+  function:
+    - key: ingestTrigger
+      handler: index.ingest
+    - key: queryTrigger
+      handler: index.query
+    - key: universalTrigger
+      handler: index.universal
+    - key: consumerHandler
+      handler: index.consumer
+    - key: scheduledHandler
+      handler: index.scheduled
+    - key: projectPageResolver
+      handler: index.projectPage
+    - key: issueContextResolver
+      handler: index.issueContext
+    - key: settingsPageResolver
+      handler: index.settingsPage
+    - key: actionExplainBuildFailure
+      handler: index.explainBuildFailure
+    - key: actionSearchFailures
+      handler: index.searchFailures
+    - key: actionGetSignature
+      handler: index.getSignature
+    - key: actionListFlakyTests
+      handler: index.listFlakyTests
+    - key: actionReportResolution
+      handler: index.reportResolution
+    - key: actionConfirmResolution
+      handler: index.confirmResolution
+
+permissions:
+  scopes:
+    - read:jira-work
+    - write:jira-work
+    - read:jira-user
+    - storage:app
+  external:
+    fetch:
+      backend: []
+
+app:
+  id: ari:cloud:ecosystem::app/REPLACE-WITH-THE-REAL-APP-ID
+  description: >-
+    Recognises a red build, tells in seconds whether it is new, known,
+    flaky or an infrastructure failure, and keeps one ticket per problem.
+  runtime:
+    name: nodejs20.x

@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "baseUrl": ".",
+    "jsx": "react-jsx",
+    "types": ["node"],
+    "paths": {
+      "@dejavu/core": [
+        "../../packages/core/src/index.ts",
+        "../../packages/core/src/types.ts"
+      ],
+      "@dejavu/bridge": ["../../packages/bridge/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["dist", "node_modules"]
+}
