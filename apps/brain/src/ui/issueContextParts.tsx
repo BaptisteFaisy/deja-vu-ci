@@ -50,7 +50,9 @@ export function DiagnosticPanel(props: {
 /** Le correctif cité par un diagnostic « déjà vu, déjà corrigé ». */
 function ResolutionLine({ lang, diagnostic }: { lang: Lang; diagnostic: Diagnostic }): React.JSX.Element {
   const resolution = diagnostic.resolution;
-  if (!resolution) return <Text />;
+  // UI Kit 12: `Text` requires children — the defensive empty line renders
+  // an empty text node instead of a childless element.
+  if (!resolution) return <Text>{''}</Text>;
   return (
     <Inline space="space.200">
       <Text>{t('issue.resolution', lang)}</Text>

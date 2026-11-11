@@ -13,7 +13,7 @@
  */
 
 import { storage } from '@forge/api';
-import { Producer } from '@forge/events';
+import { Queue } from '@forge/events';
 import { verifyRequest } from '@dejavu/bridge';
 import type { IngestPayload } from '@dejavu/core';
 import { createNonceCache } from './pure/nonce.js';
@@ -24,7 +24,7 @@ import { brainStore } from './sql.js';
 export const BRIDGE_SECRET_KEY = 'dejavu-bridge-secret';
 
 /** Queue name — must match the `consumer` module of the manifest. */
-export const INGEST_QUEUE = 'dejavu-ingest-queue';
+export const INGEST_QUEUE = 'deja-vu-ingest-queue';
 
 /** Warm-instance replay guard. */
 const nonces = createNonceCache();
@@ -81,8 +81,12 @@ export function headersOf(request: Request): Record<string, string | undefined> 
 
 /** Queues a validated payload for the consumer; never throws. */
 export async function enqueue(payload: IngestPayload): Promise<void> {
-  const producer = new Producer({ queueName: INGEST_QUEUE });
-  await producer.send({ body: JSON.stringify(payload) });
+  // Real SDK (`@forge/events` v3): `Queue` replaces the former `Producer`
+  // draft. `push` takes event bodies as plain objects, never JSON strings:
+  // the consumer receives the payload structurally identical to this one.
+  const queue = new Queue({ key: INGEST_QUEUE });
+  const body: Record<string, unknown> = { ...payload };
+  await queue.push({ body });
 }
 
 /** Outcome of the bridge verification: the payload, or the answer to send. */

@@ -10,11 +10,17 @@
   "dependencies": {
     "@dejavu/bridge": "file:../../packages/bridge",
     "@dejavu/core": "file:../../packages/core",
-    "@forge/ai": "^1.0.0",
-    "@forge/api": "^4.0.0",
-    "@forge/bridge": "^5.0.0",
-    "@forge/events": "^0.9.0",
-    "@forge/react": "^10.0.0",
-    "@forge/sql": "^1.0.0"
+    "@forge/api": "^7.2.2",
+    "@forge/bridge": "^7.3.0",
+    "@forge/events": "^3.0.10",
+    "@forge/llm": "^1.0.10",
+    "@forge/react": "^12.5.0",
+    "@forge/sql": "^4.0.10"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.12",
+    "react": "^18.3.1",
+    "typescript": "^5.7.2"
   }
 }
