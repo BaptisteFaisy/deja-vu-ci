@@ -45,22 +45,25 @@ import { DEFAULT_SETTINGS } from './pure/defaults.js';
 /** The client the pure builders target: text with `?` placeholders. */
 export interface SqlClient {
   query(text: string, params?: unknown[]): Promise<SqlRow[]>;
+  /** Runs one DDL statement (schema migration) on the platform DDL route. */
+  ddl(text: string): Promise<void>;
 }
 
 /**
  * Wraps `@forge/sql` behind the placeholder interface.
  *
- * The Forge client exposes a tagged-template `query`; a tag function is an
- * ordinary function, so a dynamic statement is passed by splitting it on its
- * placeholders (values stay parameters — never interpolated).
+ * The real SDK client (v4) exposes `prepare(query)` → `bindParams(...values)`
+ * → `execute()` for parameterised statements, and `executeDDL(query)` for
+ * schema statements. Values are bound positionally — never interpolated.
  */
 export function forgeSqlClient(): SqlClient {
   return {
     async query(text: string, params: unknown[] = []): Promise<SqlRow[]> {
-      const parts = text.split('?');
-      const strings = Object.assign([...parts], { raw: [...parts] }) as TemplateStringsArray;
-      const rows = await sql.query(strings, ...params);
-      return (rows ?? []) as SqlRow[];
+      const result = await sql.prepare<SqlRow>(text).bindParams(...params).execute();
+      return result.rows ?? [];
+    },
+    async ddl(text: string): Promise<void> {
+      await sql.executeDDL<never>(text);
     },
   };
 }
@@ -72,7 +75,7 @@ export function forgeSqlClient(): SqlClient {
 export async function ensureSchema(client: SqlClient = forgeSqlClient()): Promise<void> {
   for (const statement of queries.splitSchema(SQL_SCHEMA)) {
     try {
-      await client.query(statement);
+      await client.ddl(statement);
     } catch (error) {
       if (!queries.isAlreadyExists(error)) throw error;
     }
