@@ -10,7 +10,11 @@
   "dependencies": {
     "@dejavu/bridge": "file:../../packages/bridge",
     "@dejavu/core": "file:../../packages/core",
-    "@forge/api": "^4.0.0",
-    "@forge/bridge": "^5.0.0"
+    "@forge/api": "^7.2.2",
+    "@forge/bridge": "^7.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "typescript": "^5.7.2"
   }
 }
