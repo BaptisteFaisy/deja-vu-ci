@@ -90,3 +90,7 @@ The order below is the order we would tackle them in:
    only hashes, never code.
 5. **Marketplace publication** — the app is designed to be published: two apps, clear scopes, no
    external service.
+
+## Variante A (sonde de conflit)
+
+Ligne ajoutée par la branche A : la mémoire des signatures est partagée entre organisations.
