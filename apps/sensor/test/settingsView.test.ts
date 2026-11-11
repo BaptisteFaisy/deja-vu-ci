@@ -9,12 +9,16 @@
 import { describe, expect, it } from 'vitest';
 import { MAX_EXCERPT_BYTES, MIN_EXCERPT_BYTES } from '../src/pure/settings';
 import {
+  EMPTY_SETTINGS_FORM,
   MIN_SECRET_LENGTH,
   clampExcerptBytes,
   emptySettingsView,
+  formOf,
   formatRepositoryList,
   parseRepositoryList,
+  payloadOf,
   validateSettingsForm,
+  viewAfterSave,
   type SettingsView,
 } from '../src/pure/settingsView';
 
@@ -89,5 +93,70 @@ describe('validation du formulaire', () => {
     expect(validateSettingsForm({ brainUrl: url, secret: 'x'.repeat(MIN_SECRET_LENGTH) }, false)).toBe('');
     // Already paired: saving preferences must not ask for the secret again.
     expect(validateSettingsForm({ brainUrl: url }, true)).toBe('');
+  });
+});
+
+describe('état du formulaire bâti par la page (Custom UI)', () => {
+  it('reflète la vue du résolveur, texte par texte', () => {
+    expect(formOf(PAIRED)).toEqual({
+      brainUrl: PAIRED.brainUrl,
+      secret: '',
+      repositories: 'acme/web\nacme/api',
+      maxExcerptBytes: '51200',
+    });
+  });
+
+  it('ne préremplit jamais le secret — il est write-only (§ 16)', () => {
+    expect(formOf(PAIRED).secret).toBe('');
+    expect(formOf(emptySettingsView()).secret).toBe('');
+    expect(EMPTY_SETTINGS_FORM.secret).toBe('');
+  });
+
+  it('tolère une vue sans URL ni dépôts', () => {
+    const state = formOf({ ok: true, paired: false, trackedRepositories: [], maxExcerptBytes: 20480 });
+    expect(state.brainUrl).toBe('');
+    expect(state.repositories).toBe('');
+    expect(state.maxExcerptBytes).toBe('20480');
+  });
+});
+
+describe('payload posté par la page (Custom UI)', () => {
+  it('nettoie le texte : URL rognée, dépôts dédoublonnés, extraits bornés', () => {
+    const payload = payloadOf({
+      brainUrl: '  https://xyz.webtrigger.atlassian.app  ',
+      secret: '',
+      repositories: 'acme/web\n\nacme/web\nacme/api',
+      maxExcerptBytes: '999999999',
+    });
+    expect(payload.brainUrl).toBe('https://xyz.webtrigger.atlassian.app');
+    expect(payload.trackedRepositories).toEqual(['acme/web', 'acme/api']);
+    expect(payload.maxExcerptBytes).toBe(MAX_EXCERPT_BYTES);
+  });
+
+  it('omet un secret vide — « laisser celui qui est rangé »', () => {
+    expect(payloadOf({ ...EMPTY_SETTINGS_FORM, brainUrl: 'https://x.app' }).secret).toBeUndefined();
+    expect(payloadOf({ ...EMPTY_SETTINGS_FORM, secret: 'x'.repeat(16) }).secret).toHaveLength(16);
+  });
+
+  it('la vue optimiste après un enregistrement réussi ne contient pas le secret', () => {
+    const payload = payloadOf({
+      brainUrl: 'https://xyz.webtrigger.atlassian.app',
+      secret: 'x'.repeat(16),
+      repositories: 'acme/web',
+      maxExcerptBytes: '20480',
+    });
+    const saved = viewAfterSave(emptySettingsView(), payload);
+    expect(saved.ok).toBe(true);
+    expect(saved.paired).toBe(true); // le secret vient d’être posté
+    expect(saved.brainUrl).toBe('https://xyz.webtrigger.atlassian.app');
+    expect(saved.trackedRepositories).toEqual(['acme/web']);
+    expect(saved.maxExcerptBytes).toBe(20480);
+    expect('secret' in saved).toBe(false);
+  });
+
+  it('sans secret posté, le jumelage existant est conservé', () => {
+    const saved = viewAfterSave(PAIRED, { brainUrl: PAIRED.brainUrl });
+    expect(saved.paired).toBe(true);
+    expect(saved.trackedRepositories).toEqual(PAIRED.trackedRepositories);
   });
 });

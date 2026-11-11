@@ -2,8 +2,9 @@
  * How the Sensor's screens reach its resolvers.
  *
  * Same loader as the Brain (`@dejavu/present`): the unwrapping of a Forge
- * answer is written once for both apps, and this module is the only one that
- * imports `@forge/bridge`.
+ * answer is written once for both apps. With `src/ui/custom.tsx` (which reads
+ * the platform context), this module is the only one that imports
+ * `@forge/bridge`.
  */
 
 import { invoke } from '@forge/bridge';

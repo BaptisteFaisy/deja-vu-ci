@@ -22,14 +22,16 @@ modules:
         - avi:bitbucket:updated:build-status
 
   # ---------------------------------------------------------------- the two screens
-  # UI Kit 2: both modules render the same resource (`src/frontend.tsx`), which
-  # routes on the module key. The card asks `invoke('getPrCard')`, the settings
-  # page `invoke('getSettings')` / `invoke('saveSettings')`; the platform routes
+  # Custom UI: the schema of the Bitbucket modules accepts `resource`,
+  # `resolver`, `title`, `key` (and `icon` for the card only) — unlike the
+  # Jira modules, it declares **no `render`**: UI Kit does not exist for
+  # Bitbucket, and `forge lint` refuses a UI resource that is not a directory
+  # ("Custom UI resource must be a directory"). Both modules therefore render
+  # the same static folder (`resources: main` → `static/`, an iframe with
+  # `index.html` + the committed bundle `index.js`), which routes on the
+  # module key. The card asks `invoke('getPrCard')`, the settings page
+  # `invoke('getSettings')` / `invoke('saveSettings')`; the platform routes
   # those calls to the module's `resolver.function`.
-  #
-  # The schema of the Bitbucket modules accepts `resource`, `resolver`, `title`,
-  # `key` (and `icon` for the card only): unlike the Jira modules, it declares
-  # no `render`, and the settings page takes no icon.
   bitbucket:repoPullRequestCard:
     - key: deja-vu-pr-card
       title: Déjà-vu CI
@@ -68,13 +70,14 @@ permissions:
       backend:
         - address: "*.webtrigger.atlassian.app"
 
-# Hosted resources (§ 14): one UI Kit 2 entry point for the two Bitbucket
-# modules, and the icon the card displays. `path` is relative to the app root;
-# a module refers to an entry with `resource: <key>`, an icon with
-# `resource:<key>;<file>`.
+# Hosted resources (§ 14): one Custom UI **directory** for the two Bitbucket
+# modules — `static/index.html` loads `styles.css` and the committed bundle
+# `index.js` (built from `src/ui/custom.tsx`, see the README) — and the icon
+# the card displays. `path` is relative to the app root; a module refers to
+# an entry with `resource: <key>`, an icon with `resource:<key>;<file>`.
 resources:
   - key: main
-    path: src/frontend.tsx
+    path: static
   - key: icon
     path: static
 
