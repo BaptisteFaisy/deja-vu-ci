@@ -39,6 +39,16 @@ jobs:
         shell: bash
         run: git clean -ffdx -e node_modules
 
+      # Le /tmp des runners est un tmpfs saturable (16 Go, vu plein à 100 % le
+      # 11/11 : vitest mourait en ENOSPC alors que le disque avait 90 Go).
+      # Les temporaires partent donc sur le disque, dans le home du runner.
+      - name: Temporaires sur le disque (jamais dans le tmpfs /tmp)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.cache/ci-tmp"
+          echo "TMPDIR=$HOME/.cache/ci-tmp" >> "$GITHUB_ENV"
+
       - name: Node du worker (hors PATH par défaut)
         shell: bash
         run: |
