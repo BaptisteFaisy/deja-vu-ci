@@ -85,18 +85,37 @@ export async function enqueue(payload: IngestPayload): Promise<void> {
   await producer.send({ body: JSON.stringify(payload) });
 }
 
+/** Outcome of the bridge verification: the payload, or the answer to send. */
+export type SignedRequestCheck =
+  | { ok: true; payload: unknown }
+  | { ok: false; response: Response };
+
+/**
+ * Verifies the bridge of one signed request (`/ingest` and `/query` share
+ * this path): secret lookup, HMAC + timestamp + nonce check (§ 15).
+ */
+export async function verifySignedRequest(request: Request): Promise<SignedRequestCheck> {
+  const body = await request.text();
+  const secret = await readBridgeSecret(body);
+  if (!secret) {
+    return { ok: false, response: jsonResponse(503, { ok: false, error: 'the Brain is not paired yet' }) };
+  }
+  const verified = verifyRequest(headersOf(request), body, secret, {
+    seenNonce: (nonce) => nonces.seen(nonce),
+  });
+  if (!verified.ok) {
+    return { ok: false, response: jsonResponse(401, { ok: false, error: verified.reason }) };
+  }
+  return { ok: true, payload: verified.payload };
+}
+
 /**
  * Verifies and queues one signed payload. Shared by `/ingest` and, after
  * conversion, by `/universal`: the queue and the consumer are the same.
  */
 export async function verifyAndQueue(request: Request): Promise<Response> {
-  const body = await request.text();
-  const secret = await readBridgeSecret(body);
-  if (!secret) return jsonResponse(503, { ok: false, error: 'the Brain is not paired yet' });
-  const verified = verifyRequest(headersOf(request), body, secret, {
-    seenNonce: (nonce) => nonces.seen(nonce),
-  });
-  if (!verified.ok) return jsonResponse(401, { ok: false, error: verified.reason });
+  const verified = await verifySignedRequest(request);
+  if (!verified.ok) return verified.response;
 
   const payload = validateIngestPayload(verified.payload);
   if (!payload.ok) return jsonResponse(400, { ok: false, error: payload.error });

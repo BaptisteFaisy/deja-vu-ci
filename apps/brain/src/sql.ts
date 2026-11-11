@@ -183,3 +183,21 @@ export function brainStore(): BrainSqlStore {
   if (!shared) shared = createSqlStore();
   return shared;
 }
+
+let migration: Promise<void> | undefined;
+
+/**
+ * Runs the idempotent migration once per warm instance. Every handler
+ * awaits this before touching the store: the first call migrates, the
+ * next ones reuse the same promise (and a failure is retried on the next
+ * invocation rather than cached).
+ */
+export function migrateOnce(client: SqlClient = forgeSqlClient()): Promise<void> {
+  if (!migration) {
+    migration = ensureSchema(client).catch((error) => {
+      migration = undefined;
+      throw error;
+    });
+  }
+  return migration;
+}
