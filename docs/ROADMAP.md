@@ -91,6 +91,10 @@ The order below is the order we would tackle them in:
 5. **Marketplace publication** — the app is designed to be published: two apps, clear scopes, no
    external service.
 
+## Sonde InferHub B — quarantaine proposée
+
+Pour un test instable coûteux, l'app rédige la modification qui l'isole et le ticket qui engage à le réparer.
+
 ## Sonde InferHub A — mémoire des erreurs publiques
 
 Les erreurs d'outils publics sont reconnues partout, sans partager une ligne de code.
