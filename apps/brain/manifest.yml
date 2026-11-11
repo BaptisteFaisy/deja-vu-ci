@@ -25,9 +25,10 @@ modules:
     - key: deja-vu-consumer
       queue: deja-vu-ingest-queue
       function: consumerHandler
-      # The consumer is idempotent: replaying a message changes nothing.
-      retry:
-        maxAttempts: 3
+      # Schema: the consumer variant {key, queue, function} accepts no other
+      # property (`additionalProperties: false`) — the former `retry` block is
+      # rejected. The consumer is idempotent: replaying a message changes
+      # nothing, so the platform's own delivery retries are safe.
 
   scheduledTrigger:
     - key: deja-vu-daily
@@ -35,10 +36,16 @@ modules:
       interval: day
 
   sql:
+    # Schema: `engine` is required and its only allowed value is `mysql`.
     - key: deja-vu-sql
+      engine: mysql
 
   llm:
+    # Schema: `model` is required — an array whose only allowed value is
+    # `claude` (model families the app may call through `@forge/llm`).
     - key: deja-vu-llm
+      model:
+        - claude
 
   jira:projectPage:
     - key: deja-vu-project-page
@@ -46,8 +53,11 @@ modules:
       function: projectPageResolver
 
   jira:issueContext:
+    # Schema: the function variant of the issue context requires `label`
+    # (short title of the panel) next to `key`, `title` and `function`.
     - key: deja-vu-issue-context
       title: Déjà-vu CI
+      label: Déjà-vu CI
       function: issueContextResolver
 
   jira:projectSettingsPage:
@@ -81,41 +91,60 @@ modules:
         - confirm-resolution
 
   action:
+    # Schema: every action requires `key`, `function`, `description` (1–255
+    # characters — the text the Rovo agent reads to decide when to invoke the
+    # action) and either `actionType` or `actionVerb`. The descriptions below
+    # mirror the descriptors of `src/actions/*.ts` (single source of truth).
     - key: explain-build-failure
       function: actionExplainBuildFailure
       actionVerb: GET
+      description: >-
+        Explain why a CI build failed: returns the diagnostic, its confidence,
+        the facts behind it and the action to take.
     - key: search-failures
       function: actionSearchFailures
       actionVerb: GET
+      description: >-
+        Find the known failure signatures closest to a free-text error excerpt
+        (same signature, same family, or close message).
     - key: get-signature
       function: actionGetSignature
       actionVerb: GET
+      description: >-
+        Get the history of a known failure signature: status, occurrences,
+        resolution and Jira ticket.
     - key: list-flaky-tests
       function: actionListFlakyTests
       actionVerb: GET
+      description: >-
+        List the flaky tests of a repository, ranked by CI cost (minutes lost),
+        over a rolling window.
     - key: report-resolution
       function: actionReportResolution
       actionVerb: CREATE
+      description: >-
+        Record a candidate resolution for a known signature: the commit that
+        fixed it, its author and an optional note.
     - key: confirm-resolution
       function: actionConfirmResolution
       actionVerb: UPDATE
+      description: >-
+        Confirm or reject a candidate resolution for a signature. A confirmed
+        resolution is cited to the next developers.
 
   rovo:mcp:
+    # Schema: the MCP server accepts exactly `key`, `name` (1–30 characters)
+    # and `tools` — an array of action keys of this manifest (1–50, unique).
+    # `description`, `cloud` and `resources` are not allowed properties.
     - key: deja-vu-mcp
       name: Déjà-vu CI MCP
-      description: >-
-        The six Déjà-vu CI actions over MCP: same keys, inputs and outputs
-        as the Forge actions.
-      cloud:
-        transport: streamable-http
-      resources:
-        - action:
-            - explain-build-failure
-            - search-failures
-            - get-signature
-            - list-flaky-tests
-            - report-resolution
-            - confirm-resolution
+      tools:
+        - explain-build-failure
+        - search-failures
+        - get-signature
+        - list-flaky-tests
+        - report-resolution
+        - confirm-resolution
 
   function:
     - key: ingest

@@ -69,11 +69,20 @@ nonce (replay guard kept in `src/pure/nonce.ts`).
 ## Development
 
 ```bash
-npm run typecheck      # convenience only: the CI typechecks packages/* only
-npx vitest run apps/brain/test --reporter=dot
+npm install --no-audit --no-fund   # installs the real Forge SDK packages
+npm run typecheck                  # strict tsc against the real SDK
+npx vitest run apps/brain/test --reporter=dot   # from the repository root
 ```
 
-`apps/brain` is intentionally **not** part of the root npm workspace: the
-`@forge/*` packages are provided by the Forge bundler at deploy time, not by
-the repository. Tests therefore only cover `src/pure/` modules, which import
-types from `@dejavu/core` (erased at runtime) and nothing from `@forge/*`.
+`apps/brain` is intentionally **not** part of the root npm workspace: it
+installs its own `node_modules` (the real `@forge/*` SDK, versions pinned in
+`package.json`) so `npm run typecheck` compiles the adapters against the
+platform APIs — `Queue` of `@forge/events`, the `prepare`/`executeDDL` client
+of `@forge/sql`, `chat` of `@forge/llm`, the UI Kit of `@forge/react`. The
+Forge bundler still provides those packages at deploy time.
+
+The root test run stays free of any `@forge/*` runtime import: tests only
+cover `src/pure/`, `src/actions/`, `src/rovo/` and the UI helpers, which
+import types from `@dejavu/core` (erased at runtime) and never a runtime
+value of a platform package.
+

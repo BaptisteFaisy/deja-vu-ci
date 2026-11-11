@@ -6,11 +6,14 @@
  * `pure/consume.ts`, fed here with the real ports: the Forge SQL store, the
  * engine functions of `@dejavu/core`, and the Jira REST applier below.
  *
- * Platform frame: 900 s per invocation, retried up to 3 times — the core is
- * idempotent, so a retry after a partial failure never duplicates anything.
+ * Platform frame: 900 s per invocation — the platform redelivers a message
+ * whose processing failed, and the core is idempotent, so a redelivery after
+ * a partial failure never duplicates anything.
  */
 
 import { assumeTrustedRoute, requestJira } from '@forge/api';
+import type { AsyncEvent } from '@forge/events';
+import type { ChatResponse, Prompt } from '@forge/llm';
 import {
   assessFlakiness,
   detectOutbreak,
@@ -55,22 +58,41 @@ export function coreConsumerEngine(): ConsumerEngine {
 // ---------------------------------------------------------------------------
 
 /** Specifier kept in a constant: the bundler must not resolve it eagerly. */
-const AI_PACKAGE = '@forge/ai';
+const LLM_PACKAGE = '@forge/llm';
+
+/** Model family declared in the `llm` module of the manifest. */
+const LLM_MODEL = 'claude';
+
+/** The real SDK entry point: `chat(prompt)` answers one assistant message. */
+type ChatFn = (prompt: Prompt) => Promise<ChatResponse>;
 
 type Completion = (prompt: string) => Promise<string>;
 
 let completion: Completion | undefined;
-let aiProbed = false;
+let llmProbed = false;
 let templates: TemplateCache | undefined;
 
+/** Extracts the assistant text of a chat response (plain string or parts). */
+export function chatText(response: ChatResponse): string {
+  const content = response?.choices?.[0]?.message?.content;
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) {
+    return content.map((part) => (part.type === 'text' ? part.text : '')).join('');
+  }
+  return '';
+}
+
 /** Probes the platform model; unavailable means deterministic path only. */
-async function probeAi(): Promise<Completion | undefined> {
-  if (aiProbed) return completion;
-  aiProbed = true;
+async function probeLlm(): Promise<Completion | undefined> {
+  if (llmProbed) return completion;
+  llmProbed = true;
   try {
-    const mod = (await import(AI_PACKAGE)) as { ai?: { complete?: Completion } };
-    const complete = mod.ai?.complete;
-    if (typeof complete === 'function') completion = (prompt) => complete.call(mod.ai, prompt);
+    const mod = (await import(LLM_PACKAGE)) as { chat?: ChatFn };
+    const chat = mod.chat;
+    if (typeof chat === 'function') {
+      completion = async (prompt) =>
+        chatText(await chat({ model: LLM_MODEL, messages: [{ role: 'user', content: prompt }] }));
+    }
   } catch {
     completion = undefined;
   }
@@ -79,7 +101,7 @@ async function probeAi(): Promise<Completion | undefined> {
 
 /** Builds the LLM port, or undefined when the platform model is absent. */
 export async function createLlmPort(store: BrainSqlStore): Promise<LlmPort | undefined> {
-  const complete = await probeAi();
+  const complete = await probeLlm();
   if (!complete) return undefined;
   if (!templates) {
     templates = new TemplateCache();
@@ -213,10 +235,12 @@ async function applyOne(
 /** One queued message → one consumption result. */
 export async function consumeMessage(
   store: BrainSqlStore,
-  body: string,
+  body: unknown,
   now: Date,
 ): Promise<ConsumeResult> {
-  const parsed = validateIngestPayload(JSON.parse(body) as unknown);
+  // The real queue carries object bodies (`Record<string, unknown>`); a JSON
+  // string is still accepted so an older in-flight message stays consumable.
+  const parsed = validateIngestPayload(typeof body === 'string' ? JSON.parse(body) : body);
   if (!parsed.ok) return { ok: false, error: parsed.error };
   const settings = await loadSettings(store);
   const llm = await createLlmPort(store);
@@ -232,7 +256,7 @@ export async function consumeMessage(
 /** Handler factory of the Forge consumer (batch of queued messages). */
 export function createConsumerHandler(store: BrainSqlStore) {
   return async function consumer(
-    messages: Array<{ body: string }>,
+    messages: AsyncEvent[],
   ): Promise<Array<{ success: boolean; details?: { message: string } }>> {
     await migrateOnce();
     const results: Array<{ success: boolean; details?: { message: string } }> = [];
