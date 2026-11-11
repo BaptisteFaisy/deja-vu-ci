@@ -169,9 +169,8 @@ function flakyRuns() {
   return runs;
 }
 
-/** Les douze erreurs jamais vues (une signature chacune). */
-function freshFailures() {
-  const cases = [
+/** Les douze erreurs jamais vues : une signature chacune (§ 20, point 4). */
+const FRESH_FAILURE_CASES = [
     {
       day: 3, minute: 40, branch: 'feature/refund-window', commit: 'new0001aaaaaaa', author: 'amal',
       step: 'gradle test', prId: 431, changedFiles: ['src/main/java/com/payments/refund/Limiter.java'],
@@ -287,7 +286,10 @@ function freshFailures() {
       }),
     },
   ];
-  return cases.map((c) =>
+
+/** Transforme la table ci-dessus en occurrences du jeu. */
+function freshFailures() {
+  return FRESH_FAILURE_CASES.map((c) =>
     newFailure(c.day, c.minute, {
       repo: c.repo, branch: c.branch, commit: c.commit, author: c.author, step: c.step,
       prId: c.prId, changedFiles: c.changedFiles, category: c.category, log: c.log,
