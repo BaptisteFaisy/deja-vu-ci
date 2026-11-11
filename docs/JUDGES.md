@@ -14,14 +14,14 @@ at the time this file was written. **Nothing in this guide promises more than th
 |---|---|---|
 | Frozen domain types and contract | `packages/core/src/types.ts`, `docs/CONTRACTS.md` | **shipped** |
 | Signed bridge (HMAC, nonce, window) | `packages/bridge/src/index.ts` | **shipped** |
-| Masking, extraction, normalisation, signature | `packages/core/src/{mask,extract,normalize,categorize,sign}.ts` | lot A |
-| Flaky, outbreaks, diagnosis | `packages/core/src/{flaky,outbreak,diagnose}.ts` | lot B |
-| Resolutions, tickets, cost | `packages/core/src/{resolutions,tickets,cost}.ts` | lot C |
-| Store, replay, LLM fallback, universal entry | `packages/core/src/{store,replay,llm,universal}.ts` | lot D |
-| Sensor app (Bitbucket) | `apps/sensor/**` | lot E |
-| Brain app (server) | `apps/brain/src/*.ts`, `apps/brain/manifest.yml` | lot F |
-| Brain UI, Rovo agent, MCP actions | `apps/brain/src/{ui,rovo,actions}/**` | lot G |
-| Sample dataset, labelled corpus, tools | `data/**`, `tools/**` | lot H |
+| Masking, extraction, normalisation, signature | `packages/core/src/{mask,extract,normalize,categorize,sign}.ts` | shipped |
+| Flaky, outbreaks, diagnosis | `packages/core/src/{flaky,outbreak,diagnose}.ts` | shipped |
+| Resolutions, tickets, cost | `packages/core/src/{resolutions,tickets,cost}.ts` | shipped |
+| Store, replay, LLM fallback, universal entry | `packages/core/src/{store,replay,llm,universal}.ts` | shipped |
+| Sensor app (Bitbucket) | `apps/sensor/**` | shipped |
+| Brain app (server) | `apps/brain/src/*.ts`, `apps/brain/manifest.yml` | shipped |
+| Brain UI, Rovo agent, MCP actions | `apps/brain/src/{ui,rovo,actions}/**` | shipped |
+| Sample dataset, labelled corpus, tools | `data/**`, `tools/**` | shipped |
 
 The parallel lots land as separate pull requests. **Once they are merged, every command below
 works as written** — the commands are the contract the lots were built against

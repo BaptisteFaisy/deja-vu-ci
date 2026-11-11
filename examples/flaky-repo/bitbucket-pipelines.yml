@@ -1,0 +1,19 @@
+# Pipeline de démonstration : trois étapes qui produisent les trois sortes
+# d'échecs du scénario (§ 21). L'étape « install » pointe vers un registre
+# coupé pour déclencher le diagnostic « infrastructure ».
+image: node:20
+
+pipelines:
+  default:
+    - step:
+        name: install-dependencies
+        script:
+          - npm install --registry https://registry-cut.invalid.example || true
+    - step:
+        name: unit-tests
+        script:
+          - npm run test:flaky
+    - step:
+        name: integration-tests
+        script:
+          - npm run test:regression

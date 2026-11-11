@@ -1,0 +1,13 @@
+{
+  "name": "flaky-repo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Dépôt de démonstration Déjà-vu CI : un test volontairement aléatoire, une régression réelle, une dépendance vers un registre coupé (§ 21).",
+  "scripts": {
+    "test": "node --test test/",
+    "test:flaky": "node --test test/flaky.test.js",
+    "test:regression": "node --test test/regression.test.js",
+    "install:broken": "npm install --registry https://registry-cut.invalid.example"
+  }
+}
