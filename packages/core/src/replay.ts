@@ -33,6 +33,7 @@ import {
   type TicketAction,
 } from './types.js';
 import { MemoryStore, type Store } from './store.js';
+import type { CandidateCommit } from './resolutions.js';
 import {
   TicketLedger,
   attachIssueKey,
@@ -96,14 +97,6 @@ export interface TicketApi {
     now?: Date;
     settings?: Partial<Settings>;
   }): TicketAction[];
-}
-
-/** A commit proposed as a fix (module C). */
-export interface CandidateCommit {
-  sha: string;
-  author: string;
-  files: string[];
-  message: string;
 }
 
 export interface ResolutionApi {
