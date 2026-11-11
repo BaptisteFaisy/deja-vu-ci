@@ -4,7 +4,7 @@ name: CI
 # Le check publié s'appelle `ci` (nom du job) : il est exigé par le ruleset de
 # `main` et par la file Mergify, avec `ci-budget` et `couche0`.
 #
-# Budget : règle user 2026-10-24 — verdict en 5 minutes maximum. Les runners
+# Budget : règle user (5 minutes maximum par job). Les runners
 # self-hosted n'ont pas Node sur le PATH : il est installé une fois pour
 # l'utilisateur du runner dans ~/.local/node (voir docs/ARCHITECTURE.md).
 on:

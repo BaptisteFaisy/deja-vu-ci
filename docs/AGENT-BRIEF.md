@@ -56,10 +56,11 @@ EOF
 )"
 ```
 
-Motifs **interdits** dans les lignes ajoutées (la garde refuse la PR) : `-X ours`, `-X theirs`,
-`--force` sans `-with-lease`, `pull_request_target`, `sk-` suivi de 24 caractères ou plus,
-`ghp_` suivi de 36 caractères, `sdk.dir=`, une date antérieure au 26/10/2026.
-Ne mets **jamais** de secret, de jeton ou de clé dans le dépôt.
+La garde refuse aussi certains motifs **écrits dans les fichiers** : une prise de côté forcée à la
+résolution de conflit, un push forcé sans lease, un déclencheur à privilèges, une clé d'API ou un
+jeton en clair, et une date antérieure au 26/10/2026. **N'écris jamais ces motifs dans un fichier
+du dépôt, même pour les décrire** : écris en toutes lettres « prise de côté forcée », « push forcé
+avec lease », « jeton en clair ». Ne mets **jamais** de secret, de jeton ou de clé dans le dépôt.
 
 ## 5. Barre de sortie
 

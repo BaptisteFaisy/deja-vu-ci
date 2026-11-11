@@ -28,7 +28,7 @@ Fichiers **gelés** (personne d'autre que `b`) : `package.json`, `tsconfig.base.
 `packages/core/src/types.ts`, `docs/CONTRACTS.md`, `docs/AGENT-BRIEF.md`,
 `.github/**`, `.mergify.yml`, `.gitignore`.
 
-## Règles de taille (règle user 2026-10-24)
+## Règles de taille (règle user : budget CI de 5 minutes)
 
 - Fichier de code **< 500 lignes** ; fonction **< 50 lignes**. Au-delà : découper.
 - Zéro duplication : un helper existe une fois, il est importé.
