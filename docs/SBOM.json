@@ -1,0 +1,184 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "application",
+      "bom-ref": "pkg:npm/deja-vu-ci@0.1.0",
+      "name": "deja-vu-ci",
+      "version": "0.1.0",
+      "licenses": [
+        {
+          "license": {
+            "name": "MIT"
+          }
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "type": "application",
+      "bom-ref": "pkg:npm/@dejavu/brain@0.1.0",
+      "name": "@dejavu/brain",
+      "version": "0.1.0",
+      "purl": "pkg:npm/@dejavu/brain@0.1.0",
+      "properties": [
+        {
+          "name": "dejavu:first-party",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "bom-ref": "pkg:npm/@dejavu/bridge@0.1.0",
+      "name": "@dejavu/bridge",
+      "version": "0.1.0",
+      "purl": "pkg:npm/@dejavu/bridge@0.1.0",
+      "properties": [
+        {
+          "name": "dejavu:first-party",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "bom-ref": "pkg:npm/@dejavu/core@0.1.0",
+      "name": "@dejavu/core",
+      "version": "0.1.0",
+      "purl": "pkg:npm/@dejavu/core@0.1.0",
+      "properties": [
+        {
+          "name": "dejavu:first-party",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "bom-ref": "pkg:npm/@dejavu/present@0.1.0",
+      "name": "@dejavu/present",
+      "version": "0.1.0",
+      "purl": "pkg:npm/@dejavu/present@0.1.0",
+      "properties": [
+        {
+          "name": "dejavu:first-party",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "application",
+      "bom-ref": "pkg:npm/@dejavu/sensor@0.1.0",
+      "name": "@dejavu/sensor",
+      "version": "0.1.0",
+      "purl": "pkg:npm/@dejavu/sensor@0.1.0",
+      "properties": [
+        {
+          "name": "dejavu:first-party",
+          "value": "true"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/@forge/api@^7.2.2",
+      "name": "@forge/api",
+      "version": "^7.2.2",
+      "purl": "pkg:npm/@forge/api@^7.2.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/@forge/bridge@^7.3.0",
+      "name": "@forge/bridge",
+      "version": "^7.3.0",
+      "purl": "pkg:npm/@forge/bridge@^7.3.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/@forge/events@^3.0.10",
+      "name": "@forge/events",
+      "version": "^3.0.10",
+      "purl": "pkg:npm/@forge/events@^3.0.10"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/@forge/kvs@^2.1.2",
+      "name": "@forge/kvs",
+      "version": "^2.1.2",
+      "purl": "pkg:npm/@forge/kvs@^2.1.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/@forge/llm@^1.0.10",
+      "name": "@forge/llm",
+      "version": "^1.0.10",
+      "purl": "pkg:npm/@forge/llm@^1.0.10"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/@forge/react@^12.5.0",
+      "name": "@forge/react",
+      "version": "^12.5.0",
+      "purl": "pkg:npm/@forge/react@^12.5.0"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/@forge/resolver@^2.0.2",
+      "name": "@forge/resolver",
+      "version": "^2.0.2",
+      "purl": "pkg:npm/@forge/resolver@^2.0.2"
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/@forge/sql@^4.0.10",
+      "name": "@forge/sql",
+      "version": "^4.0.10",
+      "purl": "pkg:npm/@forge/sql@^4.0.10"
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:npm/@dejavu/brain@0.1.0",
+      "dependsOn": [
+        "pkg:npm/@dejavu/bridge@0.1.0",
+        "pkg:npm/@dejavu/core@0.1.0",
+        "pkg:npm/@dejavu/present@0.1.0",
+        "pkg:npm/@forge/api@^7.2.2",
+        "pkg:npm/@forge/bridge@^7.3.0",
+        "pkg:npm/@forge/events@^3.0.10",
+        "pkg:npm/@forge/kvs@^2.1.2",
+        "pkg:npm/@forge/llm@^1.0.10",
+        "pkg:npm/@forge/react@^12.5.0",
+        "pkg:npm/@forge/resolver@^2.0.2",
+        "pkg:npm/@forge/sql@^4.0.10"
+      ]
+    },
+    {
+      "ref": "pkg:npm/@dejavu/bridge@0.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/@dejavu/core@0.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/@dejavu/present@0.1.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/@dejavu/sensor@0.1.0",
+      "dependsOn": [
+        "pkg:npm/@dejavu/bridge@0.1.0",
+        "pkg:npm/@dejavu/core@0.1.0",
+        "pkg:npm/@dejavu/present@0.1.0",
+        "pkg:npm/@forge/api@^7.2.2",
+        "pkg:npm/@forge/bridge@^7.3.0",
+        "pkg:npm/@forge/kvs@^2.1.2"
+      ]
+    }
+  ]
+}
