@@ -4,8 +4,8 @@ name: site
 #
 # `site/public/` est **commité** (bundle, feuille de style, page, empreinte) :
 # ce workflow ne construit donc rien, il téléverse et publie. Deux raisons :
-#   - aucun `npm ci` en CI, donc le budget de 5 minutes (règle user 2026-10-24)
-#     est large même sur des runners self-hosted chargés ;
+#   - aucun `npm ci` en CI, donc le budget de 5 minutes par job (règle user
+#     « verdict CI en 5 min ») est large même sur des runners chargés ;
 #   - ce qui est publié est exactement ce que le dépôt contient : la fraîcheur
 #     du bundle est vérifiée AVANT le merge par `site/test/bundle.test.mjs`
 #     (empreinte des sources recalculée), dans le job `ci` de chaque PR.
