@@ -7,7 +7,7 @@
  *  - the UI Kit 2 screens: they are rendered by `src/frontend.tsx`
  *    (`resources: main`) and read their data through `uiResolverHandler`,
  *    which dispatches the `invoke()` names (`memory-page`, `issue-context`,
- *    `settings`, `save-settings`) to the resolvers below,
+ *    `settings`, `save-settings`, `replay-sample`) to the resolvers below,
  *  - `issueContextText`, the text a Rovo agent reads on a ticket,
  *  - the six actions of § 13 (lot G), also exposed to Rovo and MCP.
  *
@@ -31,12 +31,13 @@ import { createBrainEngine, setDefaultEngine, type CoreFunctions } from './actio
 import { ingest } from './ingest';
 import { createQueryHandler, issueContextData, memoryPageData } from './query';
 import { createUniversalHandler } from './universal';
-import { createConsumerHandler } from './consumer';
+import { createConsumerHandler, jiraTicketApplier } from './consumer';
 import { createScheduledHandler } from './scheduled';
-import { settingsData, saveSettingsData } from './settings';
+import { settingsData, saveSettingsData, loadSettings } from './settings';
+import { replayEngine, replaySample as runReplaySample, type ReplayOutcome } from './seed';
 import { toSettingsPayload } from './pure/settingsSchema';
 import { DEFAULT_SETTINGS } from './pure/defaults';
-import { brainStore } from './sql';
+import { brainStore, migrateOnce } from './sql';
 import Resolver from '@forge/resolver';
 import { registerUiResolvers } from './resolvers';
 import { issueKeyFrom } from './pure/invokeContext';
@@ -130,6 +131,29 @@ export async function saveSettings(payload: unknown): Promise<{ ok: boolean; err
   return result.ok ? { ok: true } : { ok: false, error: result.error };
 }
 
+/**
+ * Resolver `replay-sample` and manifest function `replaySample` (§ 22, CI-11).
+ *
+ * Fills the memory with the sample set — 40 failures over 14 days — through
+ * the real engine and the real Forge SQL store, then creates the tickets the
+ * replay planned on the real Jira. Idempotent: on a memory that already holds
+ * signatures nothing is injected (`src/seed.ts`). Never throws: a failure comes
+ * back as `{ ok: false, error }` and the screen displays it.
+ */
+export async function replaySample(): Promise<ReplayOutcome> {
+  try {
+    await migrateOnce();
+    const settings = await loadSettings(store);
+    return await runReplaySample({
+      store,
+      tickets: jiraTicketApplier(settings),
+      engine: replayEngine(),
+    });
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
 // ---------------------------------------------------------------------------
 // UI Kit 2 wiring (§ 14, CI-08). The three Jira modules point at one resource
 // (`src/frontend.tsx`, `resources: main`) and at one resolver function: the
@@ -144,6 +168,7 @@ registerUiResolvers(uiResolver, {
   issuePanel: issueData,
   settings,
   saveSettings,
+  replaySample,
 });
 
 /** Handler of `projectPageResolver`, `settingsPageResolver`, `issuePanelResolver`. */
