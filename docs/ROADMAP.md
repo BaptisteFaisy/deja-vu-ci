@@ -90,15 +90,3 @@ The order below is the order we would tackle them in:
    only hashes, never code.
 5. **Marketplace publication** — the app is designed to be published: two apps, clear scopes, no
    external service.
-
-## Variante A (sonde de conflit)
-
-Ligne ajoutée par la branche A : la mémoire des signatures est partagée entre organisations.
-
-## Sonde A — mémoire partagée entre organisations
-
-Les erreurs d'outils publics (registres, images de base) sont reconnues partout, sans partager une ligne de code.
-
-## Sonde B — quarantaine proposée
-
-Pour un test instable coûteux, l'app rédige la modification qui l'isole et le ticket qui engage à le réparer.
