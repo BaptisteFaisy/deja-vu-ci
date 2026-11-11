@@ -10,20 +10,12 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  Button,
-  Heading,
-  Inline,
-  SectionMessage,
-  Stack,
-  Tag,
-  Text,
-} from '@forge/react';
+import { Button, Heading, SectionMessage, Stack } from '@forge/react';
 import type { Diagnostic } from '@dejavu/core';
-import { formatDate, shortCommit, toOccurrenceRows, type OccurrenceRow } from './format.js';
+import { toOccurrenceRows, type OccurrenceRow } from './format.js';
 import { loadData } from './data.js';
 import { t, type Lang } from './i18n.js';
+import { DiagnosticPanel, OccurrenceTable } from './issueContextParts.js';
 
 /** Ce que rend le Cerveau pour l'encart de ticket. */
 interface IssueContextPayload {
@@ -33,18 +25,6 @@ interface IssueContextPayload {
   occurrences?: Parameters<typeof toOccurrenceRows>[0];
   /** Vrai si le ticket est un ticket de problème. */
   problem?: boolean;
-}
-
-/** Libellé du diagnostic selon sa nature. */
-function diagnosisLabel(diagnostic: Diagnostic, lang: Lang): string {
-  const keys: Record<Diagnostic['kind'], string> = {
-    flaky: 'diagnosis.flaky',
-    'already-fixed': 'diagnosis.alreadyFixed',
-    new: 'diagnosis.new',
-    infrastructure: 'diagnosis.infrastructure',
-    uncertain: 'diagnosis.uncertain',
-  };
-  return t(keys[diagnostic.kind], lang);
 }
 
 /** Encart affiché sur un ticket Jira. */
@@ -71,46 +51,9 @@ export default function IssueContext(): React.JSX.Element {
   return (
     <Stack space="space.200">
       <Heading size="medium">{t('issue.diagnostic', lang)}</Heading>
-      {diagnostic ? (
-        <Box>
-          <Inline alignInline="center" space="space.200">
-            <Text>{diagnosisLabel(diagnostic, lang)}</Text>
-            <Tag text={diagnostic.action} />
-            <Text>
-              {t('confidence', lang)}: {Math.round(diagnostic.confidence * 100)}%
-            </Text>
-            {diagnostic.issueKey && <Text>{diagnostic.issueKey}</Text>}
-          </Inline>
-          <Text>{diagnostic.summary}</Text>
-          {diagnostic.resolution && (
-            <Inline space="space.200">
-              <Text>{t('issue.resolution', lang)}</Text>
-              <Text>{shortCommit(diagnostic.resolution.commit)}</Text>
-              <Text>{diagnostic.resolution.author}</Text>
-              <Text>{diagnostic.resolution.note ?? ''}</Text>
-            </Inline>
-          )}
-        </Box>
-      ) : (
-        <Text>{t('issue.noFailure', lang)}</Text>
-      )}
+      <DiagnosticPanel lang={lang} diagnostic={diagnostic} />
 
-      {payload?.problem && (
-        <>
-          <Heading size="medium">{t('issue.occurrences', lang)}</Heading>
-          <Stack space="space.100">
-            {rows.map((row) => (
-              <Inline key={`${row.occurredAt}-${row.commit}`} space="space.200">
-                <Text>{formatDate(row.occurredAt, lang)}</Text>
-                <Text>{row.repo}</Text>
-                <Text>{row.branch}</Text>
-                <Text>{shortCommit(row.commit)}</Text>
-                <Text>{row.author}</Text>
-              </Inline>
-            ))}
-          </Stack>
-        </>
-      )}
+      {payload?.problem ? <OccurrenceTable lang={lang} rows={rows} /> : null}
 
       <Button appearance="subtle" onClick={() => setLang(lang === 'en' ? 'fr' : 'en')}>
         {lang === 'en' ? 'Français' : 'English'}

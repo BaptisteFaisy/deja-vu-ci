@@ -92,18 +92,23 @@ function clientFailure(day: number, branch: string, commit: string, contains: st
   };
 }
 
-/** The fixture: 10 runs of the unstable test, a fix, a regression, a new error, an outage. */
-function fixture(): SampleDataset {
-  const occurrences: SampleOccurrence[] = [];
-  const branches = ['feature/pay-1', 'feature/pay-2', 'feature/pay-3'];
+/** The three branches the unstable test is seen on. */
+const BRANCHES = ['feature/pay-1', 'feature/pay-2', 'feature/pay-3'];
+
+/** The unstable test: three branches, each failing then passing at the same commit. */
+function unstableRuns(occurrences: SampleOccurrence[]): void {
 
   // Unstable test: three branches, each failing then passing at the same commit.
-  branches.forEach((branch, index) => {
+  BRANCHES.forEach((branch, index) => {
     const commit = `c0ffee0${index}`;
     occurrences.push(flakyFailure(index, 0, branch, commit, 41 + index * 8));
     occurrences.push(sameCommitSuccess(index, 5, branch, commit));
   });
 
+}
+
+/** The fix: the client error fails on main, then passes at the fixing commit. */
+function fixedRuns(occurrences: SampleOccurrence[]): void {
   // The fix: the client error fails on main, then passes at the fixing commit.
   occurrences.push(clientFailure(1, 'main', 'c0ffee10', []));
   occurrences.push({
@@ -117,17 +122,24 @@ function fixture(): SampleDataset {
     outcome: 'success',
   });
 
-  // Seven more runs of the unstable test, up to ten occurrences; day 4 gets a
-  // second one, two hours later, to exercise the one-comment-per-day rule.
+}
+
+/** Seven more runs of the unstable test, up to ten occurrences. */
+function moreUnstableRuns(occurrences: SampleOccurrence[]): void {
+  // Day 4 gets a second occurrence, two hours later: one comment per day.
   for (let i = 3; i < 10; i += 1) {
-    occurrences.push(flakyFailure(i, 0, branches[i % branches.length], `c0ffee1${i}`, 41 + i));
+    occurrences.push(flakyFailure(i, 0, BRANCHES[i % BRANCHES.length], `c0ffee1${i}`, 41 + i));
     if (i === 4) {
       occurrences.push(
-        flakyFailure(i, 300, branches[(i + 1) % branches.length], `c0ffee1${i}b`, 55),
+        flakyFailure(i, 300, BRANCHES[(i + 1) % BRANCHES.length], `c0ffee1${i}b`, 55),
       );
     }
   }
 
+}
+
+/** A package registry outage, a brand new error, then the regression. */
+function freshAndRegressionRuns(occurrences: SampleOccurrence[]): void {
   // Package registry down.
   occurrences.push({
     at: at(11, 0),
@@ -156,11 +168,41 @@ function fixture(): SampleDataset {
     changedFiles: ['src/refund/Limiter.ts', 'src/refund/service.ts'],
     expected: { diagnostic: 'new' },
   });
+}
 
+/** The fixed error on a branch that predates the fix, then on main again. */
+function regressionRuns(occurrences: SampleOccurrence[]): void {
   // The fixed error on a branch that predates the fix, then on main again.
   occurrences.push(clientFailure(9, 'feature/legacy-branch', 'c0ffee22', []));
   occurrences.push(clientFailure(12, 'main', 'c0ffee23', [FIX_COMMIT]));
 
+  return {
+    name: 'recette-20',
+    description: 'Acceptance recipe of § 20, replayed without Bitbucket.',
+    repository: 'payments-api',
+    days: 14,
+    occurrences,
+    resolutions: [
+      {
+        match: { contains: "Cannot read properties of undefined (reading 'token')" },
+        commit: FIX_COMMIT,
+        author: 'marie',
+        note: 'HTTP client refreshed on token expiry',
+        files: ['src/payments/client.ts'],
+        confirmed: true,
+      },
+    ],
+  };
+}
+
+/** The fixture: 10 runs of the unstable test, a fix, a regression, a new error, an outage. */
+function fixture(): SampleDataset {
+  const occurrences: SampleOccurrence[] = [];
+  unstableRuns(occurrences);
+  fixedRuns(occurrences);
+  moreUnstableRuns(occurrences);
+  freshAndRegressionRuns(occurrences);
+  regressionRuns(occurrences);
   return {
     name: 'recette-20',
     description: 'Acceptance recipe of § 20, replayed without Bitbucket.',

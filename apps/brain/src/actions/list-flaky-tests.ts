@@ -8,7 +8,7 @@
  * recalcule rien.
  */
 
-import type { FlakyVerdict, Signature } from '@dejavu/core';
+import type { FlakyVerdict, Occurrence, Settings, Signature } from '@dejavu/core';
 import { fail, ok, type ActionResult, type BrainEngine } from './engine.js';
 import { defineAction, type RawInput } from './descriptor.js';
 import { optionalCount, optionalText } from './validate.js';
@@ -74,29 +74,13 @@ function toRow(
   };
 }
 
-/** Exécute l'action. */
-export async function runListFlakyTests(
+/** Lignes des tests instables, avec le coût cumulé en minutes de CI. */
+async function buildRows(
   engine: BrainEngine,
-  raw: RawInput,
-): Promise<ActionResult<ListFlakyTestsData>> {
-  const repository = optionalText(raw.repository, 'repository');
-  if (!repository.ok) return fail(repository.error);
-  const days = optionalCount(raw.days, 'days', 365);
-  if (!days.ok) return fail(days.error);
-  const windowDays = days.value ? Number(days.value) : DEFAULT_WINDOW_DAYS;
-  const settings = await engine.store.getSettings();
-
-  const signatures = await engine.store.listSignatures();
-  const groups = await Promise.all(
-    signatures.map(async (signature) => {
-      const occurrences = await engine.store.listOccurrences(signature.id);
-      const scoped = repository.value
-        ? occurrences.filter((o) => o.repo === repository.value)
-        : occurrences;
-      return { signature, occurrences: scoped };
-    }),
-  );
-
+  groups: Array<{ signature: Signature; occurrences: Occurrence[] }>,
+  settings: Settings,
+  windowDays: number,
+): Promise<{ rows: FlakyTestRow[]; totalCiMinutesLost: number }> {
   const rows: FlakyTestRow[] = [];
   let totalCiMinutesLost = 0;
   for (const { signature, occurrences } of groups) {
@@ -120,10 +104,37 @@ export async function runListFlakyTests(
           peopleAffected: detail?.peopleAffected ?? cost.peopleAffected,
           retries: detail?.retries ?? cost.retries,
         },
-        repository.value || occurrences[0]?.repo || '',
+        occurrences[0]?.repo || '',
       ),
     );
   }
+  return { rows, totalCiMinutesLost };
+}
+
+/** Exécute l'action. */
+export async function runListFlakyTests(
+  engine: BrainEngine,
+  raw: RawInput,
+): Promise<ActionResult<ListFlakyTestsData>> {
+  const repository = optionalText(raw.repository, 'repository');
+  if (!repository.ok) return fail(repository.error);
+  const days = optionalCount(raw.days, 'days', 365);
+  if (!days.ok) return fail(days.error);
+  const windowDays = days.value ? Number(days.value) : DEFAULT_WINDOW_DAYS;
+  const settings = await engine.store.getSettings();
+
+  const signatures = await engine.store.listSignatures();
+  const groups = await Promise.all(
+    signatures.map(async (signature) => {
+      const occurrences = await engine.store.listOccurrences(signature.id);
+      const scoped = repository.value
+        ? occurrences.filter((o) => o.repo === repository.value)
+        : occurrences;
+      return { signature, occurrences: scoped };
+    }),
+  );
+
+  const { rows, totalCiMinutesLost } = await buildRows(engine, groups, settings, windowDays);
   rows.sort((a, b) => (b.ciMinutesLost - a.ciMinutesLost) || (b.occurrences - a.occurrences));
 
   return ok({

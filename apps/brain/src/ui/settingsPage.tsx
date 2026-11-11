@@ -10,33 +10,11 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import {
-  Box,
-  Button,
-  Form,
-  FormFooter,
-  FormHeader,
-  FormSection,
-  Heading,
-  Inline,
-  Label,
-  SectionMessage,
-  Stack,
-  Text,
-  Textfield,
-} from '@forge/react';
+import { Box, Button, Form, FormFooter, FormHeader, Heading, Inline, SectionMessage, Stack } from '@forge/react';
 import { loadData } from './data.js';
 import { t, type Lang } from './i18n.js';
-
-/** Réglages du projet Cerveau, tels que rendus par le serveur. */
-interface SettingsPayload {
-  issueProjectKey: string;
-  flakyMinOccurrences: number;
-  flakyMinBranches: number;
-  flakyWindowDays: number;
-  rawRetentionDays: number;
-  universalKey?: string;
-}
+import { SettingsFields, type SettingsPayload } from './settingsFields.js';
+import { SaveFooter } from './settingsFooter.js';
 
 /** Réglages vides, avant chargement. */
 const EMPTY: SettingsPayload = {
@@ -87,61 +65,8 @@ export default function SettingsPage(): React.JSX.Element {
         }}
       >
         <FormHeader />
-        <FormSection>
-          <Label labelFor="settings-project">{t('settings.project', lang)}</Label>
-          <Textfield
-            id="settings-project"
-            value={settings.issueProjectKey}
-            onChange={(event) => update({ issueProjectKey: event.target.value })}
-          />
-          <Label labelFor="settings-flaky-occurrences">
-            {t('settings.flakyOccurrences', lang)}
-          </Label>
-          <Textfield
-            id="settings-flaky-occurrences"
-            type="number"
-            value={String(settings.flakyMinOccurrences)}
-            onChange={(event) => update({ flakyMinOccurrences: Number(event.target.value) })}
-          />
-          <Label labelFor="settings-flaky-branches">{t('settings.flakyBranches', lang)}</Label>
-          <Textfield
-            id="settings-flaky-branches"
-            type="number"
-            value={String(settings.flakyMinBranches)}
-            onChange={(event) => update({ flakyMinBranches: Number(event.target.value) })}
-          />
-          <Label labelFor="settings-flaky-window">{t('settings.flakyWindow', lang)}</Label>
-          <Textfield
-            id="settings-flaky-window"
-            type="number"
-            value={String(settings.flakyWindowDays)}
-            onChange={(event) => update({ flakyWindowDays: Number(event.target.value) })}
-          />
-          <Label labelFor="settings-retention">{t('settings.retention', lang)}</Label>
-          <Textfield
-            id="settings-retention"
-            type="number"
-            value={String(settings.rawRetentionDays)}
-            onChange={(event) => update({ rawRetentionDays: Number(event.target.value) })}
-          />
-          <Label labelFor="settings-universal-key">{t('settings.universalKey', lang)}</Label>
-          <Textfield
-            id="settings-universal-key"
-            value={settings.universalKey ?? ''}
-            onChange={(event) => update({ universalKey: event.target.value })}
-          />
-          <Text>{t('settings.universalHint', lang)}</Text>
-        </FormSection>
-        <FormFooter>
-          <Inline space="space.200">
-            <Button appearance="primary" onClick={() => void save()}>
-              {t('settings.save', lang)}
-            </Button>
-            <Button appearance="subtle" onClick={() => setLang(lang === 'en' ? 'fr' : 'en')}>
-              {lang === 'en' ? 'Français' : 'English'}
-            </Button>
-          </Inline>
-        </FormFooter>
+        <SettingsFields lang={lang} settings={settings} onChange={update} />
+        <SaveFooter lang={lang} onSave={() => void save()} onLang={setLang} />
       </Form>
       {status && <Box>{status}</Box>}
     </Stack>
