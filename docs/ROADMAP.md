@@ -94,3 +94,7 @@ The order below is the order we would tackle them in:
 ## Variante A (sonde de conflit)
 
 Ligne ajoutée par la branche A : la mémoire des signatures est partagée entre organisations.
+
+## Sonde A — mémoire partagée entre organisations
+
+Les erreurs d'outils publics (registres, images de base) sont reconnues partout, sans partager une ligne de code.
