@@ -17,6 +17,8 @@ import {
   upsertSettings,
   upsertSignature,
   SETTINGS_KEY,
+  isAlreadyExists,
+  splitSchema,
 } from '../src/pure/sqlQueries.js';
 import { DEFAULT_SETTINGS } from '../src/pure/defaults.js';
 
@@ -88,5 +90,49 @@ describe('select builders', () => {
     const remove = deleteExcerpts(['a', 'b']);
     expect(remove.text).toBe('DELETE FROM raw_excerpt WHERE occurrence_id IN (?, ?)');
     expect(remove.params).toEqual(['a', 'b']);
+  });
+});
+
+describe('splitSchema', () => {
+  const schema = [
+    '-- a header comment;',
+    '-- with a semicolon inside',
+    'CREATE TABLE a (id VARCHAR(64) PRIMARY KEY);',
+    '',
+    'CREATE INDEX a_id ON a (id);',
+    '-- trailing comment',
+  ].join('\n');
+
+  it('strips comments and yields one statement per creation', () => {
+    const statements = splitSchema(schema);
+    expect(statements).toEqual([
+      'CREATE TABLE a (id VARCHAR(64) PRIMARY KEY)',
+      'CREATE INDEX a_id ON a (id)',
+    ]);
+  });
+});
+
+describe('isAlreadyExists', () => {
+  it('recognises the idempotent-migration answers', () => {
+    expect(isAlreadyExists(new Error('relation "signature" already exists'))).toBe(true);
+    expect(isAlreadyExists('Duplicate key')).toBe(true);
+    expect(isAlreadyExists(new Error('connection lost'))).toBe(false);
+  });
+});
+
+describe('splitSchema on the real engine DDL', () => {
+  it('yields every table and index of § 16', async () => {
+    const { SQL_SCHEMA } = await import('../../../packages/core/src/store.js');
+    const statements = splitSchema(SQL_SCHEMA);
+    const tables = statements.filter((s) => s.startsWith('CREATE TABLE'));
+    const indexes = statements.filter((s) => s.startsWith('CREATE INDEX'));
+    expect(tables).toHaveLength(9);
+    expect(indexes).toHaveLength(2);
+    for (const table of [
+      'signature', 'occurrence', 'test_stats', 'resolution', 'raw_excerpt',
+      'llm_template_cache', 'outbreak', 'pairing', 'settings',
+    ]) {
+      expect(statements.some((s) => s.startsWith(`CREATE TABLE ${table} `))).toBe(true);
+    }
   });
 });

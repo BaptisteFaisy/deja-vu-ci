@@ -208,3 +208,28 @@ export function deleteExcerpts(ids: string[]): SqlStatement {
   const placeholders = ids.map(() => '?').join(', ');
   return { text: `DELETE FROM raw_excerpt WHERE occurrence_id IN (${placeholders})`, params: [...ids] };
 }
+
+/**
+ * Splits the frozen DDL (`SQL_SCHEMA`) into single statements.
+ *
+ * Line comments are stripped first: the schema documents itself with `--`
+ * headers, and a chunk starting with a comment would otherwise be dropped
+ * together with the statement that follows it. The DDL contains no string
+ * literal, so `;` always separates statements.
+ */
+export function splitSchema(schema: string): string[] {
+  const stripped = schema
+    .split('\n')
+    .filter((line) => !line.trimStart().startsWith('--'))
+    .join('\n');
+  return stripped
+    .split(';')
+    .map((statement) => statement.trim())
+    .filter((statement) => statement !== '');
+}
+
+/** True when a DDL failure only means "the object already exists". */
+export function isAlreadyExists(error: unknown): boolean {
+  const message = (error instanceof Error ? error.message : String(error)).toLowerCase();
+  return message.includes('already exists') || message.includes('duplicate');
+}
