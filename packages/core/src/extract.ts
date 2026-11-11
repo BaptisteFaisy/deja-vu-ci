@@ -109,9 +109,10 @@ const LOG_ERROR_STARTERS = [
   /^\s*(?:npm ERR!|yarn error|pnpm ERR!)\s*(.+)$/m,
   /^\s*(?:error\[E\d+\]|error:)\s*(.+)$/m,
   /^\s*(?:ERROR\b|\[ERROR\])\s*(.+)$/m,
-  /^\s*(?:.*?(?:AssertionError|Exception|Error|Fatal):?\s*.+)$/m,
+  /^\s*(?:.*?(?:AssertionError|Exception|Error|Fatal|Timeout):?\s*.+)$/m,
   /^\s*(?:.+?\(\d+,\d+\):\s*error TS\d+:\s*.+)$/m,
   /^\s*(?:eslint|prettier).*?(?:error|problem)/im,
+  /^\s*(?:panic:|=== \d+ seconds timeout|<failure|<error)/m,
 ];
 
 /** Extract error chunks from a raw step log using known markers. */

@@ -1,0 +1,91 @@
+// Spécifications de groupes du corpus étiqueté — Python (pytest).
+//
+// Même contrat que `corpus-groups.mjs` : chaque groupe est une signature
+// attendue, ses membres ne diffèrent que par un détail volatil. Ce fichier est
+// l'une des trois familles (python, jvm, node-go) que `corpus-groups.mjs`
+// réunit, pour rester sous la barre des 500 lignes par fichier.
+
+export const GROUPS = [
+  {
+    key: 'py-assertion',
+    group: 'py-assertion-rounding',
+    category: 'test',
+    diagnostic: 'new',
+    repo: 'payments-api',
+    branches: ['main'],
+    step: 'unit-tests (pytest)',
+    count: 6,
+    pairs: [[0, 1, 'ts'], [2, 3, 'uuid'], [4, 5, 'line']],
+    line: 42,
+    uuid: 'a1b2c3d4-1111-4a2b-8c3d-0123456789ab',
+    render: (p) => ({
+      kind: 'pytest',
+      file: 'tests/test_settlement.py',
+      test: 'test_rounding_half_even',
+      message: 'assert 2.675 == 2.68',
+      line: p.line,
+      uuid: p.uuid,
+    }),
+  },
+  {
+    key: 'py-db',
+    group: 'py-db-connection-refused',
+    category: 'infrastructure',
+    diagnostic: 'new',
+    repo: 'payments-api',
+    branches: ['main'],
+    step: 'integration-tests (pytest)',
+    count: 4,
+    pairs: [[0, 1, 'port'], [2, 3, 'ts']],
+    line: 61,
+    port: 5432,
+    uuid: 'a1b2c3d4-2222-4a2b-8c3d-0123456789ab',
+    ambiguous: 'Connection refused can be read as an infrastructure outage (network) or as a broken test fixture; the log shows no database process, so it is grouped as infrastructure.',
+    render: (p) => ({
+      kind: 'db',
+      file: 'tests/test_ledger.py',
+      test: 'test_post_ledger_entry',
+      port: p.port,
+      uuid: p.uuid,
+    }),
+  },
+  {
+    key: 'py-import',
+    group: 'py-import-error',
+    category: 'test',
+    diagnostic: 'new',
+    repo: 'payments-api',
+    branches: ['main'],
+    step: 'unit-tests (pytest)',
+    count: 3,
+    line: 12,
+    uuid: 'a1b2c3d4-3333-4a2b-8c3d-0123456789ab',
+    render: (p) => ({
+      kind: 'pytest-import',
+      file: 'tests/test_payout.py',
+      test: 'test_payout_import',
+      message: "cannot import name 'PayoutClient' from 'ledger'",
+      line: p.line,
+      uuid: p.uuid,
+    }),
+  },
+  {
+    key: 'py-step-timeout',
+    group: 'py-step-timeout',
+    category: 'timeout',
+    diagnostic: 'new',
+    repo: 'payments-api',
+    branches: ['main'],
+    step: 'integration-tests (pytest)',
+    count: 3,
+    line: 24,
+    uuid: 'a1b2c3d4-4444-4a2b-8c3d-0123456789ab',
+    render: (p) => ({
+      kind: 'pytest-timeout',
+      file: 'tests/test_settlement.py',
+      test: 'test_settlement_slow_path',
+      seconds: 600,
+      uuid: p.uuid,
+    }),
+  },
+];

@@ -69,7 +69,7 @@ const PATTERNS: CategoryPattern[] = [
   {
     category: 'timeout',
     errorType: 'Timeout',
-    re: /\b(?:timed? out|timeout exceeded|timeout of \d+\s*ms exceeded|async callback was not invoked|execution timed out|job (?:was )?(?:canceled|cancelled) due to timeout|step timed out)\b/i,
+    re: /(?:timed? out|timeout exceeded|timeout of \d+\s*ms exceeded|async callback was not invoked|execution timed out|job (?:was )?(?:canceled|cancelled) due to timeout|step timed out|seconds timeout for|timeout:\s*the step exceeded|TimeoutException)/i,
   },
 
   // --- Dependency (§ 9.4: package resolution or download) ---
@@ -90,7 +90,7 @@ const PATTERNS: CategoryPattern[] = [
   {
     category: 'compile',
     errorType: 'CompileError',
-    re: /\b(?:error TS\d{3,4}|error\[E\d{3,4}\]|cannot find symbol|undefined reference to|compilation (?:failed|error)|compile error|build failed|expected (?:type|expression)|type error)/i,
+    re: /(?:error TS\d{3,4}|error\[E\d{3,4}\]|cannot find symbol|undefined reference to|compilation (?:failed|error)|compile error|build failed|expected (?:type|expression)|type error|undefined: [A-Za-z0-9_.]+|syntax error:|cannot use [A-Za-z0-9_.]+ \(.*\) as [A-Za-z0-9_.]+)/i,
   },
 
   // --- Config (§ 9.4: missing variable, invalid pipeline file) ---
@@ -104,7 +104,7 @@ const PATTERNS: CategoryPattern[] = [
   {
     category: 'test',
     errorType: 'AssertionError',
-    re: /\b(?:assertionerror|assert(?:ion)? failed|expected .+ to (?:equal|be|match|contain|have)|--- FAIL:|FAIL(?:ED)?\s+(?:test|spec)|✕|✗|\bfailing\b|\b\d+ (?:tests?|specs?) failed|panicked at)\b/i,
+    re: /(?:assertionerror|assert(?:ion)? failed|expected .+ to (?:equal|be|match|contain|have)|--- FAIL:|FAIL(?:ED)?\s+(?:test|spec)|✕|✗|\bfailing\b|\b\d+ (?:tests?|specs?) failed|panicked at|panic: |<testcase |<failure |=== RUN |FAILED tests\/|ERROR collecting |expect\(received\)|FAIL [A-Za-z0-9_./]+\.test\.[jt]sx?)/i,
   },
 ];
 

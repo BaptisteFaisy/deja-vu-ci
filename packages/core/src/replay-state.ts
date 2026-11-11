@@ -164,7 +164,9 @@ export function buildOccurrence(
   block: ErrorBlock,
 ): Occurrence {
   return {
-    id: `${sample.repo}-${sample.commit.slice(0, 8)}-${sample.step}-${index}`,
+    // Full commit and instant: a re-run of the same step at the same commit
+    // must not collide with the run it repeats.
+    id: `${sample.repo}-${sample.commit}-${sample.step}-${index}-${sample.at}`,
     signatureId: signature.id,
     familyId: signature.familyId,
     workspace: 'sample',
