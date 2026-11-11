@@ -113,6 +113,8 @@ const LOG_ERROR_STARTERS = [
   /^\s*(?:.+?\(\d+,\d+\):\s*error TS\d+:\s*.+)$/m,
   /^\s*(?:eslint|prettier).*?(?:error|problem)/im,
   /^\s*(?:panic:|=== \d+ seconds timeout|<failure|<error)/m,
+  /^\s*[\w./-]+\.go:\d+:\d+:/m,
+  /^\s*> Task :\S+ FAILED/m,
 ];
 
 /** Extract error chunks from a raw step log using known markers. */

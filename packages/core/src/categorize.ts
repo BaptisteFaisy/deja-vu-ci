@@ -104,7 +104,7 @@ const PATTERNS: CategoryPattern[] = [
   {
     category: 'test',
     errorType: 'AssertionError',
-    re: /(?:assertionerror|assert(?:ion)? failed|expected .+ to (?:equal|be|match|contain|have)|--- FAIL:|FAIL(?:ED)?\s+(?:test|spec)|✕|✗|\bfailing\b|\b\d+ (?:tests?|specs?) failed|panicked at|panic: |<testcase |<failure |=== RUN |FAILED tests\/|ERROR collecting |expect\(received\)|FAIL [A-Za-z0-9_./]+\.test\.[jt]sx?)/i,
+    re: /(?:assertionerror|assert(?:ion)? failed|expected .+ to (?:equal|be|match|contain|have)|--- FAIL:|FAIL(?:ED)?\s+(?:test|spec)|✕|✗|\bfailing\b|\b\d+ (?:tests?|specs?) failed|panicked at|panic: |<testcase |<failure |=== RUN |FAILED tests\/|ERROR collecting |ImportError while importing test module|expect\(received\)|FAIL [A-Za-z0-9_./]+\.test\.[jt]sx?)/i,
   },
 ];
 
