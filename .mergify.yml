@@ -21,8 +21,14 @@ queue_rules:
       max: 3
     batch_max_wait_time: "30 seconds"
     max_checks_retries: 1
-    merge_method: rebase
-    update_method: rebase
+    # Squash et non rebase : une PR = un commit sur main (historique lisible).
+    # En rebase, GitHub rejoue chaque commit tel quel et refuse le merge
+    # (« GitHub cannot rebase the pull request ») dès qu'un commit antérieur à
+    # la fusion du branche de base ne s'applique plus.
+    merge_method: squash
+    # Mise à jour par merge de main : jamais de réécriture (force-push) des
+    # branches de PR, et pas d'échec sur les PR déjà fusionnées.
+    update_method: merge
 
 priority_rules:
   - name: urgent
