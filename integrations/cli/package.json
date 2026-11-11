@@ -1,0 +1,23 @@
+{
+  "name": "deja-vu-ci",
+  "version": "0.1.0",
+  "description": "Universal entry CLI for Déjà-vu CI — report a failing build to the Brain from any CI, in one command.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "deja-vu": "bin/deja-vu.js"
+  },
+  "files": [
+    "bin",
+    "lib"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "ci",
+    "deja-vu",
+    "build-failure",
+    "universal-entry"
+  ]
+}

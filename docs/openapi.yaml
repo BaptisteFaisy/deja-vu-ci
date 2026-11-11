@@ -1,0 +1,172 @@
+openapi: 3.1.0
+info:
+  title: Déjà-vu CI — Universal entry
+  version: 0.1.0
+  description: >-
+    The `/universal` web trigger lets any CI (GitHub Actions, GitLab CI,
+    Jenkins, a cron, a Makefile) report a failing build to the Déjà-vu CI
+    Brain in one authenticated POST. The journal is bounded to 50 KiB and its
+    secrets are masked before anything leaves the process. See
+    `docs/API-UNIVERSELLE.md` for the copy-paste recipe and the trust model.
+servers:
+  - url: https://dejavu.webtrigger.atlassian.app
+paths:
+  /universal:
+    post:
+      operationId: reportFailure
+      summary: Report a failing build from any CI
+      description: >-
+        Authenticated by the per-project `projectKey` in the body — there is no
+        HMAC on this route (the signed bridge `/ingest` uses the
+        `x-dejavu-signature` / `x-dejavu-timestamp` / `x-dejavu-nonce` headers
+        instead). The call is best-effort: a 2xx means the payload was queued,
+        and the caller's CI must never be failed by this route.
+      parameters:
+        - in: header
+          name: x-dejavu-idempotency-key
+          schema:
+            type: string
+          required: false
+          description: >-
+            Optional; the same value may also travel as the `idempotencyKey`
+            request field. Reserved for idempotent reports (deduplication is
+            not implemented yet on the Brain side).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UniversalRequest'
+      responses:
+        '202':
+          description: Accepted — the payload was validated and queued.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AcceptedResponse'
+        '400':
+          description: >-
+            The body is not valid JSON, or a required field is missing/wrongly
+            typed. The `error` names the faulty field.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: The `projectKey` does not match the Brain's `universalKey`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: The universal entry is not enabled on this Brain instance.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '413':
+          description: >-
+            The platform rejects request bodies over 5 MiB (Forge payload
+            limit). Keep `log` under 50 KiB.
+        '500':
+          description: An unexpected error occurred while processing the request.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: The masking engine is unavailable — the route fails closed.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    UniversalRequest:
+      type: object
+      required:
+        - projectKey
+        - repository
+        - branch
+        - log
+      properties:
+        projectKey:
+          type: string
+          description: >-
+            Per-project key, compared to the Brain's `universalKey` setting.
+            Sent in the body (do not put it in a CLI argument visible in the
+            process table).
+        repository:
+          type: string
+          description: Repository name, `owner/name`.
+        branch:
+          type: string
+          description: Branch of the failing build.
+        commit:
+          type: string
+          description: Commit SHA, when known.
+        author:
+          type: string
+          description: Commit or trigger author.
+        step:
+          type: string
+          description: Step/job name (defaults to `build` when omitted).
+        log:
+          type: string
+          description: The journal excerpt (or error block) reported by the CI.
+          x-dejavu-max-bytes: 51200
+        failedAt:
+          type: string
+          format: date-time
+          description: ISO-8601 UTC timestamp (defaults to the receive time).
+        testCases:
+          type: array
+          items:
+            $ref: '#/components/schemas/FailedTestCase'
+          description: Failed test cases, when the pipeline produces a report.
+        idempotencyKey:
+          type: string
+          description: >-
+            Optional stable fingerprint (SHA-256 of the content). Accepted and
+            ignored by today's Brain; reserved so a retry never creates two
+            occurrences once deduplication lands.
+      additionalProperties: true
+    FailedTestCase:
+      type: object
+      required:
+        - name
+        - message
+      properties:
+        name:
+          type: string
+          description: Full test name (class + method, or pytest path).
+        message:
+          type: string
+          description: Failure message (masked server-side).
+        stack:
+          type: string
+          description: Optional stack trace (masked server-side).
+    AcceptedResponse:
+      type: object
+      required:
+        - ok
+        - queued
+      properties:
+        ok:
+          type: boolean
+          const: true
+        queued:
+          type: boolean
+          const: true
+    ErrorResponse:
+      type: object
+      required:
+        - ok
+        - error
+      properties:
+        ok:
+          type: boolean
+          const: false
+        error:
+          type: string
+          description: Human-readable reason (`error` may be a string).

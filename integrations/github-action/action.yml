@@ -1,0 +1,139 @@
+name: "Déjà-vu CI — report a failed step"
+description: >-
+  Post the failing step log to the Déjà-vu CI universal entry. A composite
+  action: it runs curl + bash, no npm install. A success leaves the workflow
+  untouched; the action never fails the caller's pipeline (the CI keeps going
+  no matter whether the Brain is reachable).
+inputs:
+  brain-url:
+    description: "URL of the Brain /universal web trigger."
+    required: true
+  secret-key:
+    description: "Per-project key (DEJAVU_PROJECT_KEY). Masked; never printed."
+    required: true
+  repository:
+    description: "Repository name (owner/name). Defaults to GITHUB_REPOSITORY."
+    required: false
+  branch:
+    description: "Branch name. Defaults to GITHUB_REF_NAME."
+    required: false
+  commit:
+    description: "Commit SHA. Defaults to GITHUB_SHA."
+    required: false
+  step:
+    description: "Step name. Defaults to github.job."
+    required: false
+  log-file:
+    description: "Path to the failed step log. Exclusive with 'log'."
+    required: false
+  log:
+    description: "Raw log text. Alternative to 'log-file'."
+    required: false
+  outcome:
+    description: "Step outcome. Only 'failure' is reported; anything else is skipped."
+    required: false
+outputs:
+  signature:
+    description: "Stable SHA-256 fingerprint of the payload sent."
+    value: ${{ steps.report.outputs.signature }}
+  diagnostic:
+    description: "Brain HTTP status and body, or a local failure message."
+    value: ${{ steps.report.outputs.diagnostic }}
+runs:
+  using: composite
+  steps:
+    - id: report
+      shell: bash
+      env:
+        BRAIN_URL: ${{ inputs.brain-url }}
+        SECRET_KEY: ${{ inputs.secret-key }}
+        REPO: ${{ inputs.repository }}
+        BRANCH: ${{ inputs.branch }}
+        COMMIT: ${{ inputs.commit }}
+        STEP: ${{ inputs.step }}
+        LOG_FILE: ${{ inputs.log-file }}
+        LOG_INLINE: ${{ inputs.log }}
+        OUTCOME: ${{ inputs.outcome }}
+      run: |
+        set -u
+
+        # Only failures are reported. A success (or an unset outcome) is a
+        # no-op that still exposes a diagnostic for the following steps.
+        if [ -n "${OUTCOME:-}" ] && [ "$OUTCOME" != "failure" ]; then
+          echo "signature=" >> "$GITHUB_OUTPUT"
+          echo "diagnostic=skipped (outcome=$OUTCOME)" >> "$GITHUB_OUTPUT"
+          echo "[deja-vu] skipped: outcome is $OUTCOME"
+          exit 0
+        fi
+
+        URL="${BRAIN_URL:-}"
+        KEY="${SECRET_KEY:-}"
+        if [ -z "$URL" ] || [ -z "$KEY" ]; then
+          echo "signature=" >> "$GITHUB_OUTPUT"
+          echo "diagnostic=missing brain-url or secret-key" >> "$GITHUB_OUTPUT"
+          echo "[deja-vu] skipped: brain-url or secret-key missing" >&2
+          exit 0
+        fi
+
+        REPO_NAME="${REPO:-${GITHUB_REPOSITORY:-unknown-repo}}"
+        BRANCH_NAME="${BRANCH:-${GITHUB_REF_NAME:-unknown-branch}}"
+        COMMIT_SHA="${COMMIT:-${GITHUB_SHA:-unknown-commit}}"
+        STEP_NAME="${STEP:-${GITHUB_JOB:-ci-step}}"
+
+        # Read the log from a file first, fall back to the inline input.
+        LOG=""
+        if [ -n "${LOG_FILE:-}" ] && [ -f "$LOG_FILE" ]; then
+          LOG=$(tail -c 51200 "$LOG_FILE")
+        else
+          LOG="${LOG_INLINE:-}"
+        fi
+        if [ -z "$LOG" ]; then
+          echo "signature=" >> "$GITHUB_OUTPUT"
+          echo "diagnostic=no log to send" >> "$GITHUB_OUTPUT"
+          echo "[deja-vu] skipped: no log to send" >&2
+          exit 0
+        fi
+
+        # Stable idempotency fingerprint over the exact content we send.
+        SIGNATURE=$(printf '%s' "$REPO_NAME|$BRANCH_NAME|$COMMIT_SHA|$STEP_NAME|$LOG" | sha256sum | cut -d' ' -f1)
+
+        json_escape() {
+          local s="${1-}"
+          s=${s//\\/\\\\}
+          s=${s//\"/\\\"}
+          s=${s//$'\t'/\\t}
+          s=${s//$'\r'/\\r}
+          s=${s//$'\b'/\\b}
+          s=${s//$'\f'/\\f}
+          printf '%s' "$s"
+        }
+
+        BODY=$(printf '%s' "{\"projectKey\":\"$(json_escape "$KEY")\",\"repository\":\"$(json_escape "$REPO_NAME")\",\"branch\":\"$(json_escape "$BRANCH_NAME")\",\"commit\":\"$(json_escape "$COMMIT_SHA")\",\"step\":\"$(json_escape "$STEP_NAME")\",\"log\":\"$(json_escape "$LOG")\",\"idempotencyKey\":\"$SIGNATURE\"}")
+
+        # Two attempts on transport errors only; a definitive HTTP answer is
+        # never retried. The workflow is never failed on the Brain's behalf.
+        CODE=000
+        BODY_RESP=""
+        for attempt in 1 2; do
+          RESP=$(curl -s -m 20 -w '\n%{http_code}' -X POST "$URL" \
+            -H 'Content-Type: application/json' --data-binary "$BODY" 2>/dev/null || true)
+          RESP="${RESP:-}"
+          CODE=$(printf '%s' "$RESP" | tail -n1)
+          BODY_RESP=$(printf '%s' "$RESP" | sed '$d')
+          CODE="${CODE:-000}"
+          if [ "$CODE" != "000" ]; then
+            break
+          fi
+          if [ "$attempt" = "1" ]; then sleep 2; fi
+        done
+
+        if [ "$CODE" = "200" ] || [ "$CODE" = "202" ]; then
+          DIAG="accepted (HTTP $CODE)"
+          echo "[deja-vu] reported (HTTP $CODE)"
+        else
+          DIAG="HTTP $CODE ${BODY_RESP:0:200}"
+          echo "[deja-vu] Brain unreachable or refused (HTTP $CODE) — CI continues" >&2
+        fi
+
+        echo "signature=$SIGNATURE" >> "$GITHUB_OUTPUT"
+        echo "diagnostic=$DIAG" >> "$GITHUB_OUTPUT"

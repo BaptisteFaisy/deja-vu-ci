@@ -1,0 +1,68 @@
+// Déjà-vu CI — Jenkins snippet (declarative pipeline).
+//
+// Copy the helper and the `post { failure { … } }` block into your existing
+// Jenkinsfile. The job must write its build output into `build.log` (a `tee`
+// in the `steps` is enough). Set two credentials/string env vars on the job:
+//
+//   DEJAVU_BRAIN_URL   → https://dejavu.webtrigger.atlassian.app/universal
+//   DEJAVU_PROJECT_KEY → <your per-project key>
+//
+// The report is best-effort: a red build is sent to the Brain, an unreachable
+// Brain is only a warning, and the pipeline never fails because of the report.
+
+def dejaVuReport(String logFile = 'build.log') {
+    def url = env.DEJAVU_BRAIN_URL ?: ''
+    def key = env.DEJAVU_PROJECT_KEY ?: ''
+    if (!url || !key) {
+        echo '[deja-vu] skipped: DEJAVU_BRAIN_URL or DEJAVU_PROJECT_KEY missing'
+        return
+    }
+    def f = new File("${env.WORKSPACE}/${logFile}")
+    if (!f.exists()) {
+        echo "[deja-vu] skipped: ${logFile} not found"
+        return
+    }
+    // Tail to 51200 bytes, then strip the newlines for the JSON payload.
+    def log = f.text
+    if (log.length() > 51200) {
+        log = log.substring(log.length() - 51200)
+    }
+    def repo = env.GITHUB_REPOSITORY ?: "${env.JOB_NAME}"
+    def branch = env.BRANCH_NAME ?: env.GIT_BRANCH ?: 'unknown-branch'
+    def commit = env.GIT_COMMIT ?: 'unknown-commit'
+
+    def sig = ("${repo}|${branch}|${commit}|${env.STAGE_NAME}|${log}").getBytes('UTF-8')
+        .digest('SHA-256').collect { String.format('%02x', it) }.join()
+
+    def esc = { String s -> s.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r') }
+    def body = """{"projectKey":"${esc(key)}","repository":"${esc(repo)}","branch":"${esc(branch)}","commit":"${esc(commit)}","step":"${esc(env.STAGE_NAME)}","log":"${esc(log)}","idempotencyKey":"${sig}"}"""
+
+    def script = """
+        curl -s -m 20 -o /tmp/deja-vu.out -w '%{http_code}' -X POST '${url}' \
+          -H 'Content-Type: application/json' --data-binary @- <<'DEJAVU_EOF'
+${body}
+DEJAVU_EOF
+    """
+    def code = sh(script: script, returnStdout: true).toString().trim()
+    if (code == '202' || code == '200') {
+        echo "[deja-vu] reported (HTTP ${code})"
+    } else {
+        echo "[deja-vu] Brain unreachable or refused (HTTP ${code}) — pipeline continues"
+    }
+}
+
+pipeline {
+    agent any
+    stages {
+        stage('Build and test') {
+            steps {
+                sh 'make build && make test 2>&1 | tee build.log'
+            }
+        }
+    }
+    post {
+        failure {
+            script { dejaVuReport('build.log') }
+        }
+    }
+}
