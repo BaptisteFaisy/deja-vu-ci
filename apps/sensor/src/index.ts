@@ -1,11 +1,14 @@
 /**
  * Forge entry point of the Sensor — the only file that wires Forge.
  *
- * `handler` is what `manifest.yml` points at (`function.handler:
- * index.handler`); it dispatches on the module that called it. Every
- * resolver answers `{ ok: false, error }` instead of raising: a Forge
- * function that throws is retried by the platform, and the build event is
- * lost anyway (E brief, "Constraints").
+ * `manifest.yml` points each module at the narrowest export it needs: the
+ * build-status trigger at `onBuildStatus`, the pull-request card at
+ * `prCardResolver` and the workspace settings page at `settingsResolver`
+ * (both dispatch the `invoke()` names of their screen). `handler` dispatches
+ * every name at once and serves a rehearsal. Every resolver answers
+ * `{ ok: false, error }` instead of raising: a Forge function that throws is
+ * retried by the platform, and the build event is lost anyway (E brief,
+ * "Constraints").
  *
  * Flow (§ 8.1, § 15): build-status event → failing step → log tail and test
  * reports → masked and bounded payload → ancestor verdict when the Brain
@@ -33,6 +36,14 @@ import {
 } from './settings.js';
 import { readSettings } from './pure/settings.js';
 import { brainTransport } from './send.js';
+import { dispatchInvoke, type ResolverFn } from './pure/dispatch.js';
+import type { SettingsForm, SettingsView } from './pure/settingsView.js';
+
+// The settings page's types live in `src/pure/settingsView.ts`, away from this
+// file (which imports `@forge/api`): the UI bundle must not drag the server
+// code with it. They are re-exported here because the resolvers below and the
+// app's readers refer to this module.
+export type { SettingsForm, SettingsView };
 
 /** Answer of a Forge function: never a thrown error. */
 export type SensorAnswer = { ok: true; skipped?: string } | { ok: false; error: string };
@@ -123,16 +134,6 @@ export async function getPrCard(payload: unknown, context?: unknown): Promise<Qu
   }
 }
 
-/** What the settings page shows (§ 14 screen 2). */
-export interface SettingsView {
-  ok: boolean;
-  paired: boolean;
-  brainUrl?: string;
-  trackedRepositories: string[];
-  maxExcerptBytes: number;
-  error?: string;
-}
-
 /** Settings page `getSettings`: the secret identifier is never returned. */
 export async function getSettings(_payload: unknown, context?: unknown): Promise<SettingsView> {
   try {
@@ -148,16 +149,6 @@ export async function getSettings(_payload: unknown, context?: unknown): Promise
     const message = error instanceof Error ? error.message : String(error);
     return { ok: false, paired: false, trackedRepositories: [], maxExcerptBytes: 51200, error: message };
   }
-}
-
-/** The form posted by the settings page. */
-export interface SettingsForm {
-  brainUrl?: string;
-  /** The shared secret, given once at pairing time. Never stored in clear. */
-  secret?: string;
-  trackedRepositories?: string[];
-  maxExcerptBytes?: number;
-  pairedBy?: string;
 }
 
 /**
@@ -189,8 +180,8 @@ export async function saveSettings(payload: unknown, context?: unknown): Promise
   }
 }
 
-/** The functions the manifest references, by key. */
-const functions: Record<string, (payload: unknown, context?: unknown) => Promise<unknown>> = {
+/** The functions the app answers, by name. */
+const functions: Record<string, ResolverFn> = {
   onBuildStatus,
   getPrCard,
   getSettings,
@@ -198,19 +189,35 @@ const functions: Record<string, (payload: unknown, context?: unknown) => Promise
 };
 
 /**
- * The single entry point of the app: `index.handler`.
+ * Resolver of the pull-request card (`bitbucket:repoPullRequestCard`).
  *
- * Forge calls it with the key of the module function; an unknown key is
- * answered, never thrown.
+ * The card calls `invoke('getPrCard')`; the platform routes that call here,
+ * inside its envelope, and `dispatchInvoke` unwraps it (`src/pure/dispatch.ts`).
  */
-export async function handler(
-  payload: { call?: { functionKey?: string }; context?: unknown },
-  context?: unknown,
-): Promise<unknown> {
-  const key = payload?.call?.functionKey ?? '';
-  const invocation = functions[key];
-  if (!invocation) return { ok: false, error: `unknown function ${key || '(none)'}` };
-  return invocation(payload, context ?? payload?.context);
+export async function prCardResolver(payload: unknown, context?: unknown): Promise<unknown> {
+  return dispatchInvoke({ getPrCard }, payload, context);
+}
+
+/**
+ * Resolver of the workspace settings page (`bitbucket:workspaceSettingsMenuPage`).
+ *
+ * One page, two calls: `invoke('getSettings')` reads it, `invoke('saveSettings')`
+ * writes it — which is why the manifest declares a single page module.
+ */
+export async function settingsResolver(payload: unknown, context?: unknown): Promise<unknown> {
+  return dispatchInvoke({ getSettings, saveSettings }, payload, context);
+}
+
+/**
+ * The generic entry point of the app: `index.handler`.
+ *
+ * It dispatches any known name, and answers an unknown one instead of
+ * throwing. The manifest points each module at the narrowest handler it needs
+ * (a trigger at `index.onBuildStatus`, a UI module at its resolver); this one
+ * serves a rehearsal and any module added later.
+ */
+export async function handler(payload: unknown, context?: unknown): Promise<unknown> {
+  return dispatchInvoke(functions, payload, context);
 }
 
 export default handler;

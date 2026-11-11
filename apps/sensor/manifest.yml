@@ -6,8 +6,8 @@
 #
 # Module keys, scopes and event names are checked against the Forge
 # manifest schema shipped with `@forge/manifest`. The remaining
-# uncertainties (event names of the product-event mapping, the two entries
-# of the settings page) are listed in `apps/sensor/README.md`.
+# uncertainties (event names of the product-event mapping) are listed in
+# `apps/sensor/README.md`.
 #
 # `app.id` is a placeholder: `forge create` / `forge install` replaces it
 # with the ari of the real app. Never commit a real app id together with a
@@ -21,18 +21,41 @@ modules:
         - avi:bitbucket:created:build-status
         - avi:bitbucket:updated:build-status
 
+  # ---------------------------------------------------------------- the two screens
+  # UI Kit 2: both modules render the same resource (`src/frontend.tsx`), which
+  # routes on the module key. The card asks `invoke('getPrCard')`, the settings
+  # page `invoke('getSettings')` / `invoke('saveSettings')`; the platform routes
+  # those calls to the module's `resolver.function`.
+  #
+  # The schema of the Bitbucket modules accepts `resource`, `resolver`, `title`,
+  # `key` (and `icon` for the card only): unlike the Jira modules, it declares
+  # no `render`, and the settings page takes no icon.
   bitbucket:repoPullRequestCard:
     - key: deja-vu-pr-card
       title: Déjà-vu CI
-      function: getPrCard
+      resource: main
+      resolver:
+        function: prCardResolver
+      icon: resource:icon;icon.svg
 
   bitbucket:workspaceSettingsMenuPage:
+    # One page, two calls: with a resolver, the save action no longer needs a
+    # second page module of its own (README, "Uncertainties" 2).
     - key: deja-vu-workspace-settings
       title: Déjà-vu CI
-      function: getSettings
-    - key: deja-vu-workspace-settings-save
-      title: Déjà-vu CI — save settings
-      function: saveSettings
+      resource: main
+      resolver:
+        function: settingsResolver
+
+  function:
+    # The trigger receives the event payload itself, so it points straight at
+    # its function; the two UI modules point at their resolver.
+    - key: onBuildStatus
+      handler: index.onBuildStatus
+    - key: prCardResolver
+      handler: index.prCardResolver
+    - key: settingsResolver
+      handler: index.settingsResolver
 
 permissions:
   scopes:
@@ -45,10 +68,20 @@ permissions:
       backend:
         - '*.webtrigger.atlassian.app'
 
+# Hosted resources (§ 14): one UI Kit 2 entry point for the two Bitbucket
+# modules, and the icon the card displays. `path` is relative to the app root;
+# a module refers to an entry with `resource: <key>`, an icon with
+# `resource:<key>;<file>`.
+resources:
+  - key: main
+    path: src/frontend.tsx
+  - key: icon
+    path: static/icon.svg
+
 app:
   id: ari:cloud:ecosystem::app/REPLACE-WITH-THE-REAL-APP-ID
   description: >-
     Recognises a red build, tells in seconds whether it is new, known,
     flaky or an infrastructure failure, and keeps one ticket per problem.
   runtime:
-    name: nodejs20.x
+    name: nodejs22.x
