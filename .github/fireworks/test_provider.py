@@ -78,5 +78,31 @@ class ProviderEnvTest(unittest.TestCase):
 
 
 
+class ChargementSansFichierTest(unittest.TestCase):
+    """Le module peut être chargé par `exec`, sans `__file__` (le balayeur)."""
+
+    def test_racine_sans_fichier(self):
+        # Le balayeur exécute le module sans __file__ : la racine doit alors
+        # retomber sur le dépôt courant, sans lever NameError (bug du 11/11).
+        import types
+        module = types.ModuleType("fournisseur_sans_fichier")
+        ici = os.path.dirname(os.path.abspath(__file__))
+        with open(os.path.join(ici, "fournisseur.py"), encoding="utf-8") as handle:
+            source = handle.read()
+        exec(compile(source, "fournisseur.py", "exec"), module.__dict__)
+        self.assertNotIn("__file__", module.__dict__)
+        racine = module._racine_module()
+        self.assertTrue(racine.endswith(os.path.join(".github", "fireworks")))
+        # Depuis la racine du dépôt (cas du balayeur), le chemin existe bien.
+        depot = os.path.abspath(os.path.join(ici, "..", ".."))
+        self.assertTrue(os.path.isdir(os.path.join(depot, ".github", "fireworks")))
+
+    def test_racine_avec_fichier(self):
+        import fournisseur
+        racine = fournisseur._racine_module()
+        self.assertTrue(os.path.isdir(racine))
+        self.assertTrue(os.path.exists(os.path.join(racine, "..", "hermes", "a2a.py")))
+
+
 if __name__ == "__main__":
     unittest.main()
