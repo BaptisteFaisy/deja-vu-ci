@@ -14,8 +14,9 @@
  *   3. `splitSignature` does the opposite gesture when a family turns out to
  *      hide several problems: it distributes the occurrences by criterion.
  *
- * Everything here is deterministic and side-effect free, except the single
- * documented reassignment performed by `mergeSignatures` (see its doc).
+ * Everything here is deterministic; the only effects are the documented in-place
+ * reassignments of the moved occurrences (`mergeSignatures`, `splitSignature`),
+ * so the caller can persist the curation as is. Signatures are never mutated.
  */
 
 import type { ErrorBlock, Occurrence, Signature, SignatureStatus } from './types.js';
