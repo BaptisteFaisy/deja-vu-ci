@@ -11,12 +11,15 @@
 
 modules:
   webtrigger:
+    # The function keys below ARE the URL routes: the Sensor posts to
+    # `<base-url>/ingest` and `<base-url>/query` (apps/sensor/src/send.ts),
+    # any other CI posts to `<base-url>/universal`.
     - key: deja-vu-ingest
-      function: ingestTrigger
+      function: ingest
     - key: deja-vu-query
-      function: queryTrigger
+      function: query
     - key: deja-vu-universal
-      function: universalTrigger
+      function: universal
 
   consumer:
     - key: deja-vu-consumer
@@ -115,11 +118,11 @@ modules:
             - confirm-resolution
 
   function:
-    - key: ingestTrigger
+    - key: ingest
       handler: index.ingest
-    - key: queryTrigger
+    - key: query
       handler: index.query
-    - key: universalTrigger
+    - key: universal
       handler: index.universal
     - key: consumerHandler
       handler: index.consumer

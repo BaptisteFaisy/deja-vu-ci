@@ -28,8 +28,13 @@ export function createQueryHandler(store: BrainSqlStore, engine: BrainEngine) {
       if (!parsed.ok) return jsonResponse(400, { ok: false, error: parsed.error });
 
       await migrateOnce();
-      const { repository, branch } = parsed.value;
-      const occurrence = await store.latestOccurrence(repository, branch, parsed.value.commit);
+      const { repository, branch, commit } = parsed.value;
+      let occurrence = await store.latestOccurrence(repository, branch, commit);
+      if (!occurrence && commit !== undefined) {
+        // The exact commit is unknown: the card still deserves the latest
+        // failure the Brain remembers for the branch.
+        occurrence = await store.latestOccurrence(repository, branch);
+      }
       const response = await buildQueryResponse(engine, occurrence);
       return jsonResponse(200, response);
     } catch (error) {
