@@ -125,6 +125,7 @@ jobs:
           python3 tools/test_triage.py
           python3 .github/couche0/test_check_couche0.py
           python3 .github/fireworks/test_conflict_agent.py
+          python3 .github/fireworks/test_provider.py
           python3 .github/fireworks/test_test_agent.py
           python3 .github/fireworks/test_scope_agent.py
           python3 .github/fireworks/test_union_journal.py

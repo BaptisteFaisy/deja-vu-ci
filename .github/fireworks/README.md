@@ -1,4 +1,4 @@
-# Agents Fireworks
+# Agents de la file (conflit et test rouge)
 
 Deux agents, deux problèmes distincts, jamais une porte de merge : seule la CI
 verte fait merger. Tous deux sont lus sur `origin/main` par le sweep (la
@@ -8,10 +8,18 @@ vérifiées.
 ## Agent de conflit (`conflict_agent.py`)
 
 Quand le sweep de `pr-auto-merge` échoue à rebaser une PR, il appelle
-`conflict_agent.py` dans son clone, rebase en cours. L'agent demande au modèle
-Fireworks la résolution de chaque fichier en conflit, termine le rebase, pousse
-sur la branche de la PR avec bail et rend compte en commentaire. La file reprend
-au passage suivant ; seule la CI verte fait merger.
+`conflict_agent.py` dans son clone, rebase en cours. L'agent demande à un modèle
+la résolution de chaque fichier en conflit, termine le rebase, pousse sur la
+branche de la PR avec bail et rend compte en commentaire. La file reprend au
+passage suivant ; seule la CI verte fait merger.
+
+**Fournisseur** : InferHub (`https://api.inferhub.dev/v1/chat/completions`,
+modèle `combo/cheap`) par défaut. Les variables historiques `FIREWORKS_*`
+restent lues en repli, les variables génériques `MODEL_API_KEY`,
+`MODEL_API_URL` et `MODEL_NAME` ont la priorité : changer de fournisseur ne
+demande plus de toucher au code. Si l'API refuse (clé, quota, modèle retiré),
+un second repli interroge l'agent `hermes` du daemon ZeroClaw du runner
+(`.github/hermes/a2a.py`).
 
 Les journaux en ajout pur (`CHANGELOG.md`, `CHANGELOG`) ne passent jamais par le
 modèle : deux entrées écrites en tête de fichier ne sont pas un désaccord, elles
@@ -27,7 +35,7 @@ et une branche de PR peut être antérieure à ce découpage.
 ## Contrat d'appel
 
 ```bash
-FIREWORKS_API_KEY=... python3 conflict_agent.py resolve \
+MODEL_API_KEY=... python3 conflict_agent.py resolve \
   --repo BaptisteFaisy/deja-vu-ci --pr 118 --branch feat/x --sha <tête>
 ```
 
