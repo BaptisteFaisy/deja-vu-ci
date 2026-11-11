@@ -131,6 +131,15 @@ modules:
       handler: index.issueContext
     - key: settingsPageResolver
       handler: index.settingsPage
+    # Data resolvers called by the UI Kit screens through invoke() (lot G).
+    - key: memory-page
+      handler: index.memoryPage
+    - key: issue-context
+      handler: index.issueData
+    - key: settings
+      handler: index.settings
+    - key: save-settings
+      handler: index.saveSettings
     - key: actionExplainBuildFailure
       handler: index.explainBuildFailure
     - key: actionSearchFailures
