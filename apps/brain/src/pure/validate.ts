@@ -99,33 +99,8 @@ function validateStringArray(value: unknown, field: string): Validation<string[]
   return ok(value as string[]);
 }
 
-/** Validates the payload the Sensor sends over the signed bridge (§ 8.1). */
-export function validateIngestPayload(body: unknown): Validation<IngestPayload> {
-  if (!isRecord(body)) return bad('payload must be an object');
-  if (body.version !== 1) return bad('payload.version must be 1');
-
-  const workspace = requireString(body, 'workspace');
-  if (!workspace.ok) return workspace;
-  const repository = requireString(body, 'repository');
-  if (!repository.ok) return repository;
-  const branch = requireString(body, 'branch');
-  if (!branch.ok) return branch;
-  const commit = requireString(body, 'commit');
-  if (!commit.ok) return commit;
-  const author = requireString(body, 'author');
-  if (!author.ok) return author;
-  const stepName = requireString(body, 'stepName');
-  if (!stepName.ok) return stepName;
-  const failedAt = requireIsoDate(body, 'failedAt');
-  if (!failedAt.ok) return failedAt;
-
-  if (typeof body.durationS !== 'number' || !Number.isFinite(body.durationS) || body.durationS < 0) {
-    return bad('field "durationS" must be a non-negative number');
-  }
-  if (!Array.isArray(body.errorBlocks) || body.errorBlocks.some((b) => typeof b !== 'string')) {
-    return bad('field "errorBlocks" must be an array of strings');
-  }
-
+/** The optional fields of an ingest payload, validated as a partial patch. */
+function validateOptionalFields(body: Record<string, unknown>): Validation<Partial<IngestPayload>> {
   const prId = optionalNumber(body, 'prId');
   if (!prId.ok) return prId;
   const stepUuid = optionalString(body, 'stepUuid');
@@ -152,26 +127,64 @@ export function validateIngestPayload(body: unknown): Validation<IngestPayload> 
   }
 
   return ok({
-    version: 1,
-    workspace: workspace.value,
-    repository: repository.value,
-    branch: branch.value,
-    commit: commit.value,
-    author: author.value,
     ...(prId.value !== undefined ? { prId: prId.value } : {}),
-    stepName: stepName.value,
     ...(stepUuid.value !== undefined ? { stepUuid: stepUuid.value } : {}),
     ...(buildUrl.value !== undefined ? { buildUrl: buildUrl.value } : {}),
     ...(buildNumber.value !== undefined ? { buildNumber: buildNumber.value } : {}),
-    durationS: body.durationS,
-    failedAt: failedAt.value,
-    errorBlocks: body.errorBlocks as string[],
     ...(testCases.value !== undefined ? { testCases: testCases.value } : {}),
     ...(branchHistory.value !== undefined ? { branchHistory: branchHistory.value } : {}),
     ...(contains ? { containsResolution: { commit: contains.commit as string, contains: contains.contains } } : {}),
     ...(changedFiles.value !== undefined ? { changedFiles: changedFiles.value } : {}),
     ...(linkedIssueKey.value !== undefined ? { linkedIssueKey: linkedIssueKey.value } : {}),
   });
+}
+
+/** The mandatory fields of an ingest payload (§ 8.1). */
+function validateRequiredFields(body: Record<string, unknown>): Validation<IngestPayload> {
+  const workspace = requireString(body, 'workspace');
+  if (!workspace.ok) return workspace;
+  const repository = requireString(body, 'repository');
+  if (!repository.ok) return repository;
+  const branch = requireString(body, 'branch');
+  if (!branch.ok) return branch;
+  const commit = requireString(body, 'commit');
+  if (!commit.ok) return commit;
+  const author = requireString(body, 'author');
+  if (!author.ok) return author;
+  const stepName = requireString(body, 'stepName');
+  if (!stepName.ok) return stepName;
+  const failedAt = requireIsoDate(body, 'failedAt');
+  if (!failedAt.ok) return failedAt;
+
+  if (typeof body.durationS !== 'number' || !Number.isFinite(body.durationS) || body.durationS < 0) {
+    return bad('field "durationS" must be a non-negative number');
+  }
+  if (!Array.isArray(body.errorBlocks) || body.errorBlocks.some((b) => typeof b !== 'string')) {
+    return bad('field "errorBlocks" must be an array of strings');
+  }
+  return ok({
+    version: 1,
+    workspace: workspace.value,
+    repository: repository.value,
+    branch: branch.value,
+    commit: commit.value,
+    author: author.value,
+    stepName: stepName.value,
+    durationS: body.durationS,
+    failedAt: failedAt.value,
+    errorBlocks: body.errorBlocks as string[],
+  });
+}
+
+/** Validates the payload the Sensor sends over the signed bridge (§ 8.1). */
+export function validateIngestPayload(body: unknown): Validation<IngestPayload> {
+  if (!isRecord(body)) return bad('payload must be an object');
+  if (body.version !== 1) return bad('payload.version must be 1');
+  const required = validateRequiredFields(body);
+  if (!required.ok) return required;
+  const optional = validateOptionalFields(body);
+  if (!optional.ok) return optional;
+  return ok({ ...required.value, ...optional.value });
 }
 
 /** Validates the `pr-card` request of the Sensor (§ 14, screen 1). */

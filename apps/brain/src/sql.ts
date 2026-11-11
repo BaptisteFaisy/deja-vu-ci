@@ -93,8 +93,8 @@ export interface BrainSqlStore extends Store {
   savePairing(pairing: Pairing): Promise<void>;
 }
 
-/** Builds the memory store on top of a SQL client. */
-export function createSqlStore(client: SqlClient = forgeSqlClient()): BrainSqlStore {
+/** Signature and occurrence halves of the store. */
+function memoryMethods(client: SqlClient) {
   return {
     async saveSignature(s: Signature): Promise<void> {
       await run(client, queries.upsertSignature(s));
@@ -118,6 +118,12 @@ export function createSqlStore(client: SqlClient = forgeSqlClient()): BrainSqlSt
     async listFamilyOccurrences(familyId: string): Promise<Occurrence[]> {
       return (await read(client, queries.selectOccurrencesByFamily(familyId))).map(mapOccurrence);
     },
+  };
+}
+
+/** Resolution, excerpt, stats, outbreak and settings halves of the store. */
+function housekeepingMethods(client: SqlClient) {
+  return {
     async saveResolution(r: Resolution): Promise<void> {
       await run(client, queries.upsertResolution(r));
     },
@@ -155,6 +161,12 @@ export function createSqlStore(client: SqlClient = forgeSqlClient()): BrainSqlSt
       const rows = await read(client, queries.selectOutbreakByFamily(familyId));
       return rows[0] ? mapOutbreak(rows[0]) : undefined;
     },
+  };
+}
+
+/** Reads beyond the core `Store`, used by the routes and the screens. */
+function brainReadMethods(client: SqlClient) {
+  return {
     async latestOccurrence(repo: string, branch: string, commit?: string): Promise<Occurrence | undefined> {
       const rows = await read(client, queries.selectLatestOccurrence(repo, branch, commit));
       return rows[0] ? mapOccurrence(rows[0]) : undefined;
@@ -169,6 +181,15 @@ export function createSqlStore(client: SqlClient = forgeSqlClient()): BrainSqlSt
     async savePairing(pairing: Pairing): Promise<void> {
       await run(client, queries.upsertPairing(pairing));
     },
+  };
+}
+
+/** Builds the memory store on top of a SQL client. */
+export function createSqlStore(client: SqlClient = forgeSqlClient()): BrainSqlStore {
+  return {
+    ...memoryMethods(client),
+    ...housekeepingMethods(client),
+    ...brainReadMethods(client),
   };
 }
 
