@@ -16,6 +16,7 @@ seul). Codes : 0 poussé, 1 échec commenté, 2 rien à faire. Aucun secret deda
 """
 
 import argparse
+import importlib.util
 import json
 import os
 import re
@@ -24,6 +25,27 @@ import sys
 import time
 import types
 import urllib.request
+
+def _charger_a2a():
+    """Charge `.github/hermes/a2a.py` (repli local) sans dépendre du sys.path.
+
+    Le module vit dans le dossier `hermes/`, pas à côté de ce script : on le
+    charge par son chemin. Sans lui (déploiement ancien), le repli est
+    simplement indisponible.
+    """
+    chemin = os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir, "hermes", "a2a.py")
+    if not os.path.exists(chemin):
+        return None
+    try:
+        spec = importlib.util.spec_from_file_location("a2a", chemin)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+    except Exception:  # noqa: BLE001 - un repli cassé ne doit rien casser
+        return None
+
+
+a2a = _charger_a2a()
 
 
 def _charger(nom):
@@ -207,6 +229,27 @@ def fw_complete(api_url, key, model, messages):
         raise AgentError("réponse Fireworks illisible (pas de choices[0])")
 
 
+def completion(api_url, key, model, messages):
+    """Répond au conflit : API Fireworks d'abord, agent `hermes` en repli.
+
+    L'API Fireworks peut refuser (clé expirée, HTTP 412, modèle retiré). Le
+    repli est le daemon ZeroClaw de la machine du runner, alias `hermes` :
+    même question, autre fournisseur. Sans repli disponible, l'erreur
+    d'origine est renvoyée telle quelle.
+    """
+    try:
+        return fw_complete(api_url, key, model, messages)
+    except AgentError as exc:
+        if a2a is None:
+            raise
+        log("Fireworks refuse (%s) — repli sur l'agent hermes" % str(exc)[:120])
+        texte = a2a.hermes_complete(messages)
+        if texte is None:
+            raise
+        log("réponse obtenue de l'agent hermes")
+        return texte
+
+
 def extract_file(text):
     """Extrait le fichier résolu : bloc de code, sinon texte brut."""
     cleaned = re.sub(r"<think>.*?</think>", "", text, flags=re.S)
@@ -268,7 +311,7 @@ def resolve_one(api_url, key, model, path, deadline, dry_run):
         if total > HUNK_MAX_CHARS:
             raise AgentError("conflit élémentaire trop gros : %s" % path)
         messages = build_hunk_messages(path, seg)
-        resolved = extract_file(fw_complete(api_url, key, model, messages))
+        resolved = extract_file(completion(api_url, key, model, messages))
         if still_marked(resolved):
             raise AgentError("le modèle a rendu des marqueurs : %s" % path)
         out.append(resolved.rstrip("\n"))
