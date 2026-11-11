@@ -9,7 +9,7 @@
  */
 
 import type { DiagnoseContext, Occurrence, Outbreak, Resolution, Signature } from '@dejavu/core';
-import type { BrainEngine } from './engine.js';
+import type { BrainEngine } from './engine';
 
 /** Occurrences antérieures (exclusion de l'occurrence courante). */
 export function previousOccurrences(all: Occurrence[], current: Occurrence): Occurrence[] {

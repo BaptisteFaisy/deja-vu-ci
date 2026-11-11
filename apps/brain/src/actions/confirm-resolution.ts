@@ -8,10 +8,10 @@
  */
 
 import type { Resolution } from '@dejavu/core';
-import { fail, ok, type ActionResult, type BrainEngine } from './engine.js';
-import { defineAction, type RawInput } from './descriptor.js';
-import { requireBoolean, requireText } from './validate.js';
-import { CANDIDATE_CONFIDENCE } from './report-resolution.js';
+import { fail, ok, type ActionResult, type BrainEngine } from './engine';
+import { defineAction, type RawInput } from './descriptor';
+import { requireBoolean, requireText } from './validate';
+import { CANDIDATE_CONFIDENCE } from './report-resolution';
 
 /** Confiance d'une résolution confirmée par un humain. */
 export const CONFIRMED_CONFIDENCE = 1;

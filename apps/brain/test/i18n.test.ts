@@ -7,7 +7,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { LANG_LABELS, LANGS, normalizeLang, t, translationKeys } from '../src/ui/i18n.js';
+import { LANG_LABELS, LANGS, normalizeLang, t, translationKeys } from '../src/ui/i18n';
 
 describe('table de traduction', () => {
   it('connaît les deux langues', () => {

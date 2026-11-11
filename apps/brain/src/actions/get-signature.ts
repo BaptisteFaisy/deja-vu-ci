@@ -6,9 +6,9 @@
  */
 
 import type { Occurrence, Resolution, Signature } from '@dejavu/core';
-import { fail, ok, type ActionResult, type BrainEngine } from './engine.js';
-import { defineAction, type RawInput } from './descriptor.js';
-import { requireText } from './validate.js';
+import { fail, ok, type ActionResult, type BrainEngine } from './engine';
+import { defineAction, type RawInput } from './descriptor';
+import { requireText } from './validate';
 
 /** Une occurrence, abrégée pour l'affichage. */
 export interface OccurrenceRow {

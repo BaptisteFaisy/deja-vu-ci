@@ -20,8 +20,8 @@ import {
   refineUnknownBlock,
   type ConsumerDeps,
   type LlmPort,
-} from '../src/pure/consume.js';
-import { FakeConsumerEngine, FakeConsumerStore, FakeTicketApplier } from './fakes/consumer.js';
+} from '../src/pure/consume';
+import { FakeConsumerEngine, FakeConsumerStore, FakeTicketApplier } from './fakes/consumer';
 
 function payload(overrides: Partial<IngestPayload> = {}): IngestPayload {
   return {

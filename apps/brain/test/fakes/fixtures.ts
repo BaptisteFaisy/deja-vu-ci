@@ -7,7 +7,7 @@
  */
 
 import type { Occurrence, Resolution, Signature } from '@dejavu/core';
-import { fakeSignatureOf } from './engine.js';
+import { fakeSignatureOf } from './engine';
 
 /**
  * Empreinte de la signature d'un extrait « expected true to be false ».

@@ -14,10 +14,10 @@ import React, { StrictMode } from 'react';
 import ForgeReconciler, { Box, Spinner, Text, useProductContext } from '@forge/react';
 import { normalizeLang, t } from '@dejavu/present';
 import type { Lang } from '@dejavu/present';
-import { resolveScreen, type SensorScreen } from './pure/screens.js';
-import PrCard from './ui/prCard.js';
-import SettingsPage from './ui/settingsPage.js';
-import type { ScreenProps } from './ui/parts.js';
+import { resolveScreen, type SensorScreen } from './pure/screens';
+import PrCard from './ui/prCard';
+import SettingsPage from './ui/settingsPage';
+import type { ScreenProps } from './ui/parts';
 
 // The routing table is part of the entry point's contract: re-exported so a
 // caller (or a test) can read it without importing the pure module.

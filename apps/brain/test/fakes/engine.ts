@@ -24,9 +24,9 @@ import type {
   Settings,
   Signature,
 } from '@dejavu/core';
-import { createBrainEngine } from '../../src/actions/engine.js';
-import type { BrainEngine, CoreFunctions, StoreLike } from '../../src/actions/engine.js';
-import { FakeStore, type StoreSeed } from './store.js';
+import { createBrainEngine } from '../../src/actions/engine';
+import type { BrainEngine, CoreFunctions, StoreLike } from '../../src/actions/engine';
+import { FakeStore, type StoreSeed } from './store';
 
 /** Empreinte courte, comme le contrat l'attend (16 hex). */
 export function fakeSignatureOf(parts: string[]): string {

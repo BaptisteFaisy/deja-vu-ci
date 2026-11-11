@@ -28,7 +28,7 @@ import {
   type Store,
   type TestStats,
 } from '@dejavu/core';
-import * as queries from './pure/sqlQueries.js';
+import * as queries from './pure/sqlQueries';
 import {
   mapOccurrence,
   mapTemplateEntry,
@@ -39,8 +39,8 @@ import {
   mapSignature,
   mapTestStats,
   type SqlRow,
-} from './pure/sqlRows.js';
-import { DEFAULT_SETTINGS } from './pure/defaults.js';
+} from './pure/sqlRows';
+import { DEFAULT_SETTINGS } from './pure/defaults';
 
 /** The client the pure builders target: text with `?` placeholders. */
 export interface SqlClient {

@@ -31,11 +31,11 @@ import {
   type Signature,
   type TicketAction,
 } from '@dejavu/core';
-import { consumeIngest, type ConsumeResult, type ConsumerEngine, type LlmPort } from './pure/consume.js';
-import { commentBody, createIssueBody, findLastSynthesisAt, updateIssueBody } from './pure/jira.js';
-import { validateIngestPayload } from './pure/validate.js';
-import { loadSettings } from './settings.js';
-import { migrateOnce, type BrainSqlStore } from './sql.js';
+import { consumeIngest, type ConsumeResult, type ConsumerEngine, type LlmPort } from './pure/consume';
+import { commentBody, createIssueBody, findLastSynthesisAt, updateIssueBody } from './pure/jira';
+import { validateIngestPayload } from './pure/validate';
+import { loadSettings } from './settings';
+import { migrateOnce, type BrainSqlStore } from './sql';
 
 /** The engine port, wired to the real `@dejavu/core` functions. */
 export function coreConsumerEngine(): ConsumerEngine {

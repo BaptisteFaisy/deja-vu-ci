@@ -13,7 +13,7 @@ import {
   type ResolverLike,
   type ResolverRequest,
   type UiDataPorts,
-} from '../src/resolvers.js';
+} from '../src/resolvers';
 
 /** A resolver that records what is defined on it. */
 function fakeResolver(): { resolver: ResolverLike; defined: Map<string, (r: ResolverRequest) => unknown> } {

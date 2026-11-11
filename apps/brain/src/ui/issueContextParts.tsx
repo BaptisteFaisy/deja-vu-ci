@@ -14,8 +14,8 @@ import { Box, Heading, Inline, Stack, Tag, Text } from '@forge/react';
 import type { Diagnostic } from '@dejavu/core';
 import { actionLabel, diagnosticLabel, formatConfidence } from '@dejavu/present';
 import type { Lang } from '@dejavu/present';
-import { formatDate, shortCommit, toOccurrenceRows, type OccurrenceRow } from './format.js';
-import { t } from './i18n.js';
+import { formatDate, shortCommit, toOccurrenceRows, type OccurrenceRow } from './format';
+import { t } from './i18n';
 
 /** The diagnostic of the latest red build, with its fix when there is one. */
 export function DiagnosticPanel(props: {

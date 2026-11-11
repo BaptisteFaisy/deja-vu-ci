@@ -14,8 +14,8 @@ import {
   Text,
   Textfield,
 } from '@forge/react';
-import { formatDate, type CostRow, type SignatureFilter, type SignatureRow, type SignatureSortKey } from './format.js';
-import { t, type Lang } from './i18n.js';
+import { formatDate, type CostRow, type SignatureFilter, type SignatureRow, type SignatureSortKey } from './format';
+import { t, type Lang } from './i18n';
 
 /** Ligne du tableau des signatures. */
 function SignatureLine({ row, lang }: { row: SignatureRow; lang: Lang }): React.JSX.Element {

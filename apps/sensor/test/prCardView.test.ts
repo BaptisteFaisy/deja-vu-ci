@@ -9,7 +9,7 @@
 
 import { describe, expect, it } from 'vitest';
 import type { Diagnostic, QueryResponse } from '@dejavu/core';
-import { loadingCard, prCardView } from '../src/pure/prCardView.js';
+import { loadingCard, prCardView } from '../src/pure/prCardView';
 
 const DIAGNOSTIC: Diagnostic = {
   kind: 'already-fixed',

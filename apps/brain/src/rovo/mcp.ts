@@ -7,9 +7,9 @@
  * PR, parce que les deux passent par la même fonction du moteur.
  */
 
-import type { ActionDescriptor, RawInput } from '../actions/descriptor.js';
-import type { BrainEngine } from '../actions/engine.js';
-import { AGENT_ACTIONS } from './agent.js';
+import type { ActionDescriptor, RawInput } from '../actions/descriptor';
+import type { BrainEngine } from '../actions/engine';
+import { AGENT_ACTIONS } from './agent';
 
 /** Un outil exposé par le serveur MCP. */
 export interface McpTool {

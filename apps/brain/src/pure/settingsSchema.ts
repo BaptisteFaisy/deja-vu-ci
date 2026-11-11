@@ -10,7 +10,7 @@
  */
 
 import type { Settings } from '@dejavu/core';
-import type { Validation } from './validate.js';
+import type { Validation } from './validate';
 
 /** Numeric settings and their bounds (positive, sane upper limits). */
 const NUMBER_FIELDS: Array<{ key: keyof Settings; min: number; max: number }> = [

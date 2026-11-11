@@ -9,9 +9,9 @@
  */
 
 import type { FlakyVerdict, Occurrence, Settings, Signature } from '@dejavu/core';
-import { fail, ok, type ActionResult, type BrainEngine } from './engine.js';
-import { defineAction, type RawInput } from './descriptor.js';
-import { optionalCount, optionalText } from './validate.js';
+import { fail, ok, type ActionResult, type BrainEngine } from './engine';
+import { defineAction, type RawInput } from './descriptor';
+import { optionalCount, optionalText } from './validate';
 
 /** Une ligne de la liste des tests instables. */
 export interface FlakyTestRow {

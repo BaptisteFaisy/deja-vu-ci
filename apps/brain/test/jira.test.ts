@@ -13,7 +13,7 @@ import {
   findLastSynthesisAt,
   textToAdf,
   updateIssueBody,
-} from '../src/pure/jira.js';
+} from '../src/pure/jira';
 
 const action: TicketAction = {
   kind: 'create',

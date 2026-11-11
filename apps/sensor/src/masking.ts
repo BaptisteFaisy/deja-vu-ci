@@ -11,7 +11,7 @@
  * must **fail closed** — an unmasked excerpt never leaves Bitbucket.
  */
 
-import type { Masker } from './pure/payload.js';
+import type { Masker } from './pure/payload';
 
 /** Shape of the masking result, as the engine returns it. */
 export interface MaskResult {

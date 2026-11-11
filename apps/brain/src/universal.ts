@@ -19,10 +19,10 @@ import {
   universalToIngest,
   type IngestPayload,
 } from '@dejavu/core';
-import { enqueue, jsonResponse } from './ingest.js';
-import { validateIngestPayload } from './pure/validate.js';
-import { loadSettings } from './settings.js';
-import { migrateOnce, type BrainSqlStore } from './sql.js';
+import { enqueue, jsonResponse } from './ingest';
+import { validateIngestPayload } from './pure/validate';
+import { loadSettings } from './settings';
+import { migrateOnce, type BrainSqlStore } from './sql';
 
 /** Converts one universal payload, or explains why it is refused. */
 export async function convertUniversal(

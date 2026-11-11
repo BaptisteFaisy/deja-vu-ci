@@ -11,11 +11,11 @@
  */
 
 import type { CostReport, Diagnostic, Occurrence, QueryResponse, Signature } from '@dejavu/core';
-import { verifySignedRequest, jsonResponse } from './ingest.js';
-import { validateQueryRequest } from './pure/validate.js';
-import { migrateOnce, type BrainSqlStore } from './sql.js';
-import type { BrainEngine } from './actions/engine.js';
-import { allOccurrences, diagnoseFor, latestOccurrence, signatureForIssue } from './actions/context.js';
+import { verifySignedRequest, jsonResponse } from './ingest';
+import { validateQueryRequest } from './pure/validate';
+import { migrateOnce, type BrainSqlStore } from './sql';
+import type { BrainEngine } from './actions/engine';
+import { allOccurrences, diagnoseFor, latestOccurrence, signatureForIssue } from './actions/context';
 
 /** Handler factory of the `/query` web trigger. */
 export function createQueryHandler(store: BrainSqlStore, engine: BrainEngine) {

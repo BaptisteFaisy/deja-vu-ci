@@ -10,7 +10,7 @@
 
 import { fetch as externalFetch } from '@forge/api';
 import { signPayload } from '@dejavu/bridge';
-import type { BrainAnswer, BrainRoute, BrainTransport } from './buildPayload.js';
+import type { BrainAnswer, BrainRoute, BrainTransport } from './buildPayload';
 
 /** Builds the address of a route of the Brain. */
 export function brainUrl(baseUrl: string, route: BrainRoute): string {

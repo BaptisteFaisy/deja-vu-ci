@@ -10,8 +10,8 @@
  */
 
 import type { FailedTestCase, IngestPayload } from '@dejavu/core';
-import { MAX_TOTAL_BLOCK_BYTES, selectBlocks } from './blocks.js';
-import { splitLogBlocks } from './pipeline.js';
+import { MAX_TOTAL_BLOCK_BYTES, selectBlocks } from './blocks';
+import { splitLogBlocks } from './pipeline';
 
 /** Maximum number of commit hashes sent with an occurrence. */
 export const MAX_BRANCH_HISTORY = 100;

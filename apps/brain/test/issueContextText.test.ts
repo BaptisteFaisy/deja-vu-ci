@@ -13,7 +13,7 @@ import {
   NO_KNOWN_FAILURE,
   issueContextText,
   lostSeconds,
-} from '../src/pure/issueContextText.js';
+} from '../src/pure/issueContextText';
 
 const DIAGNOSTIC: Diagnostic = {
   kind: 'flaky',

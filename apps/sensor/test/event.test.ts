@@ -9,7 +9,7 @@ import {
   isFailureState,
   parseBuildStatusEvent,
   repositorySlugFromUrl,
-} from '../src/pure/event.js';
+} from '../src/pure/event';
 
 const EVENT = {
   data: {

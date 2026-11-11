@@ -3,7 +3,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { validateIngestPayload, validateQueryRequest, validateTestCase } from '../src/pure/validate.js';
+import { validateIngestPayload, validateQueryRequest, validateTestCase } from '../src/pure/validate';
 
 const VALID = {
   version: 1,

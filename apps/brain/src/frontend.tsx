@@ -17,11 +17,11 @@ import React, { StrictMode } from 'react';
 import ForgeReconciler, { Box, Spinner, Text, useProductContext } from '@forge/react';
 import { normalizeLang } from '@dejavu/present';
 import type { Lang } from '@dejavu/present';
-import { t } from './ui/i18n.js';
-import IssueContext from './ui/issueContext.js';
-import ProjectPage from './ui/projectPage.js';
-import SettingsPage from './ui/settingsPage.js';
-import { resolveScreen, type BrainScreen } from './pure/screens.js';
+import { t } from './ui/i18n';
+import IssueContext from './ui/issueContext';
+import ProjectPage from './ui/projectPage';
+import SettingsPage from './ui/settingsPage';
+import { resolveScreen, type BrainScreen } from './pure/screens';
 
 // The routing table is part of the entry point's contract: re-exported so a
 // caller (or a test) can read it without importing the pure module.

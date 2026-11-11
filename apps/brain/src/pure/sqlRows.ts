@@ -24,7 +24,7 @@ import type {
   SignatureStatus,
   TestStats,
 } from '@dejavu/core';
-import { DEFAULT_SETTINGS } from './defaults.js';
+import { DEFAULT_SETTINGS } from './defaults';
 
 /** A row as Forge SQL returns it: column names to scalar values. */
 export type SqlRow = Record<string, string | number | boolean | null | undefined>;

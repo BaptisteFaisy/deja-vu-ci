@@ -8,7 +8,7 @@
  * linear (no backtracking), because the payload tests feed it 50 KiB blocks.
  */
 
-import type { Masker } from '../../src/pure/payload.js';
+import type { Masker } from '../../src/pure/payload';
 
 /** Result of a masking pass, as the engine returns it. */
 export interface MaskResult {

@@ -15,29 +15,29 @@
  * knows a fix → signed post to the Brain.
  */
 
-import { storage } from '@forge/api';
+import { kvs as storage } from '@forge/kvs';
 import type { QueryRequest, QueryResponse } from '@dejavu/core';
-import { isFailureState } from './pure/event.js';
-import { coreMasker } from './masking.js';
+import { isFailureState } from './pure/event';
+import { coreMasker } from './masking';
 import {
   askResolutionCommit,
   attachResolutionVerdict,
   collectAndBuildPayload,
   resolveEvent,
   type SensorDeps,
-} from './buildPayload.js';
-import { bitbucketReader } from './bitbucketApi.js';
+} from './buildPayload';
+import { bitbucketReader } from './bitbucketApi';
 import {
   isTracked,
   loadBridgeSecret,
   loadSettings,
   saveWorkspaceSettings,
   storeBridgeSecret,
-} from './settings.js';
-import { readSettings } from './pure/settings.js';
-import { brainTransport } from './send.js';
-import { dispatchInvoke, type ResolverFn } from './pure/dispatch.js';
-import type { SettingsForm, SettingsView } from './pure/settingsView.js';
+} from './settings';
+import { readSettings } from './pure/settings';
+import { brainTransport } from './send';
+import { dispatchInvoke, type ResolverFn } from './pure/dispatch';
+import type { SettingsForm, SettingsView } from './pure/settingsView';
 
 // The settings page's types live in `src/pure/settingsView.ts`, away from this
 // file (which imports `@forge/api`): the UI bundle must not drag the server
