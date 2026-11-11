@@ -8,7 +8,7 @@
 
 import { resolveScreen as matchScreen, type ScreenRule } from '@dejavu/present';
 
-/** The two UI Kit screens of the Sensor (§ 14, screens 1 and 2). */
+/** The two Custom UI screens of the Sensor (§ 14, screens 1 and 2). */
 export type SensorScreen = 'prCard' | 'settings';
 
 /**

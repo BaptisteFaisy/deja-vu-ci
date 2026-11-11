@@ -25,11 +25,17 @@ pairing with a Brain and the preferences of the workspace.
 | `bitbucket:repoPullRequestCard` | `prCardResolver` → `getPrCard` | The card in the pull request asks the Brain for the diagnostic (§ 14, screen 1). |
 | `bitbucket:workspaceSettingsMenuPage` | `settingsResolver` → `getSettings`, `saveSettings` | Pairing, watched repositories, maximum excerpt size (§ 14, screen 2). |
 
-Both UI modules render the **same hosted resource** (`resources: main` →
-`src/frontend.tsx`), which routes on the module key (`src/pure/screens.ts`) and
-reads its data through `invoke()`. The card is a React component
-(`src/ui/prCard.tsx`), the settings page another (`src/ui/settingsPage.tsx`);
-their words come from `packages/present`, the same table the Brain uses.
+The Bitbucket modules of the manifest schema declare **no `render`
+property**: UI Kit does not exist for Bitbucket, and `forge lint` refuses a
+UI resource that is not a directory. Both UI modules therefore render the
+same **Custom UI** — the static folder `resources: main` → `static/`
+(`index.html`, `styles.css`, and the committed bundle `index.js`), served in
+an iframe. The entry point (`src/ui/custom.tsx`, React DOM) routes on the
+module key (`src/pure/screens.ts`) and reads its data through `invoke()` of
+`@forge/bridge`. The card (`src/ui/customPrCard.tsx`) and the settings page
+(`src/ui/customSettings.tsx`) place exactly what the pure view models produce
+(`src/pure/prCardView.ts`, `src/pure/settingsView.ts`); their words come from
+`packages/present`, the same table the Brain uses.
 
 Scopes: `read:repository:bitbucket`, `read:pipeline:bitbucket`,
 `read:pullrequest:bitbucket`, `storage:app`.
@@ -51,8 +57,9 @@ same behaviour. Check it any time with:
 cd apps/sensor && node -e "console.log(typeof require('@forge/api').storage)"   # → object
 ```
 
-The UI Kit packages (`@forge/react`, `react`, `@types/react`) are independent
-of that choice: the frontend only talks to `@forge/bridge`.
+The frontend packages (`react`, `react-dom`, `esbuild`) are independent of
+that choice: the Custom UI only talks to `@forge/bridge`, and its bundle is
+built once, then committed.
 
 ### Uncertainties (to confirm with `forge lint` and a prototype)
 
@@ -101,9 +108,13 @@ here so that the next reader knows what is assumed:
 | Path | Role |
 |---|---|
 | `src/index.ts` | The Forge functions and the module resolvers (`prCardResolver`, `settingsResolver`, `handler`). Wiring only; never throws. |
-| `src/frontend.tsx` | UI Kit 2 entry point (`resources: main`): routes the module key to the card or the settings page. |
-| `src/ui/prCard.tsx` | The pull-request card (§ 14, screen 1). |
-| `src/ui/settingsPage.tsx` | The workspace settings page (§ 14, screen 2). The secret field is write-only. |
+| `src/ui/custom.tsx` | Custom UI entry point (React DOM): reads the platform context (`view.getContext()`), routes the module key to the card or the settings page. Bundled by esbuild into `static/index.js`. |
+| `src/ui/customPrCard.tsx` | The pull-request card (§ 14, screen 1). |
+| `src/ui/customSettings.tsx` | The workspace settings page (§ 14, screen 2). The secret field is write-only. |
+| `src/ui/parts.tsx` | Pieces shared by the two screens (the language button). |
+| `src/ui/data.ts` | The `invoke()` loader, built on `@dejavu/present` (one unwrapping for both apps). |
+| `static/index.html`, `static/styles.css` | The Custom UI page and its styling — self-hosted only, the Forge iframe has a strict CSP. |
+| `static/index.js` | The **committed** esbuild bundle of `src/ui/custom.tsx` — `npm run build:ui`. |
 | `static/icon.svg` | The 32×32 icon the card declares (`resource:icon;icon.svg`). |
 | `src/pipelines.ts` | Reads the Pipelines API through an injected reader: pipeline of a commit, steps, log tail, test reports, commits, diffstat. |
 | `src/bitbucketApi.ts` | The only file that talks to `@forge/api`: the Bitbucket reader used in production. |
@@ -183,3 +194,23 @@ part of it and need no network, no Forge runtime, no React and no built engine.
 The screens import `@dejavu/present` (labels, formatters, routing) through the
 `paths` of `tsconfig.json`; a deployed bundle resolves the built package, so
 `npm run build` at the root comes before `forge deploy`.
+
+### The Custom UI bundle is committed
+
+`forge deploy` ships the `static/` folder as it is, so a judge can deploy with
+**no build tooling**: `static/index.js` is the esbuild bundle of
+`src/ui/custom.tsx`, and it is versioned. After any change to the screens, to
+the pure view models or to `packages/present`, regenerate it:
+
+```bash
+npm run build               # at the root: the bundle resolves packages/present/dist
+cd apps/sensor
+npm install                 # once: pulls react-dom and esbuild
+npm run build:ui            # esbuild → static/index.js (minified, production)
+```
+
+The guard `tools/manifests.test.mjs` checks the wiring at the root: the `main`
+resource is a directory, `index.html` loads `./index.js` and `./styles.css`
+(and nothing external — the iframe CSP forbids CDNs), and the committed bundle
+has a sane minimum size plus the markers of the current sources (module keys,
+resolver names). A stale or missing bundle fails the tests.
