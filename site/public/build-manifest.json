@@ -1,5 +1,5 @@
 {
-  "empreinte": "183c84ede13edcf1c1ff299e1e170d213c6516fa9086febf4ef8437333e81058",
+  "empreinte": "24e55a51bddca0157ceead94b2db91aefc0d9a30cc96a04b189e16cc43dffa70",
   "sources": 82,
   "embarquees": [
     "apps/brain/src/actions/confirm-resolution.ts",
@@ -16,8 +16,11 @@
     "apps/brain/src/actions/validate.ts",
     "apps/brain/src/pure/auditLog.ts",
     "apps/brain/src/pure/costTrend.ts",
+    "apps/brain/src/pure/costTrendCompute.ts",
     "apps/brain/src/pure/curation.ts",
+    "apps/brain/src/pure/curationCompute.ts",
     "apps/brain/src/pure/defaults.ts",
+    "apps/brain/src/pure/excerptApply.ts",
     "apps/brain/src/pure/excerptPolicy.ts",
     "apps/brain/src/pure/exportMemory.ts",
     "apps/brain/src/pure/incident.ts",

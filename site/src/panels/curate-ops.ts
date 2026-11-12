@@ -34,13 +34,12 @@ import {
   type Store,
 } from '@dejavu/core';
 import { SIGNATURE_STATUSES } from '@dejavu/present';
+import { SPLIT_CRITERION_KEYS, type SplitCriterionKey } from '../../../apps/brain/src/pure/curation';
 import {
-  SPLIT_CRITERION_KEYS,
   assembleMergePreview,
   assembleSplitPreview,
   criterionOf,
-  type SplitCriterionKey,
-} from '../../../apps/brain/src/pure/curation';
+} from '../../../apps/brain/src/pure/curationCompute';
 
 // Les aperçus viennent du module pur du Cerveau : aucune copie de sa logique.
 export {
