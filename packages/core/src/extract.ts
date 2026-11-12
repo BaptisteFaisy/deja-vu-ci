@@ -5,7 +5,10 @@
  * bounded to 50 KB total (`maxTotalBytes`, default 51200).
  *
  * Order of preference (§ 9.1):
- * 1. Test report failures (source: 'report')
+ * 1. Test report failures (source: 'report') — the parsed `testCases`, or, when
+ *    only a raw log is given, the structured report that `report-parsers.ts`
+ *    recognises inside it (pytest, jest/vitest, Go, Rust, .NET, Gradle/Kotest,
+ *    French logs). This is what sets `testName`.
  * 2. Log patterns: JUnit, pytest, Jest, Go, Cargo, npm, Gradle, Maven,
  *    TypeScript, ESLint, Docker, OOM, timeout, network (source: 'log')
  * 3. Tail: last 80 non-empty lines (source: 'tail')
@@ -13,8 +16,13 @@
 
 import { categorize, detectErrorType } from './categorize.js';
 import { maskSecrets } from './mask.js';
-import { normalizeFrames, normalizeMessage } from './normalize.js';
+import { normalizeFrames, normalizeMessage, stripAnsi } from './normalize.js';
+import { parseTestReport } from './report-parsers.js';
 import type { ErrorBlock, ExtractResult, FailedTestCase, Frame } from './types.js';
+
+/** The report parsers are part of the extraction API (re-exported by the barrel). */
+export * from './report-parsers.js';
+export * from './report-shared.js';
 
 export interface ExtractInput {
   stepLog?: string;
@@ -78,8 +86,13 @@ function buildErrorBlock(input: {
   testName?: string;
   messageOverride?: string;
 }): ErrorBlock {
-  const masked = maskSecrets(input.raw).text;
-  const rawMessage = input.messageOverride ?? masked.split(/\r?\n/)[0] ?? '';
+  const masked = maskSecrets(stripAnsi(input.raw)).text;
+  // A message override comes from the caller (or from a report parser) and has
+  // not been through the masking yet: mask it too, so that no field of the
+  // block can carry a secret (§ 18).
+  const rawMessage = input.messageOverride
+    ? maskSecrets(stripAnsi(input.messageOverride)).text
+    : masked.split(/\r?\n/)[0] ?? '';
   const errorType = detectErrorType(masked);
   const category = categorize({
     rawText: masked,
@@ -138,21 +151,40 @@ function extractLogChunks(log: string): string[] {
   return chunks;
 }
 
-/** Clamp total bytes across retained blocks to maxTotalBytes. */
+/** UTF-8 size of a string, in bytes: the ceiling of § 9.1 is a byte ceiling. */
+function byteSize(text: string): number {
+  return Buffer.byteLength(text, 'utf8');
+}
+
+/** The longest prefix of `text` whose UTF-8 encoding fits in `maxBytes`. */
+function sliceToBytes(text: string, maxBytes: number): string {
+  if (byteSize(text) <= maxBytes) return text;
+  let low = 0;
+  let high = text.length;
+  while (low < high) {
+    const middle = Math.ceil((low + high) / 2);
+    if (byteSize(text.slice(0, middle)) <= maxBytes) low = middle;
+    else high = middle - 1;
+  }
+  return text.slice(0, low);
+}
+
+/** Clamp the total UTF-8 size of the retained blocks to maxTotalBytes. */
 function enforceByteLimit(blocks: ErrorBlock[], maxBytes: number): ErrorBlock[] {
   let used = 0;
   const result: ErrorBlock[] = [];
   for (const block of blocks) {
     const remaining = maxBytes - used;
     if (remaining <= 0) break;
-    if (block.rawText.length > remaining) {
+    const size = byteSize(block.rawText);
+    if (size > remaining) {
       result.push({
         ...block,
-        rawText: block.rawText.slice(0, remaining),
+        rawText: sliceToBytes(block.rawText, remaining),
       });
       break;
     }
-    used += block.rawText.length;
+    used += size;
     result.push(block);
   }
   return result;
@@ -177,6 +209,20 @@ function fromLogPatterns(stepLog: string): ErrorBlock[] {
   return chunks.map((chunk) => buildErrorBlock({ raw: chunk, source: 'log' }));
 }
 
+/**
+ * Recognise a structured test report inside a raw step log (source: 'report').
+ *
+ * The universal entry (CI-16) accepts any CI, so a pytest, jest, Go, Rust,
+ * .NET or Gradle report may arrive as plain text: parsing it yields a
+ * `testName`, which is what makes per-test flakiness detection possible.
+ * Returns an empty array when no ecosystem parser recognises the log — the
+ * log-pattern path then does its job unchanged.
+ */
+function fromReportText(stepLog: string): ErrorBlock[] {
+  const cases = parseTestReport(stepLog);
+  return cases.length > 0 ? fromTestCases(cases) : [];
+}
+
 /** Fallback extraction taking the last 80 non-empty lines (source: 'tail'). */
 function fromTail(stepLog: string): ErrorBlock[] {
   const tail = lastNonEmptyLines(stepLog, TAIL_LINES);
@@ -197,12 +243,17 @@ export function extractErrorBlocks(input: ExtractInput): ExtractResult {
     rawBlocks = fromTestCases(input.testCases);
     source = 'report';
   } else if (input.stepLog) {
-    rawBlocks = fromLogPatterns(input.stepLog);
+    rawBlocks = fromReportText(input.stepLog);
     if (rawBlocks.length > 0) {
-      source = 'log';
+      source = 'report';
     } else {
-      rawBlocks = fromTail(input.stepLog);
-      source = 'tail';
+      rawBlocks = fromLogPatterns(input.stepLog);
+      if (rawBlocks.length > 0) {
+        source = 'log';
+      } else {
+        rawBlocks = fromTail(input.stepLog);
+        source = 'tail';
+      }
     }
   }
 

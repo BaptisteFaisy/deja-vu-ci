@@ -68,12 +68,19 @@ const CASES: GoldenCase[] = [
     family: '4c07bc5386c615b9',
   },
   {
+    // Re-recorded when the extraction learned to read Go reports (§ 9.1): the
+    // "--- FAIL:" line now yields a testName and the located line yields the
+    // message, instead of the marker being the message of a raw log chunk.
+    // Category and errorType are unchanged; the ids move because the normalized
+    // message is now the assertion itself ("got <NUM>, want <NUM>") rather than
+    // "--- FAIL: TestAdd (<DURATION>)". Stored memory would go through
+    // planSignatureMigration / applySignatureMigration.
     name: 'go',
     raw: ['--- FAIL: TestAdd (0.00s)', '    calc_test.go:10: got 42, want 43'].join('\n'),
     category: 'test',
     errorType: 'AssertionError',
-    signature: 'c7c617c90ff3e830',
-    family: 'c1b6c2963f3d1224',
+    signature: '706c89ddf129a23f',
+    family: 'dfbe39eee1a5faca',
   },
   {
     name: 'rust',
