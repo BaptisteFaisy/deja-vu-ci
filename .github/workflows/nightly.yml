@@ -147,8 +147,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo "$HOME/.local/node/bin" >> "$GITHUB_PATH"
-          node --version
+          NODE_BIN="$HOME/.local/node/bin"
+          if [ ! -x "$NODE_BIN/node" ]; then
+            echo "::error::Node not found in $NODE_BIN (worker installation missing)"
+            exit 1
+          fi
+          # GITHUB_PATH only applies to the next steps: call the absolute path here.
+          echo "$NODE_BIN" >> "$GITHUB_PATH"
+          "$NODE_BIN/node" --version
 
       - name: Download the numbers of the run
         uses: actions/download-artifact@v4
