@@ -1,8 +1,19 @@
 {
-  "empreinte": "e5db2d46335636b6d8b8abb81e7942c2dd56be4dd86897d50e3ce94dcf838833",
-  "sources": 75,
+  "empreinte": "97a19c9130c53c793985c531675c12106863bfac3ec717084b207631942423ca",
+  "sources": 76,
   "embarquees": [
+    "apps/brain/src/actions/confirm-resolution.ts",
+    "apps/brain/src/actions/context.ts",
+    "apps/brain/src/actions/descriptor.ts",
     "apps/brain/src/actions/engine.ts",
+    "apps/brain/src/actions/explain-build-failure.ts",
+    "apps/brain/src/actions/get-signature.ts",
+    "apps/brain/src/actions/index.ts",
+    "apps/brain/src/actions/list-flaky-tests.ts",
+    "apps/brain/src/actions/report-resolution.ts",
+    "apps/brain/src/actions/search-failures.ts",
+    "apps/brain/src/actions/similarity.ts",
+    "apps/brain/src/actions/validate.ts",
     "apps/brain/src/pure/costTrend.ts",
     "apps/brain/src/pure/curation.ts",
     "apps/brain/src/pure/excerptPolicy.ts",
@@ -71,6 +82,7 @@
     "site/src/panels/preuves.ts",
     "site/src/panels/registry.ts",
     "site/src/panels/replay.ts",
+    "site/src/panels/rovo-console.ts",
     "site/src/panels/rovo.ts",
     "site/src/panels/securite-demo.ts",
     "site/src/panels/securite-strings.ts",
@@ -83,6 +95,6 @@
     "site/src/render/sections.ts",
     "site/src/state/workspace.ts"
   ],
-  "octets": 224565,
+  "octets": 248329,
   "avertissements": 1
 }
