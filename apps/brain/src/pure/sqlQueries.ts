@@ -317,7 +317,24 @@ export function splitSchema(schema: string): string[] {
   return stripped
     .split(';')
     .map((statement) => statement.trim())
-    .filter((statement) => statement !== '');
+    .filter((statement) => statement !== '')
+    .map(withIfNotExists);
+}
+
+/**
+ * Rend les `CREATE TABLE` idempotents : `CREATE TABLE IF NOT EXISTS`.
+ *
+ * Forge SQL répond « Unknown SQL execution error » — un message générique, que
+ * rien ne distingue d'une vraie erreur — quand la table existe déjà. Comme la
+ * migration est rejouée à chaque démarrage d'instance, un `CREATE TABLE` nu
+ * faisait échouer la migration entière sur une installation déjà peuplée, et
+ * donc **toutes** les routes. L'instruction idempotente supprime le cas.
+ */
+function withIfNotExists(statement: string): string {
+  if (/^create\s+table\s+/i.test(statement) && !/if\s+not\s+exists/i.test(statement)) {
+    return statement.replace(/^create\s+table\s+/i, 'CREATE TABLE IF NOT EXISTS ');
+  }
+  return statement;
 }
 
 /** True when a DDL failure only means "the object already exists". */

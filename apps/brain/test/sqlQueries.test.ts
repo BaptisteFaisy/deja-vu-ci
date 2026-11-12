@@ -108,9 +108,21 @@ describe('splitSchema', () => {
   it('strips comments and yields one statement per creation', () => {
     const statements = splitSchema(schema);
     expect(statements).toEqual([
-      'CREATE TABLE a (id VARCHAR(64) PRIMARY KEY)',
+      'CREATE TABLE IF NOT EXISTS a (id VARCHAR(64) PRIMARY KEY)',
       'CREATE INDEX a_id ON a (id)',
     ]);
+  });
+
+  it('rend les CREATE TABLE idempotents, sans jamais doubler la clause', () => {
+    // Forge SQL répond « Unknown SQL execution error » quand la table existe
+    // déjà : le seul moyen de ne pas casser la migration sur une installation
+    // déjà peuplée est de rendre l'instruction idempotente.
+    const deja = splitSchema('CREATE TABLE IF NOT EXISTS b (id VARCHAR(8) PRIMARY KEY);');
+    expect(deja).toEqual(['CREATE TABLE IF NOT EXISTS b (id VARCHAR(8) PRIMARY KEY)']);
+    const nu = splitSchema('CREATE TABLE c (id VARCHAR(8) PRIMARY KEY);');
+    expect(nu[0].startsWith('CREATE TABLE IF NOT EXISTS ')).toBe(true);
+    const index = splitSchema('CREATE INDEX c_id ON c (id);');
+    expect(index[0].startsWith('CREATE INDEX ')).toBe(true);
   });
 });
 
@@ -134,7 +146,7 @@ describe('splitSchema on the real engine DDL', () => {
       'signature', 'occurrence', 'test_stats', 'resolution', 'raw_excerpt',
       'llm_template_cache', 'outbreak', 'pairing', 'settings',
     ]) {
-      expect(statements.some((s) => s.startsWith(`CREATE TABLE ${table} `))).toBe(true);
+      expect(statements.some((s) => s.startsWith(`CREATE TABLE IF NOT EXISTS ${table} `))).toBe(true);
     }
   });
 });

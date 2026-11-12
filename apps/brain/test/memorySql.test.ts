@@ -166,8 +166,8 @@ describe('the export reads', () => {
 describe('the schema the migration runs', () => {
   it('declares the two app tables, additively', () => {
     const appStatements = splitSchema(APP_SCHEMA);
-    expect(appStatements.some((s) => s.startsWith('CREATE TABLE audit_log'))).toBe(true);
-    expect(appStatements.some((s) => s.startsWith('CREATE TABLE app_policy'))).toBe(true);
+    expect(appStatements.some((s) => s.startsWith('CREATE TABLE IF NOT EXISTS audit_log'))).toBe(true);
+    expect(appStatements.some((s) => s.startsWith('CREATE TABLE IF NOT EXISTS app_policy'))).toBe(true);
     expect(appStatements.some((s) => s.startsWith('CREATE INDEX audit_log_created_at'))).toBe(true);
     expect([...APP_TABLES]).toEqual(['audit_log', 'app_policy']);
   });

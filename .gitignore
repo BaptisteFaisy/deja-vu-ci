@@ -23,3 +23,6 @@ apps/*/src/**/*.d.ts
 # Les apps Forge ne font pas partie du workspace npm racine : leur verrou est
 # régénéré par `npm install` dans l'app, il n'est pas versionné (lot K).
 apps/*/package-lock.json
+
+# Artefacts de build Forge (tunnel, deploy) : jamais versionnés.
+apps/*/.forge/
