@@ -12,7 +12,7 @@
     "@dejavu/bridge": "file:../../packages/bridge",
     "@dejavu/core": "file:../../packages/core",
     "@dejavu/present": "file:../../packages/present",
-    "@forge/api": "^7.2.2",
+    "@forge/api": "^8.4.0",
     "@forge/bridge": "^7.3.0",
     "@forge/kvs": "^2.1.2"
   },
