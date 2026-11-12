@@ -19,6 +19,7 @@ import { fail, ok, type ActionResult, type BrainEngine } from './engine';
 import { defineAction, type RawInput } from './descriptor';
 import { requireText } from './validate';
 import { decideQuarantine } from '../pure/quarantineUi';
+import { auditSinkOf, recordAudit } from '../pure/auditLog';
 
 /** Answer of the action. */
 export interface ProposeQuarantineData {
@@ -69,6 +70,15 @@ export async function proposeQuarantineData(
     reasons: [],
     proposal: decision.proposal,
   };
+  // The journal records the proposal itself: the operator asked for it, and the
+  // project page must be able to show when (nothing is written to a repository).
+  await recordAudit(auditSinkOf(engine.store), {
+    action: 'quarantine-proposed',
+    signatureId: signature.id,
+    ...(signature.issueKey ? { issueKey: signature.issueKey } : {}),
+    detail: decision.proposal.testName,
+    at: engine.now(),
+  });
   return ok(proposed);
 }
 

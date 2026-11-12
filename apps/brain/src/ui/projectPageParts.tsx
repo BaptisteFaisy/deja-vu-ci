@@ -16,6 +16,10 @@ import {
 } from '@forge/react';
 import { formatDate, type CostRow, type SignatureFilter, type SignatureRow, type SignatureSortKey } from './format';
 import { t, type Lang } from './i18n';
+import type { AuditLine } from '../pure/auditLog';
+import type { CostTrend } from '../pure/costTrend';
+import { AuditTab } from './auditTab';
+import { CostTrendView } from './costTrendView';
 
 /** Ligne du tableau des signatures. */
 function SignatureLine({ row, lang }: { row: SignatureRow; lang: Lang }): React.JSX.Element {
@@ -108,14 +112,17 @@ export function CostTab({ lang, rows }: { lang: Lang; rows: CostRow[] }): React.
   );
 }
 
-/** Les quatre onglets de la page « Mémoire de CI ». */
+/** The five tabs of the "CI Memory" page. */
 export function MemoryTabs(props: {
   lang: Lang;
   rows: SignatureRow[];
   pending: Array<{ signatureId: string; commit: string; author: string; note?: string }>;
   costRows: CostRow[];
+  trend?: CostTrend;
+  audit: AuditLine[];
+  shortId: (id: string) => string;
 }): React.JSX.Element {
-  const { lang, rows, pending, costRows } = props;
+  const { lang, rows, pending, costRows, trend, audit, shortId } = props;
   return (
     <Tabs id="ci-memory-tabs">
       <TabList>
@@ -123,6 +130,7 @@ export function MemoryTabs(props: {
         <Tab>{t('tab.flaky', lang)}</Tab>
         <Tab>{t('tab.pending', lang)}</Tab>
         <Tab>{t('tab.cost', lang)}</Tab>
+        <Tab>{t('tab.audit', lang)}</Tab>
       </TabList>
 
       <TabPanel>
@@ -146,7 +154,14 @@ export function MemoryTabs(props: {
       </TabPanel>
 
       <TabPanel>
-        <CostTab lang={lang} rows={costRows} />
+        <Stack space="space.300">
+          <CostTab lang={lang} rows={costRows} />
+          <CostTrendView lang={lang} trend={trend} />
+        </Stack>
+      </TabPanel>
+
+      <TabPanel>
+        <AuditTab lang={lang} entries={audit} shortId={shortId} />
       </TabPanel>
     </Tabs>
   );

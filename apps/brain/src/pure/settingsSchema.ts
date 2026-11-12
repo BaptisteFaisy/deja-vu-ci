@@ -10,6 +10,7 @@
  */
 
 import type { Settings } from '@dejavu/core';
+import { isMinimizePolicy, type MinimizePolicy } from './excerptPolicy';
 import type { Validation } from './validate';
 
 /** Numeric settings and their bounds (positive, sane upper limits). */
@@ -68,10 +69,18 @@ export interface SettingsPayload {
   flakyWindowDays: number;
   rawRetentionDays: number;
   universalKey?: string;
+  /**
+   * Retention policy of the raw excerpts (§ 18, CI-18). It lives outside the
+   * frozen `Settings` type, so the caller that knows it hands it over.
+   */
+  excerptPolicy?: MinimizePolicy;
 }
 
 /** Projects the stored settings onto the page payload (no secret leaked). */
-export function toSettingsPayload(settings: Settings): SettingsPayload {
+export function toSettingsPayload(
+  settings: Settings,
+  excerptPolicy?: MinimizePolicy,
+): SettingsPayload {
   return {
     issueProjectKey: settings.issueProjectKey,
     flakyMinOccurrences: settings.flakyMinOccurrences,
@@ -79,5 +88,23 @@ export function toSettingsPayload(settings: Settings): SettingsPayload {
     flakyWindowDays: settings.flakyWindowDays,
     rawRetentionDays: settings.rawRetentionDays,
     ...(settings.universalKey ? { universalKey: settings.universalKey } : {}),
+    ...(excerptPolicy ? { excerptPolicy } : {}),
   };
+}
+
+/**
+ * The retention policy of a settings payload (§ 18).
+ *
+ * Absent means "the project did not choose one", and the caller keeps what is
+ * stored. A value that is not one of the three policies is refused, so a typo
+ * never silently widens what the memory keeps.
+ */
+export function excerptPolicyOf(raw: unknown): Validation<MinimizePolicy | undefined> {
+  if (typeof raw !== 'object' || raw === null) return { ok: true, value: undefined };
+  const value = (raw as Record<string, unknown>).excerptPolicy;
+  if (value === undefined || value === null) return { ok: true, value: undefined };
+  if (!isMinimizePolicy(value)) {
+    return { ok: false, error: 'excerptPolicy must be hash-only, masked-snippet or full' };
+  }
+  return { ok: true, value };
 }

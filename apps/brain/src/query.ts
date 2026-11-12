@@ -16,6 +16,8 @@ import { validateQueryRequest } from './pure/validate';
 import { migrateOnce, type BrainSqlStore } from './sql';
 import type { BrainEngine } from './actions/engine';
 import { allOccurrences, diagnoseFor, latestOccurrence, signatureForIssue } from './actions/context';
+import { assembleIncident, type IncidentPanel } from './pure/incident';
+import { computeCostTrend, type CostTrend } from './pure/costTrend';
 
 /** Handler factory of the `/query` web trigger. */
 export function createQueryHandler(store: BrainSqlStore, engine: BrainEngine) {
@@ -57,11 +59,15 @@ export async function buildQueryResponse(
 export interface MemoryPagePayload {
   signatures: Signature[];
   cost?: CostReport;
+  /** The daily shape of the cost, and its variation against the previous window. */
+  costTrend?: CostTrend;
+  /** The infrastructure incident in progress, when there is one (CI-15). */
+  incident?: IncidentPanel;
   pending?: Array<{ signatureId: string; commit: string; author: string; note?: string }>;
   shortIds?: Record<string, string>;
 }
 
-/** Resolver `memory-page`: signatures, cost, pending resolutions, short ids. */
+/** Resolver `memory-page`: signatures, cost, incident, pending, short ids. */
 export async function memoryPageData(store: BrainSqlStore, engine: BrainEngine): Promise<
   { ok: true; data: MemoryPagePayload } | { ok: false; error: string }
 > {
@@ -70,6 +76,8 @@ export async function memoryPageData(store: BrainSqlStore, engine: BrainEngine):
     const signatures = await store.listSignatures();
     const occurrences = await allOccurrences(engine);
     const pendingRows = await store.pendingResolutions();
+    const settings = await store.getSettings();
+    const now = engine.now();
     const shortIds: Record<string, string> = {};
     for (const signature of signatures) shortIds[signature.id] = engine.signatureShort(signature.id);
     const pending = pendingRows
@@ -80,15 +88,22 @@ export async function memoryPageData(store: BrainSqlStore, engine: BrainEngine):
         author: resolution.author,
         ...(resolution.note ? { note: resolution.note } : {}),
       }));
-    return {
-      ok: true,
-      data: {
-        signatures,
-        cost: engine.computeCost(occurrences, { signatures }),
-        pending,
-        shortIds,
-      },
+    const incident = await assembleIncident(
+      store,
+      occurrences,
+      settings,
+      now,
+      (id) => shortIds[id] ?? engine.signatureShort(id),
+    );
+    const data: MemoryPagePayload = {
+      signatures,
+      cost: engine.computeCost(occurrences, { signatures, now }),
+      costTrend: computeCostTrend(occurrences, { signatures, now }),
+      pending,
+      shortIds,
     };
+    if (incident) data.incident = incident;
+    return { ok: true, data };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : String(error) };
   }
