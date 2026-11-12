@@ -1,6 +1,6 @@
 {
-  "empreinte": "f3a6f8115dddb53ca989ab982a69b2a25635676340b4ddc50cfab88d3a2ceea9",
-  "sources": 82,
+  "empreinte": "06f1e90765c03c75a185853fc59f517f31e5255a4de7c737227085661757e285",
+  "sources": 86,
   "embarquees": [
     "apps/brain/src/actions/confirm-resolution.ts",
     "apps/brain/src/actions/context.ts",
@@ -16,8 +16,11 @@
     "apps/brain/src/actions/validate.ts",
     "apps/brain/src/pure/auditLog.ts",
     "apps/brain/src/pure/costTrend.ts",
+    "apps/brain/src/pure/costTrendCompute.ts",
     "apps/brain/src/pure/curation.ts",
+    "apps/brain/src/pure/curationCompute.ts",
     "apps/brain/src/pure/defaults.ts",
+    "apps/brain/src/pure/excerptApply.ts",
     "apps/brain/src/pure/excerptPolicy.ts",
     "apps/brain/src/pure/exportMemory.ts",
     "apps/brain/src/pure/incident.ts",
@@ -30,6 +33,11 @@
     "data/labeled/100-failures.json",
     "data/sample/occurrences.json",
     "docs/SBOM.json",
+    "integrations/adapters/github.js",
+    "integrations/adapters/gitlab.js",
+    "integrations/adapters/index.js",
+    "integrations/adapters/jenkins.js",
+    "integrations/adapters/lib.js",
     "packages/bridge/src/index.ts",
     "packages/core/src/calibrate.ts",
     "packages/core/src/cascade.ts",
@@ -102,6 +110,10 @@
     "site/src/panels/securite-strings.ts",
     "site/src/panels/securite-view.ts",
     "site/src/panels/securite.ts",
+    "site/src/panels/universel-adaptateurs.ts",
+    "site/src/panels/universel-donnees.ts",
+    "site/src/panels/universel-snippets.ts",
+    "site/src/panels/universel-textes.ts",
     "site/src/panels/universel.ts",
     "site/src/render/content.ts",
     "site/src/render/dom.ts",
@@ -109,6 +121,6 @@
     "site/src/render/sections.ts",
     "site/src/state/workspace.ts"
   ],
-  "octets": 358154,
+  "octets": 381296,
   "avertissements": 1
 }

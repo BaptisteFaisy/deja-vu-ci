@@ -13,13 +13,15 @@ import type { Occurrence, Signature } from '@dejavu/core';
 import { FakeStore } from './fakes/store';
 import {
   SPLIT_CRITERION_KEYS,
+  isSplitCriterionKey,
+} from '../src/pure/curation';
+import {
   assembleMergePreview,
   assembleSplitPreview,
   criterionOf,
-  isSplitCriterionKey,
   previewMerge,
   previewSplit,
-} from '../src/pure/curation';
+} from '../src/pure/curationCompute';
 
 /** A signature of category `test`, as the engine stores it. */
 function sig(overrides: Partial<Signature> = {}): Signature {

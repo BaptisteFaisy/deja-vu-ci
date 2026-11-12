@@ -13,10 +13,10 @@
  * index). A replayed message produces the same ids; an id already in the
  * store skips its block, so replaying changes nothing.
  *
- * Pure module: type-only imports from `@dejavu/core`, `node:crypto` only.
+ * Pure module: type-only imports from `@dejavu/core`, `crypto` only.
  */
 
-import { createHash } from 'node:crypto';
+import { createHash } from 'crypto';
 import type {
   Category,
   Diagnostic,

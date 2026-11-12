@@ -39,7 +39,7 @@ import {
   ticketAuditDetail,
   type AuditSink,
 } from './pure/auditLog';
-import { applyExcerptPolicy } from './pure/excerptPolicy';
+import { applyExcerptPolicy } from './pure/excerptApply';
 import { validateIngestPayload } from './pure/validate';
 import { loadExcerptPolicy, loadSettings } from './settings';
 import { migrateOnce, type BrainSqlStore } from './sql';

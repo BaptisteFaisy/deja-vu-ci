@@ -14,12 +14,27 @@
  * UI resolver, so the three read one truth.
  */
 
-import type { QuarantineProposal } from '@dejavu/core';
+import { WORTH_IT, type QuarantineProposal } from '@dejavu/core';
 import { fail, ok, type ActionResult, type BrainEngine } from './engine';
 import { defineAction, type RawInput } from './descriptor';
 import { requireText } from './validate';
 import { decideQuarantine } from '../pure/quarantineUi';
 import { auditSinkOf, recordAudit } from '../pure/auditLog';
+
+/**
+ * The three thresholds behind `worthIt`, as the engine defines them.
+ *
+ * Sent with the answer instead of being imported by the screens: the UI Kit
+ * bundle is compiled for a web target where Node built-ins are disabled, and
+ * importing a runtime value of `@dejavu/core` from a screen drags the whole
+ * engine (including `crypto`) into it. One source of truth — the engine — and
+ * the screens only display what they are handed.
+ */
+export interface WorthItThresholds {
+  ciMinutesLost: number;
+  flakyIndex: number;
+  occurrences: number;
+}
 
 /** Answer of the action. */
 export interface ProposeQuarantineData {
@@ -28,6 +43,8 @@ export interface ProposeQuarantineData {
   testName: string;
   /** True when `assessFlakiness` called the test unstable and a proposal was drafted. */
   flaky: boolean;
+  /** The thresholds the engine applied, for the screens to display. */
+  thresholds: WorthItThresholds;
   /** Reasons of the flakiness verdict when no proposal is made. */
   reasons: string[];
   proposal?: QuarantineProposal;
@@ -53,6 +70,7 @@ export async function proposeQuarantineData(
   const head = {
     signatureId: signature.id,
     signatureShort: engine.signatureShort(signature.id),
+    thresholds: { ...WORTH_IT } as WorthItThresholds,
   };
   if (decision.kind === 'not-flaky') {
     const notFlaky: ProposeQuarantineData = {

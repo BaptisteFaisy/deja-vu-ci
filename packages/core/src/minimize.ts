@@ -18,7 +18,7 @@
  * lot decides where to call it (see `docs/DATA-MINIMIZATION.md`).
  */
 
-import { createHash } from 'node:crypto';
+import { createHash } from 'crypto';
 import { maskSecrets } from './mask.js';
 
 /** Retention policies, from the most to the least minimizing. */

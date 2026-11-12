@@ -17,7 +17,8 @@ import { migrateOnce, type BrainSqlStore } from './sql';
 import type { BrainEngine } from './actions/engine';
 import { allOccurrences, diagnoseFor, latestOccurrence, signatureForIssue } from './actions/context';
 import { assembleIncident, type IncidentPanel } from './pure/incident';
-import { computeCostTrend, type CostTrend } from './pure/costTrend';
+import type { CostTrend } from './pure/costTrend';
+import { computeCostTrend } from './pure/costTrendCompute';
 
 /** Handler factory of the `/query` web trigger. */
 export function createQueryHandler(store: BrainSqlStore, engine: BrainEngine) {

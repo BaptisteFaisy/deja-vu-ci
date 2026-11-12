@@ -1,5 +1,6 @@
 /**
- * Tests of the daily cost trend (`src/pure/costTrend.ts`, § 14, CI-14).
+ * Tests of the daily cost trend (`src/pure/costTrend.ts` for the shapes and the
+ * bars, `src/pure/costTrendCompute.ts` for the engine call — § 14, CI-14).
  *
  * The trend must never disagree with the cost report next to it: every number
  * comes from the engine's own `computeCost`, called once for the window, once
@@ -11,13 +12,13 @@ import { describe, expect, it } from 'vitest';
 import type { Occurrence } from '@dejavu/core';
 import {
   bucketByDay,
-  computeCostTrend,
   daysOf,
   dayKey,
   deltaPct,
   textBar,
   trendMax,
 } from '../src/pure/costTrend';
+import { computeCostTrend } from '../src/pure/costTrendCompute';
 
 const NOW = new Date('2026-11-12T10:00:00.000Z');
 
