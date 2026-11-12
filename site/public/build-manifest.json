@@ -1,6 +1,6 @@
 {
-  "empreinte": "323bb3fb6a6171ac891a049330266e0ed74bd65c5a10e7fdf8095deda3dfc241",
-  "sources": 78,
+  "empreinte": "f3a6f8115dddb53ca989ab982a69b2a25635676340b4ddc50cfab88d3a2ceea9",
+  "sources": 82,
   "embarquees": [
     "apps/brain/src/actions/confirm-resolution.ts",
     "apps/brain/src/actions/context.ts",
@@ -27,6 +27,7 @@
     "apps/brain/src/ui/format.ts",
     "apps/brain/src/ui/i18n.ts",
     "apps/sensor/src/pure/prCardView.ts",
+    "data/labeled/100-failures.json",
     "data/sample/occurrences.json",
     "docs/SBOM.json",
     "packages/bridge/src/index.ts",
@@ -85,6 +86,10 @@
     "site/src/panels/jira-donnees.ts",
     "site/src/panels/jira-semaine.ts",
     "site/src/panels/jira.ts",
+    "site/src/panels/justesse-mesure.ts",
+    "site/src/panels/justesse-nuit.ts",
+    "site/src/panels/justesse-strings.ts",
+    "site/src/panels/justesse-view.ts",
     "site/src/panels/justesse.ts",
     "site/src/panels/pr-donnees.ts",
     "site/src/panels/pr.ts",
@@ -104,6 +109,6 @@
     "site/src/render/sections.ts",
     "site/src/state/workspace.ts"
   ],
-  "octets": 275034,
+  "octets": 358154,
   "avertissements": 1
 }
