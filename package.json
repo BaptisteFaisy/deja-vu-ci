@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "@forge/api": "^4.0.0",
-    "@forge/bridge": "^5.0.0",
+    "@forge/bridge": "^7.3.0",
     "@forge/manifest": "^13.9.0",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.10.2",
