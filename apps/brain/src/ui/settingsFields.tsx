@@ -8,7 +8,14 @@
  */
 
 import React from 'react';
-import { Label, Text, Textfield } from '@forge/react';
+import { Box, Label, Text, Textfield } from '@forge/react';
+import {
+  DEFAULT_EXCERPT_POLICY,
+  MINIMIZE_POLICIES,
+  type MinimizePolicy,
+} from '../pure/excerptPolicy';
+import { LabeledRadio } from './pickers';
+import type { Option } from './controls';
 import { t, type Lang } from './i18n';
 
 /** Réglages éditables, tels que la page les porte. */
@@ -19,6 +26,8 @@ export interface SettingsPayload {
   flakyWindowDays: number;
   rawRetentionDays: number;
   universalKey?: string;
+  /** What the memory keeps of a raw failure (§ 18, CI-18). */
+  excerptPolicy?: MinimizePolicy;
 }
 
 /** Un champ de la table : identifiant, libellé, clé, type. */
@@ -95,6 +104,45 @@ export function SettingsFields(props: {
           </React.Fragment>
         );
       })}
+      <ExcerptPolicyField
+        lang={lang}
+        value={settings.excerptPolicy}
+        onChange={(policy) => onChange({ excerptPolicy: policy })}
+      />
     </>
+  );
+}
+
+/** The options of the retention policy, in the order the engine lists them. */
+function policyOptions(lang: Lang): Option[] {
+  return MINIMIZE_POLICIES.map((policy) => ({
+    label: t(`policy.${policy}`, lang),
+    value: policy,
+  }));
+}
+
+/**
+ * The retention policy of the raw excerpts (§ 18, CI-18).
+ *
+ * A radio group rather than a text field: the three policies are the engine's
+ * own, and a typo here would silently widen what the memory keeps.
+ */
+export function ExcerptPolicyField(props: {
+  lang: Lang;
+  value?: MinimizePolicy;
+  onChange: (policy: MinimizePolicy) => void;
+}): React.JSX.Element {
+  const { lang, value, onChange } = props;
+  return (
+    <Box>
+      <LabeledRadio
+        label={t('settings.excerptPolicy', lang)}
+        name="settings-excerpt-policy"
+        options={policyOptions(lang)}
+        value={value ?? DEFAULT_EXCERPT_POLICY}
+        onChange={(policy) => onChange(policy as MinimizePolicy)}
+      />
+      <Text>{t('settings.excerptHint', lang)}</Text>
+    </Box>
   );
 }

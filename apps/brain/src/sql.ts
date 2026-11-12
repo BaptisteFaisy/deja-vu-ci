@@ -2,9 +2,10 @@
  * Forge SQL adapter — the Brain's memory (§ 16).
  *
  * Two responsibilities:
- *  1. `ensureSchema`: run the engine's `SQL_SCHEMA` once per cold start,
- *     statement by statement, ignoring "already exists" answers — the
- *     migration is idempotent, like everything else here.
+ *  1. `ensureSchema`: run the engine's `SQL_SCHEMA` and the app's own tables
+ *     (`pure/appSchema.ts`) once per cold start, statement by statement,
+ *     ignoring "already exists" answers — the migration is additive and
+ *     idempotent, like everything else here.
  *  2. `createSqlStore`: implement the core `Store` interface on top of
  *     Forge SQL, with statements built by `pure/sqlQueries.ts` and rows
  *     mapped by `pure/sqlRows.ts`. No SQL string is composed elsewhere.
@@ -29,7 +30,10 @@ import {
   type TestStats,
 } from '@dejavu/core';
 import * as queries from './pure/sqlQueries';
+import { APP_SCHEMA } from './pure/appSchema';
 import {
+  mapAuditLine,
+  mapAppPolicy,
   mapOccurrence,
   mapTemplateEntry,
   mapOutbreak,
@@ -38,9 +42,14 @@ import {
   mapSettings,
   mapSignature,
   mapTestStats,
+  oldestOccurredAt,
+  rowCount,
   type SqlRow,
 } from './pure/sqlRows';
 import { DEFAULT_SETTINGS } from './pure/defaults';
+import type { AuditEntry, AuditLine } from './pure/auditLog';
+import type { AppPolicy, MinimizePolicy } from './pure/excerptPolicy';
+import type { MemoryTable } from './pure/memoryHealth';
 
 /** The client the pure builders target: text with `?` placeholders. */
 export interface SqlClient {
@@ -69,11 +78,20 @@ export function forgeSqlClient(): SqlClient {
 }
 
 /**
- * Idempotent migration: every statement of `SQL_SCHEMA` is run; "already
- * exists" answers are expected on every start after the first and ignored.
+ * Every statement of the migration: the engine's frozen schema first, then the
+ * app's own tables (`pure/appSchema.ts`).
+ */
+export function schemaStatements(): string[] {
+  return [...queries.splitSchema(SQL_SCHEMA), ...queries.splitSchema(APP_SCHEMA)];
+}
+
+/**
+ * Idempotent migration: every statement of the engine's schema and of the app's
+ * own schema is run; "already exists" answers are expected on every start after
+ * the first and ignored.
  */
 export async function ensureSchema(client: SqlClient = forgeSqlClient()): Promise<void> {
-  for (const statement of queries.splitSchema(SQL_SCHEMA)) {
+  for (const statement of schemaStatements()) {
     try {
       await client.ddl(statement);
     } catch (error) {
@@ -98,6 +116,18 @@ export interface BrainSqlStore extends Store {
   savePairing(pairing: Pairing): Promise<void>;
   listTemplateCache(): Promise<LlmTemplateCacheEntry[]>;
   saveTemplateCacheEntry(entry: LlmTemplateCacheEntry): Promise<void>;
+  /** The whole memory, in two reads (the export panel). */
+  listAllOccurrences(): Promise<Occurrence[]>;
+  listResolutions(): Promise<Resolution[]>;
+  /** The journal of what the app did (append-only). */
+  saveAuditEntry(entry: AuditEntry): Promise<void>;
+  listAuditEntries(limit: number): Promise<AuditLine[]>;
+  /** The app policy row: retention policy of the excerpts, last purge. */
+  getAppPolicy(): Promise<AppPolicy | undefined>;
+  saveAppPolicy(policy: MinimizePolicy, lastPurgeAt?: string): Promise<void>;
+  /** The health reads: one row count per table, and the oldest occurrence. */
+  countRows(table: MemoryTable): Promise<number>;
+  oldestOccurrenceAt(): Promise<string | undefined>;
 }
 
 /** Signature and occurrence halves of the store. */
@@ -197,12 +227,46 @@ function brainReadMethods(client: SqlClient) {
   };
 }
 
+/** The reads and writes of the project page's panels (lot brain-views). */
+function brainViewMethods(client: SqlClient) {
+  return {
+    async listAllOccurrences(): Promise<Occurrence[]> {
+      return (await read(client, queries.selectAllOccurrences())).map(mapOccurrence);
+    },
+    async listResolutions(): Promise<Resolution[]> {
+      return (await read(client, queries.selectAllResolutions())).map(mapResolution);
+    },
+    async saveAuditEntry(entry: AuditEntry): Promise<void> {
+      await run(client, queries.upsertAuditEntry(entry));
+    },
+    async listAuditEntries(limit: number): Promise<AuditLine[]> {
+      return (await read(client, queries.selectAuditEntries(limit))).map(mapAuditLine);
+    },
+    async getAppPolicy(): Promise<AppPolicy | undefined> {
+      const rows = await read(client, queries.selectAppPolicy());
+      return rows[0] ? mapAppPolicy(rows[0]) : undefined;
+    },
+    async saveAppPolicy(policy: MinimizePolicy, lastPurgeAt?: string): Promise<void> {
+      await run(client, queries.upsertAppPolicy(policy, lastPurgeAt, new Date().toISOString()));
+    },
+    async countRows(table: MemoryTable): Promise<number> {
+      const rows = await read(client, queries.selectRowCount(table));
+      return rows[0] ? rowCount(rows[0]) : 0;
+    },
+    async oldestOccurrenceAt(): Promise<string | undefined> {
+      const rows = await read(client, queries.selectOldestOccurrence());
+      return rows[0] ? oldestOccurredAt(rows[0]) : undefined;
+    },
+  };
+}
+
 /** Builds the memory store on top of a SQL client. */
 export function createSqlStore(client: SqlClient = forgeSqlClient()): BrainSqlStore {
   return {
     ...memoryMethods(client),
     ...housekeepingMethods(client),
     ...brainReadMethods(client),
+    ...brainViewMethods(client),
   };
 }
 

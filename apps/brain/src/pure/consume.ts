@@ -33,6 +33,7 @@ import type {
   TestStats,
   TicketAction,
 } from '@dejavu/core';
+import type { MinimizedExcerpt, MinimizePolicy } from './excerptPolicy';
 import type { IngestPayload } from '@dejavu/core';
 import type { DiagnoseHints } from '@dejavu/core';
 import type { DiagnoseContext } from '@dejavu/core';
@@ -93,6 +94,26 @@ export interface LlmPort {
   normalize(block: ErrorBlock): Promise<{ template: string; category: Category } | undefined>;
 }
 
+/**
+ * Data-minimization port (§ 18, CI-18): the engine's `minimizeExcerpt`,
+ * injected. The pure core never imports it, so the tests drive the policy with
+ * a double and the adapter wires the real function.
+ */
+export type ExcerptMinimizer = (
+  excerpt: { text: string },
+  policy: MinimizePolicy,
+) => MinimizedExcerpt;
+
+/** What survived the retention policy for one excerpt. */
+export interface StoredExcerpt {
+  /** The policy that was applied. */
+  policy: MinimizePolicy;
+  /** UTF-8 bytes of the stored text — 0 under `hash-only`. */
+  bytes: number;
+  /** Stable fingerprint of the raw text; absent when no minimizer is wired. */
+  fingerprint?: string;
+}
+
 /** Everything the consumer core needs, injected. */
 export interface ConsumerDeps {
   store: ConsumerStore;
@@ -101,6 +122,10 @@ export interface ConsumerDeps {
   now(): Date;
   /** Absent when the platform LLM is unavailable: deterministic path only. */
   llm?: LlmPort;
+  /** Retention policy of the project; absent = today's behaviour (full text). */
+  excerptPolicy?: MinimizePolicy;
+  /** The engine's minimizer; absent = the excerpt is stored as it arrives. */
+  minimize?: ExcerptMinimizer;
 }
 
 /**
@@ -125,6 +150,8 @@ export interface ConsumedBlock {
   signatureId: string;
   diagnostic: Diagnostic;
   ticketActions: TicketAction[];
+  /** What the retention policy kept of the raw excerpt. */
+  excerpt: StoredExcerpt;
 }
 
 /** Outcome of one message: processed blocks, or an explicit skip/error. */
@@ -149,6 +176,32 @@ export function occurrenceIdFor(payload: IngestPayload, blockIndex: number): str
 /** ISO date `days` after `from`. */
 export function plusDaysIso(from: Date, days: number): string {
   return new Date(from.getTime() + days * 86_400_000).toISOString();
+}
+
+/**
+ * Applies the project's retention policy to one raw excerpt (§ 18, CI-18).
+ *
+ * Without a minimizer — a test double, or an adapter that wired none — the
+ * excerpt is stored as it arrives, which is exactly the behaviour the app had
+ * before the policy existed. With one, the engine decides what survives:
+ * `hash-only` keeps no text at all, `masked-snippet` keeps a bounded masked
+ * excerpt, `full` keeps the masked text.
+ */
+export function storedExcerpt(
+  rawText: string,
+  deps: ConsumerDeps,
+): { text: string; excerpt: StoredExcerpt } {
+  const policy = deps.excerptPolicy ?? 'full';
+  if (!deps.minimize) {
+    return {
+      text: rawText,
+      excerpt: { policy, bytes: Buffer.byteLength(rawText, 'utf8') },
+    };
+  }
+  const minimized = deps.minimize({ text: rawText }, policy);
+  const excerpt: StoredExcerpt = { policy, bytes: minimized.bytes };
+  if (minimized.fingerprint) excerpt.fingerprint = minimized.fingerprint;
+  return { text: minimized.text ?? '', excerpt };
 }
 
 /** The occurrence row of one block (§ 16). */
@@ -306,9 +359,10 @@ async function consumeBlock(
   const verdict = deps.engine.assessFlakiness([...prior, occurrence], { settings, now: deps.now() });
   const signature = await upsertSignature(deps, block, keys, occurrence, verdict);
   await deps.store.saveOccurrence(occurrence);
+  const stored = storedExcerpt(block.rawText, deps);
   await deps.store.saveRawExcerpt({
     occurrenceId: occurrence.id,
-    text: block.rawText,
+    text: stored.text,
     expiresAt: plusDaysIso(deps.now(), settings.rawRetentionDays),
   });
   if (signature.testName) {
@@ -326,6 +380,7 @@ async function consumeBlock(
     signatureId: signature.id,
     diagnostic,
     ticketActions: planned.actions,
+    excerpt: stored.excerpt,
   };
 }
 

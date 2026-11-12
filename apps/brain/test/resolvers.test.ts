@@ -32,47 +32,37 @@ function fakeResolver(): { resolver: ResolverLike; defined: Map<string, (r: Reso
 /** Data ports that record the calls and answer a distinguishable value. */
 function fakePorts(): { ports: UiDataPorts; calls: string[] } {
   const calls: string[] = [];
+  const plain = (name: string, answer: unknown) => async () => {
+    calls.push(name);
+    return answer;
+  };
+  const withPayload = (name: string, answer: unknown) => async (payload: unknown) => {
+    calls.push(`${name}:${JSON.stringify(payload)}`);
+    return answer;
+  };
   return {
     calls,
     ports: {
-      async memoryPage() {
-        calls.push('memoryPage');
-        return { signatures: [] };
-      },
-      async issuePanel(payload, context) {
+      memoryPage: plain('memoryPage', { signatures: [] }),
+      issuePanel: async (payload, context) => {
         calls.push(`issuePanel:${JSON.stringify(payload)}`);
         return { problem: false, ...(context ? { context } : {}) };
       },
-      async settings() {
-        calls.push('settings');
-        return { issueProjectKey: 'CI' };
-      },
-      async saveSettings(payload) {
-        calls.push(`saveSettings:${JSON.stringify(payload)}`);
-        return { ok: true };
-      },
-      async replaySample() {
-        calls.push('replaySample');
-        return { ok: true, seeded: true };
-      },
-      async curateMerge(payload) {
-        calls.push(`curateMerge:${JSON.stringify(payload)}`);
-        return { ok: true, data: { movedOccurrences: 0 } };
-      },
-      async curateSplit(payload) {
-        calls.push(`curateSplit:${JSON.stringify(payload)}`);
-        return { ok: true, data: { groups: [] } };
-      },
-      async quarantineProposal(payload) {
-        calls.push(`quarantine:${JSON.stringify(payload)}`);
-        return { ok: true, data: { flaky: false, reasons: [] } };
-      },
+      settings: plain('settings', { issueProjectKey: 'CI' }),
+      saveSettings: withPayload('saveSettings', { ok: true }),
+      replaySample: plain('replaySample', { ok: true, seeded: true }),
+      curateMerge: withPayload('curateMerge', { ok: true, data: { movedOccurrences: 0 } }),
+      curateSplit: withPayload('curateSplit', { ok: true, data: { groups: [] } }),
+      quarantineProposal: withPayload('quarantine', { ok: true, data: { flaky: false, reasons: [] } }),
+      auditLog: plain('auditLog', { ok: true, entries: [] }),
+      memoryExport: withPayload('memoryExport', { ok: true, format: 'csv', filename: 'm.csv' }),
+      memoryHealth: plain('memoryHealth', { ok: true, health: { totalRows: 0 } }),
     },
   };
 }
 
 describe('résolveurs des écrans UI Kit', () => {
-  it('enregistre les huit noms appelés par l’interface', () => {
+  it('enregistre les onze noms appelés par l’interface', () => {
     const { resolver, defined } = fakeResolver();
     const { ports } = fakePorts();
     registerUiResolvers(resolver, ports);
@@ -139,5 +129,30 @@ describe('résolveurs des écrans UI Kit', () => {
     registerUiResolvers(resolver, ports);
     await defined.get('quarantine-proposal')?.({ payload: { signatureId: 'a' }, context: undefined });
     expect(calls).toEqual(['quarantine:{"signatureId":"a"}']);
+  });
+
+  it('route `audit-log` vers le journal de ce que l’app a fait', async () => {
+    const { resolver, defined } = fakeResolver();
+    const { ports, calls } = fakePorts();
+    registerUiResolvers(resolver, ports);
+    const answer = await defined.get('audit-log')?.({ payload: undefined, context: undefined });
+    expect(calls).toEqual(['auditLog']);
+    expect(answer).toEqual({ ok: true, entries: [] });
+  });
+
+  it('route `memory-export` vers l’export, avec le format demandé', async () => {
+    const { resolver, defined } = fakeResolver();
+    const { ports, calls } = fakePorts();
+    registerUiResolvers(resolver, ports);
+    await defined.get('memory-export')?.({ payload: { format: 'json' }, context: undefined });
+    expect(calls).toEqual(['memoryExport:{"format":"json"}']);
+  });
+
+  it('route `memory-health` vers la santé de la mémoire', async () => {
+    const { resolver, defined } = fakeResolver();
+    const { ports, calls } = fakePorts();
+    registerUiResolvers(resolver, ports);
+    await defined.get('memory-health')?.({ payload: undefined, context: undefined });
+    expect(calls).toEqual(['memoryHealth']);
   });
 });

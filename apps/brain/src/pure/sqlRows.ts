@@ -25,6 +25,8 @@ import type {
   TestStats,
 } from '@dejavu/core';
 import { DEFAULT_SETTINGS } from './defaults';
+import type { AuditLine } from './auditLog';
+import { policyOr, type AppPolicy } from './excerptPolicy';
 
 /** A row as Forge SQL returns it: column names to scalar values. */
 export type SqlRow = Record<string, string | number | boolean | null | undefined>;
@@ -220,4 +222,47 @@ export function mapSettings(row: SqlRow): Settings {
   const universalKey = text(row, 'universal_key');
   if (universalKey !== undefined) settings.universalKey = universalKey;
   return settings;
+}
+
+// ---------------------------------------------------------------------------
+// The journal of what the app did, and the app policy (lot brain-views).
+// ---------------------------------------------------------------------------
+
+/** `audit_log` row → one journal line (the action stays text). */
+export function mapAuditLine(row: SqlRow): AuditLine {
+  const line: AuditLine = {
+    id: text(row, 'id') ?? '',
+    action: text(row, 'action_kind') ?? '',
+    createdAt: iso(row, 'created_at'),
+  };
+  const signatureId = text(row, 'signature_id');
+  const issueKey = text(row, 'issue_key');
+  const detail = text(row, 'detail');
+  if (signatureId !== undefined) line.signatureId = signatureId;
+  if (issueKey !== undefined) line.issueKey = issueKey;
+  if (detail !== undefined) line.detail = detail;
+  return line;
+}
+
+/** `app_policy` row → the retention policy of the project. */
+export function mapAppPolicy(row: SqlRow): AppPolicy {
+  const policy: AppPolicy = {
+    excerptPolicy: policyOr(text(row, 'excerpt_policy')),
+    updatedAt: iso(row, 'updated_at'),
+  };
+  if (row.last_purge_at !== null && row.last_purge_at !== undefined) {
+    policy.lastPurgeAt = iso(row, 'last_purge_at');
+  }
+  return policy;
+}
+
+/** The single count of a `SELECT COUNT(*)` answer. */
+export function rowCount(row: SqlRow): number {
+  return number(row, 'row_count');
+}
+
+/** The oldest instant of a `SELECT MIN(occurred_at)` answer, when there is one. */
+export function oldestOccurredAt(row: SqlRow): string | undefined {
+  const at = iso(row, 'oldest_at');
+  return at === '' ? undefined : at;
 }

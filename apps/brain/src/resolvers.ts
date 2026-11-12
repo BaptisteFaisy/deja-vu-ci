@@ -4,10 +4,10 @@
  * A UI Kit 2 module declares **one** Forge function as its resolver
  * (`resolver.function` in `manifest.yml`); every `invoke('<name>')` of the
  * frontend reaches that function with the name in `call.functionKey`, and the
- * resolver dispatches on it. This module registers the eight names the screens
+ * resolver dispatches on it. This module registers the eleven names the screens
  * use (`src/ui/data.ts`), and nothing else: reading the memory stays in
- * `query.ts` and `settings.ts`, and the curation and quarantine previews are
- * assembled in `src/pure/`.
+ * `query.ts`, `settings.ts` and `memoryViews.ts`, and the curation, quarantine
+ * and incident previews are assembled in `src/pure/`.
  *
  * No `@forge/*` import here — the resolver is injected (`ResolverLike`) and
  * the data is injected (`UiDataPorts`), so the wiring is unit-tested without
@@ -43,6 +43,12 @@ export interface UiDataPorts {
   curateSplit(payload: unknown): Promise<unknown>;
   /** Project page, propose the quarantine of a signature (CI-19). */
   quarantineProposal(payload: unknown): Promise<unknown>;
+  /** Project page, the journal of what the app did. */
+  auditLog(): Promise<unknown>;
+  /** Project page, the export of the memory (CSV or JSON). */
+  memoryExport(payload: unknown): Promise<unknown>;
+  /** Project page, the health of the memory. */
+  memoryHealth(): Promise<unknown>;
 }
 
 /** The `invoke()` names the frontend uses, in the order they are registered. */
@@ -55,6 +61,9 @@ export const UI_CALL_NAMES = [
   'curate-merge',
   'curate-split',
   'quarantine-proposal',
+  'audit-log',
+  'memory-export',
+  'memory-health',
 ] as const;
 
 /** Registers the screen resolvers on an injected `@forge/resolver`. */
@@ -67,4 +76,7 @@ export function registerUiResolvers(resolver: ResolverLike, ports: UiDataPorts):
   resolver.define('curate-merge', ({ payload }) => ports.curateMerge(payload));
   resolver.define('curate-split', ({ payload }) => ports.curateSplit(payload));
   resolver.define('quarantine-proposal', ({ payload }) => ports.quarantineProposal(payload));
+  resolver.define('audit-log', () => ports.auditLog());
+  resolver.define('memory-export', ({ payload }) => ports.memoryExport(payload));
+  resolver.define('memory-health', () => ports.memoryHealth());
 }
