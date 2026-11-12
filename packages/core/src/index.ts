@@ -22,10 +22,12 @@ export * from './extract.js';
 export * from './normalize.js';
 export * from './categorize.js';
 export * from './sign.js';
+export * from './signature-version.js';
 
 // What it means (§ 10).
 export * from './flaky.js';
 export * from './outbreak.js';
+export * from './cascade.js';
 export * from './diagnose.js';
 
 // What to do about it (§ 11, CI-14).
@@ -43,3 +45,4 @@ export * from './engine.js';
 export * from './llm.js';
 export * from './universal.js';
 export * from './quarantine.js';
+export * from './calibrate.js';
