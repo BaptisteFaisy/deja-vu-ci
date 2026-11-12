@@ -97,15 +97,10 @@ export async function ensureSchema(client: SqlClient = forgeSqlClient()): Promis
       await client.ddl(statement);
     } catch (error) {
       if (queries.isAlreadyExists(error)) continue;
-      if (/^create\s+index/i.test(statement)) {
-        // Un index qui ne se crée pas est une question de performance, pas de
-        // justesse : le schéma reste correct sans lui. On le note et on
-        // continue — une migration qui bloque tous les écrans pour un index
-        // manquant serait pire que l'index lui-même.
-        console.warn('index non créé, la mémoire reste juste :', statement.slice(0, 80));
-        continue;
-      }
-      throw error;
+      if (/^create\s+index/i.test(statement)) continue;
+      // Le serveur ne dit pas quelle instruction il refuse : on la nomme.
+      const detail = JSON.stringify(error, Object.getOwnPropertyNames(error as object));
+      throw new Error(`SQL DDL refusé :: ${statement.slice(0, 220)} :: ${detail}`);
     }
   }
 }

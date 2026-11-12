@@ -39,15 +39,18 @@ const occurrence: Occurrence = {
 };
 
 describe('upsert builders', () => {
-  it('builds an ON CONFLICT upsert for a signature, parameters doubled', () => {
+  it('builds an ON DUPLICATE KEY UPDATE upsert for a signature', () => {
+    // Forge SQL parle MySQL/TiDB : `ON CONFLICT (…) DO UPDATE` (PostgreSQL) y
+    // est refusé, et la valeur de l'upsert est reprise par `VALUES(colonne)`.
     const statement = upsertSignature(signature);
     expect(statement.text).toContain('INSERT INTO signature');
-    expect(statement.text).toContain('ON CONFLICT (id) DO UPDATE SET');
+    expect(statement.text).toContain('ON DUPLICATE KEY UPDATE');
+    expect(statement.text).not.toContain('ON CONFLICT');
     expect(statement.text).not.toContain('sig1'); // values only as parameters
     const placeholders = (statement.text.match(/\?/g) ?? []).length;
     const insertColumns = (statement.text.match(/VALUES \(([^)]*)\)/)?.[1] ?? '').split(',').length;
     expect(placeholders).toBe(statement.params.length);
-    expect(placeholders).toBeGreaterThan(insertColumns); // doubled for the update
+    expect(placeholders).toBe(insertColumns); // une seule série de valeurs
     expect(statement.params[0]).toBe('sig1');
     expect(statement.params).toContain(JSON.stringify(signature.frames));
   });
@@ -157,7 +160,7 @@ describe('template cache statements', () => {
     const statement = upsertTemplate({
       normalizedHash: 'h1', template: 'registry <name> unreachable', category: 'dependency',
     });
-    expect(statement.text).toContain('ON CONFLICT (normalized_hash)');
+    expect(statement.text).toContain('ON DUPLICATE KEY UPDATE');
     expect(statement.params[0]).toBe('h1');
   });
 });
