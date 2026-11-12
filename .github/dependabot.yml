@@ -1,0 +1,74 @@
+# Dependabot — weekly dependency updates, merged by the Mergify queue.
+#
+# Minor and patch releases are grouped into a single PR per ecosystem so the
+# merge queue is never flooded; major releases stay individual (they need a
+# human look). The open-pull-requests-limit stays low (5) for the same
+# reason: the self-hosted CI has a hard budget of 5 minutes per job, and a
+# burst of dependency PRs would saturate it.
+
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    labels:
+      - dependencies
+
+  - package-ecosystem: "npm"
+    directory: "/apps/brain"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    labels:
+      - dependencies
+
+  - package-ecosystem: "npm"
+    directory: "/apps/sensor"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    labels:
+      - dependencies
+
+  - package-ecosystem: "npm"
+    directory: "/site"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    labels:
+      - dependencies
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    groups:
+      minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+    labels:
+      - github-actions

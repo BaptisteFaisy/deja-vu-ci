@@ -1,8 +1,16 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "src"
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@dejavu/core": [
+        "../core/src/index.ts",
+        "../core/src/types.ts"
+      ]
+    }
   },
   "include": ["src/**/*.ts"],
   "exclude": ["test", "dist"]
