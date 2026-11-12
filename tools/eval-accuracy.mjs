@@ -9,15 +9,21 @@
 //
 // Usage : `npm run eval` (construit le moteur puis lance cet outil).
 // Code de sortie : 0 si les seuils sont tenus, 1 sinon, 2 si le moteur manque.
+//
+// Les mesures sont exportées : la porte (`npm run eval`) et le rapport de
+// preuve nocturne (`tools/nightly-report.mjs`) lisent **le même** code, donc
+// les chiffres publiés ne peuvent pas diverger de ceux de la porte.
 
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { loadEngine, missingEntryPoints, repoRoot } from './lib/engine.mjs';
 
 const CORPUS = path.join(repoRoot, 'data', 'labeled', '100-failures.json');
-const THRESHOLDS = { grouping: 0.9, falseFlaky: 0.05, category: 0.9 };
+export const THRESHOLDS = { grouping: 0.9, falseFlaky: 0.05, category: 0.9 };
 
-function readCorpus() {
+/** Reads the labeled corpus, exits when it cannot be read. */
+export function readCorpus() {
   try {
     return JSON.parse(readFileSync(CORPUS, 'utf8'));
   } catch (error) {
@@ -28,7 +34,7 @@ function readCorpus() {
 }
 
 /** Signature, famille et catégorie d'un échec étiqueté. */
-function signOne(engine, failure) {
+export function signOne(engine, failure) {
   const extracted = engine.extractErrorBlocks({
     stepLog: failure.log,
     testCases: failure.testCases,
@@ -43,7 +49,7 @@ function signOne(engine, failure) {
 }
 
 /** Signature majoritaire d'un groupe, et le nombre de membres qui la suivent. */
-function dominant(signatureOfMembers) {
+export function dominant(signatureOfMembers) {
   const counts = new Map();
   for (const signature of signatureOfMembers) {
     counts.set(signature, (counts.get(signature) ?? 0) + 1);
@@ -60,7 +66,7 @@ function dominant(signatureOfMembers) {
 }
 
 /** Regroupement : part des échecs qui tombent sur la signature de leur groupe. */
-function groupingAccuracy(rows) {
+export function groupingAccuracy(rows) {
   const byGroup = new Map();
   for (const row of rows) {
     if (!byGroup.has(row.expectedGroup)) byGroup.set(row.expectedGroup, []);
@@ -83,7 +89,7 @@ function groupingAccuracy(rows) {
  * Le corpus ne contient aucun succès au même commit : un détecteur correct ne
  * déclare donc rien d'instable ici. Toute déclaration est un faux positif.
  */
-function falseFlakyRate(engine, rows) {
+export function falseFlakyRate(engine, rows) {
   const bySignature = new Map();
   for (const row of rows) {
     if (!bySignature.has(row.signature)) bySignature.set(row.signature, []);
@@ -107,56 +113,73 @@ function falseFlakyRate(engine, rows) {
   return { rate: flagged === 0 ? 0 : wrong / flagged, flagged, wrong, signatures: bySignature.size };
 }
 
-function percent(value) {
+/** Percentage with one decimal, French spacing. */
+export function percent(value) {
   return `${(value * 100).toFixed(1)} %`;
 }
 
-const engine = await loadEngine();
-const missing = missingEntryPoints(engine);
-if (missing.length > 0) {
-  console.error(`moteur incomplet : ${missing.join(', ')} — lancez « npm run build »`);
-  process.exit(2);
+/**
+ * Scores a labeled corpus with the engine: the scored rows, the three
+ * measures and the thresholds that are breached.
+ *
+ * Single source of truth: the gate (`npm run eval`) and the nightly report
+ * read the same numbers.
+ */
+export function evaluateCorpus(engine, corpus) {
+  const rows = corpus.failures.map((failure) => ({
+    ...failure,
+    occurredAt: failure.occurredAt ?? new Date(Date.parse(failure.log.slice(0, 24)) || Date.now()).toISOString(),
+    ...signOne(engine, failure),
+  }));
+
+  const grouping = groupingAccuracy(rows);
+  const flaky = falseFlakyRate(engine, rows);
+  const categoryMatches = rows.filter((row) => row.category === row.expectedCategory).length;
+  const categoryAccuracy = rows.length === 0 ? 0 : categoryMatches / rows.length;
+
+  const breaches = [];
+  if (grouping.accuracy < THRESHOLDS.grouping) breaches.push('regroupement sous le seuil');
+  if (flaky.rate >= THRESHOLDS.falseFlaky) breaches.push('trop de faux « instable »');
+  if (categoryAccuracy < THRESHOLDS.category) breaches.push('catégories sous le seuil');
+
+  return { rows, grouping, flaky, categoryMatches, categoryAccuracy, breaches };
 }
 
-const corpus = readCorpus();
-const rows = corpus.failures.map((failure) => ({
-  ...failure,
-  occurredAt: failure.occurredAt ?? new Date(Date.parse(failure.log.slice(0, 24)) || Date.now()).toISOString(),
-  ...signOne(engine, failure),
-}));
-
-const grouping = groupingAccuracy(rows);
-const flaky = falseFlakyRate(engine, rows);
-const categoryMatches = rows.filter((row) => row.category === row.expectedCategory).length;
-const categoryAccuracy = categoryMatches / rows.length;
-
-console.log(`Corpus : ${corpus.name} — ${rows.length} échecs, ${grouping.groups} groupes`);
-console.log(`  regroupement correct  ${percent(grouping.accuracy)}  (seuil ${percent(THRESHOLDS.grouping)})`);
-console.log(`  faux « instable »     ${percent(flaky.rate)}  (seuil < ${percent(THRESHOLDS.falseFlaky)}) ; ${flaky.flagged} signature(s) déclarée(s) instable(s) sur ${flaky.signatures}`);
-console.log(`  catégorie correcte    ${percent(categoryAccuracy)}  (seuil ${percent(THRESHOLDS.category)})`);
-
-if (grouping.scattered.length > 0) {
-  console.log('\nGroupes éclatés (plusieurs signatures pour un même groupe) :');
-  for (const item of grouping.scattered) {
-    console.log(`  - ${item.group} : ${item.distinct} signatures pour ${item.members} membres`);
+const invokedDirectly = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (invokedDirectly) {
+  const engine = await loadEngine();
+  const missing = missingEntryPoints(engine);
+  if (missing.length > 0) {
+    console.error(`moteur incomplet : ${missing.join(', ')} — lancez « npm run build »`);
+    process.exit(2);
   }
-}
 
-const categoryMisses = rows.filter((row) => row.category !== row.expectedCategory);
-if (categoryMisses.length > 0) {
-  console.log('\nCatégories divergentes :');
-  for (const row of categoryMisses.slice(0, 12)) {
-    console.log(`  - ${row.id} : attendu ${row.expectedCategory}, obtenu ${row.category}`);
+  const corpus = readCorpus();
+  const { rows, grouping, flaky, categoryAccuracy, breaches } = evaluateCorpus(engine, corpus);
+
+  console.log(`Corpus : ${corpus.name} — ${rows.length} échecs, ${grouping.groups} groupes`);
+  console.log(`  regroupement correct  ${percent(grouping.accuracy)}  (seuil ${percent(THRESHOLDS.grouping)})`);
+  console.log(`  faux « instable »     ${percent(flaky.rate)}  (seuil < ${percent(THRESHOLDS.falseFlaky)}) ; ${flaky.flagged} signature(s) déclarée(s) instable(s) sur ${flaky.signatures}`);
+  console.log(`  catégorie correcte    ${percent(categoryAccuracy)}  (seuil ${percent(THRESHOLDS.category)})`);
+
+  if (grouping.scattered.length > 0) {
+    console.log('\nGroupes éclatés (plusieurs signatures pour un même groupe) :');
+    for (const item of grouping.scattered) {
+      console.log(`  - ${item.group} : ${item.distinct} signatures pour ${item.members} membres`);
+    }
   }
-}
 
-const failures = [];
-if (grouping.accuracy < THRESHOLDS.grouping) failures.push('regroupement sous le seuil');
-if (flaky.rate >= THRESHOLDS.falseFlaky) failures.push('trop de faux « instable »');
-if (categoryAccuracy < THRESHOLDS.category) failures.push('catégories sous le seuil');
+  const categoryMisses = rows.filter((row) => row.category !== row.expectedCategory);
+  if (categoryMisses.length > 0) {
+    console.log('\nCatégories divergentes :');
+    for (const row of categoryMisses.slice(0, 12)) {
+      console.log(`  - ${row.id} : attendu ${row.expectedCategory}, obtenu ${row.category}`);
+    }
+  }
 
-if (failures.length > 0) {
-  console.error(`\nJUSTESSE INSUFFISANTE : ${failures.join(', ')}`);
-  process.exit(1);
+  if (breaches.length > 0) {
+    console.error(`\nJUSTESSE INSUFFISANTE : ${breaches.join(', ')}`);
+    process.exit(1);
+  }
+  console.log('\nJustesse conforme au § 18.');
 }
-console.log('\nJustesse conforme au § 18.');
