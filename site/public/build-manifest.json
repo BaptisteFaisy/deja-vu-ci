@@ -1,6 +1,6 @@
 {
-  "empreinte": "24e55a51bddca0157ceead94b2db91aefc0d9a30cc96a04b189e16cc43dffa70",
-  "sources": 82,
+  "empreinte": "21b60af5ad3207fd18eef2d33053dd4a2d6e41e600fe2f564748ae7c108f4186",
+  "sources": 83,
   "embarquees": [
     "apps/brain/src/actions/confirm-resolution.ts",
     "apps/brain/src/actions/context.ts",
@@ -30,6 +30,10 @@
     "apps/brain/src/ui/format.ts",
     "apps/brain/src/ui/i18n.ts",
     "apps/sensor/src/pure/prCardView.ts",
+    "data/golden/cost.json",
+    "data/golden/diagnostics.json",
+    "data/golden/meta.json",
+    "data/golden/tickets.json",
     "data/sample/occurrences.json",
     "docs/SBOM.json",
     "integrations/adapters/github.js",
@@ -96,6 +100,7 @@
     "site/src/panels/justesse.ts",
     "site/src/panels/pr-donnees.ts",
     "site/src/panels/pr.ts",
+    "site/src/panels/preuves-donnees.ts",
     "site/src/panels/preuves.ts",
     "site/src/panels/registry.ts",
     "site/src/panels/replay.ts",
@@ -116,6 +121,6 @@
     "site/src/render/sections.ts",
     "site/src/state/workspace.ts"
   ],
-  "octets": 298180,
+  "octets": 322008,
   "avertissements": 1
 }
