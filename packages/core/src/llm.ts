@@ -7,7 +7,7 @@
  * model never breaks the pipeline: the deterministic fallback is used instead.
  */
 
-import { createHash } from 'node:crypto';
+import { createHash } from 'crypto';
 import type { Category, ErrorBlock } from './types.js';
 
 /** Minimal contract of the model used as a fallback. */

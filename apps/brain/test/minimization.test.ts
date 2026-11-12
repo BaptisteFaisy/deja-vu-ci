@@ -27,11 +27,10 @@ import { DEFAULT_SETTINGS } from '../src/pure/defaults';
 import {
   DEFAULT_EXCERPT_POLICY,
   MINIMIZE_POLICIES,
-  applyExcerptPolicy,
-  excerptFingerprint,
   isMinimizePolicy,
   policyOr,
 } from '../src/pure/excerptPolicy';
+import { applyExcerptPolicy, excerptFingerprint } from '../src/pure/excerptApply';
 import { excerptPolicyOf, toSettingsPayload } from '../src/pure/settingsSchema';
 import { FakeConsumerEngine, FakeConsumerStore, FakeTicketApplier } from './fakes/consumer';
 

@@ -34,12 +34,8 @@ import {
   proposeQuarantine as proposeQuarantineAction,
   proposeQuarantineData,
 } from './actions/propose-quarantine';
-import {
-  assembleMergePreview,
-  assembleSplitPreview,
-  isSplitCriterionKey,
-  type SplitCriterionKey,
-} from './pure/curation';
+import { isSplitCriterionKey, type SplitCriterionKey } from './pure/curation';
+import { assembleMergePreview, assembleSplitPreview } from './pure/curationCompute';
 import { ingest } from './ingest';
 import { createQueryHandler, issueContextData, memoryPageData } from './query';
 import { createUniversalHandler } from './universal';
