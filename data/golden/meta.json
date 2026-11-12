@@ -1,0 +1,11 @@
+{
+  "goldenVersion": 1,
+  "generator": "tools/gen/golden.mjs",
+  "dataset": "payments-api-ci-memory",
+  "datasetSha256": "a52d64c33178ea82c7dda5f4add2a6dbc04bec78776d98ba760608b7268c2f18",
+  "referenceNow": "2026-11-14T11:40:00.000Z",
+  "failures": 40,
+  "signatures": 15,
+  "diagnostics": 40,
+  "tickets": 26
+}

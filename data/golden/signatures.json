@@ -1,0 +1,152 @@
+[
+  {
+    "id": "0da29ed003d6d8a8",
+    "familyId": "414b5b36811373d9",
+    "category": "infrastructure",
+    "status": "known",
+    "occurrences": 8,
+    "firstSeen": "2026-11-11T10:00:00.000Z",
+    "lastSeen": "2026-11-11T10:12:00.000Z",
+    "issueKey": null
+  },
+  {
+    "id": "2a7ec18e81977617",
+    "familyId": "40e5d99d365b2546",
+    "category": "test",
+    "status": "new",
+    "occurrences": 1,
+    "firstSeen": "2026-11-05T08:35:00.000Z",
+    "lastSeen": "2026-11-05T08:35:00.000Z",
+    "issueKey": null
+  },
+  {
+    "id": "2ad03492867ad617",
+    "familyId": "a282da12173c191a",
+    "category": "timeout",
+    "status": "new",
+    "occurrences": 1,
+    "firstSeen": "2026-11-14T09:20:00.000Z",
+    "lastSeen": "2026-11-14T09:20:00.000Z",
+    "issueKey": null
+  },
+  {
+    "id": "323b47df64564529",
+    "familyId": "dc39a393ccbf3279",
+    "category": "test",
+    "status": "new",
+    "occurrences": 1,
+    "firstSeen": "2026-11-12T08:00:00.000Z",
+    "lastSeen": "2026-11-12T08:00:00.000Z",
+    "issueKey": null
+  },
+  {
+    "id": "3505ee7f72965299",
+    "familyId": "a6ecacc6273c3bfe",
+    "category": "test",
+    "status": "new",
+    "occurrences": 1,
+    "firstSeen": "2026-11-09T08:50:00.000Z",
+    "lastSeen": "2026-11-09T08:50:00.000Z",
+    "issueKey": null
+  },
+  {
+    "id": "4689afc61c5a42e0",
+    "familyId": "919962cc3f2034a2",
+    "category": "compile",
+    "status": "new",
+    "occurrences": 1,
+    "firstSeen": "2026-11-10T07:15:00.000Z",
+    "lastSeen": "2026-11-10T07:15:00.000Z",
+    "issueKey": null
+  },
+  {
+    "id": "4b6b8782b5558e1e",
+    "familyId": "6084e0f47c223403",
+    "category": "test",
+    "status": "new",
+    "occurrences": 1,
+    "firstSeen": "2026-11-04T07:40:00.000Z",
+    "lastSeen": "2026-11-04T07:40:00.000Z",
+    "issueKey": null
+  },
+  {
+    "id": "510a30497d352937",
+    "familyId": "86a43af9b97df2d1",
+    "category": "unknown",
+    "status": "regression",
+    "occurrences": 3,
+    "firstSeen": "2026-11-03T08:00:00.000Z",
+    "lastSeen": "2026-11-13T09:50:00.000Z",
+    "issueKey": null
+  },
+  {
+    "id": "67a63eac27b0d23d",
+    "familyId": "4a8f75bdbad6cea2",
+    "category": "compile",
+    "status": "new",
+    "occurrences": 1,
+    "firstSeen": "2026-11-06T09:10:00.000Z",
+    "lastSeen": "2026-11-06T09:10:00.000Z",
+    "issueKey": null
+  },
+  {
+    "id": "8b94841020ff38ad",
+    "familyId": "7273575103cfe337",
+    "category": "test",
+    "status": "flaky",
+    "occurrences": 17,
+    "firstSeen": "2026-11-01T07:10:00.000Z",
+    "lastSeen": "2026-11-14T09:00:00.000Z",
+    "issueKey": "CI-1"
+  },
+  {
+    "id": "a22a5c9406079ede",
+    "familyId": "233a99fa5befe74f",
+    "category": "test",
+    "status": "new",
+    "occurrences": 1,
+    "firstSeen": "2026-11-08T08:10:00.000Z",
+    "lastSeen": "2026-11-08T08:10:00.000Z",
+    "issueKey": null
+  },
+  {
+    "id": "b2737785dd7e524d",
+    "familyId": "f6aa84c0bb6550a3",
+    "category": "infrastructure",
+    "status": "new",
+    "occurrences": 1,
+    "firstSeen": "2026-11-14T10:20:00.000Z",
+    "lastSeen": "2026-11-14T10:20:00.000Z",
+    "issueKey": null
+  },
+  {
+    "id": "e2c2ae39a0041eed",
+    "familyId": "b3b8635dac235d9e",
+    "category": "compile",
+    "status": "new",
+    "occurrences": 1,
+    "firstSeen": "2026-11-13T08:25:00.000Z",
+    "lastSeen": "2026-11-13T08:25:00.000Z",
+    "issueKey": null
+  },
+  {
+    "id": "e9b5fa12e033e2a6",
+    "familyId": "6b0e32a395a75bdf",
+    "category": "test",
+    "status": "new",
+    "occurrences": 1,
+    "firstSeen": "2026-11-11T09:25:00.000Z",
+    "lastSeen": "2026-11-11T09:25:00.000Z",
+    "issueKey": null
+  },
+  {
+    "id": "fb6c03b1c83342fc",
+    "familyId": "f1583321670b3383",
+    "category": "style",
+    "status": "new",
+    "occurrences": 1,
+    "firstSeen": "2026-11-07T07:25:00.000Z",
+    "lastSeen": "2026-11-07T07:25:00.000Z",
+    "issueKey": null
+  }
+]
