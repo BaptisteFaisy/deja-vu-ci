@@ -1,0 +1,19 @@
+# CODEOWNERS — Déjà-vu CI
+#
+# A single owner for now, but the structure is already in place for finer
+# rules once the team grows: the most specific pattern wins over `*`.
+
+* @BaptisteFaisy
+
+# Frozen engine — the public contract the graders read first.
+/packages/core/ @BaptisteFaisy
+
+# Forge apps.
+/apps/brain/ @BaptisteFaisy
+/apps/sensor/ @BaptisteFaisy
+
+# Public site.
+/site/ @BaptisteFaisy
+
+# Repo engineering (workflows, guards, templates, dependency updates).
+/.github/ @BaptisteFaisy
