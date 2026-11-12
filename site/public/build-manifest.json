@@ -1,8 +1,9 @@
 {
-  "empreinte": "9aef93a014e44fd6a7e1669162d4667754561f34f791de09a3ab1948f5c2cbc5",
-  "sources": 69,
+  "empreinte": "a64ef03aa8c9274e1f2eb86b3437e05b5037818aa297198e0432a4d53e753e78",
+  "sources": 71,
   "embarquees": [
     "apps/brain/src/actions/engine.ts",
+    "apps/brain/src/pure/costTrend.ts",
     "apps/brain/src/pure/excerptPolicy.ts",
     "data/sample/occurrences.json",
     "docs/SBOM.json",
@@ -48,6 +49,8 @@
     "site/src/lib/nodeGlobals.ts",
     "site/src/lib/sha256.ts",
     "site/src/main.ts",
+    "site/src/panels/cout-donnees.ts",
+    "site/src/panels/cout-rendu.ts",
     "site/src/panels/cout.ts",
     "site/src/panels/curate.ts",
     "site/src/panels/erreur-analyse.ts",
@@ -72,6 +75,6 @@
     "site/src/render/sections.ts",
     "site/src/state/workspace.ts"
   ],
-  "octets": 153513,
+  "octets": 168456,
   "avertissements": 1
 }
