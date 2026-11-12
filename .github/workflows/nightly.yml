@@ -1,0 +1,196 @@
+name: nightly
+
+# Nightly proof — the evidence that regenerates itself.
+#
+# Every night this workflow replays the sample dataset, re-measures accuracy
+# on the labelled corpus, runs the whole test suite, checks the integrity of
+# the repository (Forge manifests, SBOM, site bundle fingerprint) and writes
+# the real numbers into `docs/NIGHTLY-REPORT.md`. The file is pushed to the
+# default branch only when it changed, by the workflow bot, on top of the
+# latest commit: nothing is ever rewritten and no protection is bypassed.
+#
+# This is not a merge gate: it runs after the fact, on a schedule, so it may
+# take longer than the budget a review verdict has to respect (see the
+# exemption comment on the timeout below). Everything it publishes is built by
+# `tools/nightly-report.mjs`, which is unit-tested offline; this file only
+# orchestrates.
+#
+# No secret is used: the run talks neither to Atlassian nor to an LLM.
+on:
+  schedule:
+    # Every night at 03:17 UTC (an odd minute keeps the runner queue calm).
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# One proof at a time. A run is never cancelled: cancelling half way would
+# leave the published report describing a run that did not finish.
+concurrency:
+  group: nightly-proof
+  cancel-in-progress: false
+
+jobs:
+  measure:
+    name: nightly-measure
+    runs-on: [self-hosted, linux, x64, deja-vu-ci-worker]
+    timeout-minutes: 10 # CI-BUDGET-EXEMPT: the nightly proof is not a merge gate; it builds the engine, replays the sample, re-measures the corpus and runs the whole suite
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          clean: false
+
+      # Persistent self-hosted runners: a leftover folder from a previous run
+      # could skew the checks. node_modules is kept (npm ci replaces it).
+      - name: Clean the workspace
+        shell: bash
+        run: git clean -ffdx -e node_modules
+
+      # The /tmp of the runners is a saturable tmpfs: temporaries go to disk.
+      - name: Temporaries on disk (never in the tmpfs /tmp)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.cache/ci-tmp"
+          echo "TMPDIR=$HOME/.cache/ci-tmp" >> "$GITHUB_ENV"
+          echo "NIGHTLY_DIR=$HOME/.cache/ci-tmp/nightly-$GITHUB_RUN_ID" >> "$GITHUB_ENV"
+
+      # Self-hosted runners do not have Node on the PATH.
+      - name: Node of the worker
+        shell: bash
+        run: |
+          set -euo pipefail
+          NODE_BIN="$HOME/.local/node/bin"
+          if [ ! -x "$NODE_BIN/node" ]; then
+            echo "::error::Node not found in $NODE_BIN (worker installation missing)"
+            exit 1
+          fi
+          echo "$NODE_BIN" >> "$GITHUB_PATH"
+          "$NODE_BIN/node" --version
+
+      - name: Dependencies (runner cache, reinstall when the lock changes)
+        shell: bash
+        run: |
+          set -euo pipefail
+          HASH="$(sha256sum package-lock.json | cut -d' ' -f1)"
+          STAMP="node_modules/.ci-lock-hash"
+          if [ -d node_modules ] && [ -f "$STAMP" ] && [ "$(cat "$STAMP")" = "$HASH" ]; then
+            echo "node_modules cache up to date ($HASH) — no reinstall"
+          else
+            npm ci --prefer-offline --no-audit --no-fund
+            printf '%s' "$HASH" > "$STAMP"
+          fi
+
+      # Gate 1 — the sample dataset replayed through the real chain. The tool
+      # exits non-zero when an expectation of the sample is not met.
+      - name: Replay the sample dataset
+        shell: bash
+        run: npm run replay
+
+      # Gate 2 — accuracy on the 100 labelled failures (grouping, false
+      # "flaky", categories). The tool exits non-zero below a threshold.
+      - name: Measure accuracy
+        shell: bash
+        run: npm run eval
+
+      # Gate 3 — the whole suite. The JSON report feeds the published numbers.
+      - name: Run the test suite
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$NIGHTLY_DIR"
+          npx vitest run --reporter=dot --reporter=json --outputFile="$NIGHTLY_DIR/vitest-raw.json"
+
+      - name: Collect the numbers of the run
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/nightly-report.mjs tests --vitest "$NIGHTLY_DIR/vitest-raw.json" --out "$NIGHTLY_DIR/tests.json"
+          node tools/nightly-report.mjs collect --out-dir "$NIGHTLY_DIR"
+
+      # Gate 4 — the repository still agrees with itself: the Forge manifests
+      # against the official schema, the committed SBOM, and the fingerprint of
+      # the published site bundle.
+      - name: Check the integrity of the repository
+        shell: bash
+        run: node tools/nightly-report.mjs checks --out "$NIGHTLY_DIR/checks.json"
+
+      # Even on a red night the numbers stay readable: the artifact is the
+      # trace, and nothing is hidden by a permissive flag.
+      - name: Keep the collected numbers
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-numbers-${{ github.run_id }}
+          path: ${{ env.NIGHTLY_DIR }}
+          if-no-files-found: warn
+          retention-days: 14
+
+  proof:
+    name: nightly-proof
+    needs: measure
+    runs-on: [self-hosted, linux, x64, deja-vu-ci-worker]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The report is published on the default branch, whatever the ref
+          # that triggered the run. Credentials are kept: the bot pushes.
+          ref: ${{ github.event.repository.default_branch || 'main' }}
+          fetch-depth: 1
+          persist-credentials: true
+
+      - name: Node of the worker
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "$HOME/.local/node/bin" >> "$GITHUB_PATH"
+          node --version
+
+      - name: Download the numbers of the run
+        uses: actions/download-artifact@v4
+        with:
+          name: nightly-numbers-${{ github.run_id }}
+          path: ${{ runner.temp }}/nightly
+
+      - name: Render the report
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/nightly-report.mjs render \
+            --inputs "${{ runner.temp }}/nightly" \
+            --out docs/NIGHTLY-REPORT.md \
+            --date "$(date -u +%F)" \
+            --commit "$GITHUB_SHA"
+
+      # Conditional publication: only a report that actually differs from the
+      # committed one becomes a commit. The bot signs the commit, rebases on
+      # top of the latest default branch and never rewrites a human commit.
+      - name: Publish the report on the default branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          REPORT="docs/NIGHTLY-REPORT.md"
+          if git diff --quiet -- "$REPORT"; then
+            echo "::notice::the report did not change — nothing to publish"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$REPORT"
+          git commit --signoff -m "docs(nightly): regenerate the proof report"
+          if ! git push origin HEAD:main; then
+            echo "::notice::the branch moved during the run — rebasing and pushing again"
+            git fetch --depth=200 origin main
+            git rebase FETCH_HEAD
+            if ! git push origin HEAD:main; then
+              echo "::error::publication refused: the report stays in the artifact nightly-numbers-$GITHUB_RUN_ID"
+              exit 1
+            fi
+          fi
+          echo "::notice::proof published: $(git rev-parse --short HEAD)"
