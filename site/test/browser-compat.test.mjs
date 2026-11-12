@@ -22,7 +22,10 @@ import { PUBLIC, RACINE } from '../../tools/build-site.mjs';
 const manifeste = JSON.parse(readFileSync(join(PUBLIC, 'build-manifest.json'), 'utf8'));
 const sources = manifeste.embarquees.filter((chemin) => chemin.endsWith('.ts'));
 
-/** Les primitives de `node:crypto` que le substitut du site fournit. */
+/** Les modules intégrés à Node (forme nue) — un seul est autorisé : `crypto`. */
+const INTEGRES = ['crypto', 'fs', 'path', 'os', 'http', 'https', 'url', 'util', 'child_process', 'stream', 'buffer', 'events', 'zlib', 'net', 'tls', 'worker_threads'];
+
+/** Les primitives de `crypto` que le substitut du site fournit. */
 const PRIMITIVES = ['createHash', 'createHmac', 'timingSafeEqual', 'randomBytes', 'type Hash'];
 
 /** Tous les identifiants importés d'un module, sur une instruction d'import. */
@@ -40,11 +43,13 @@ describe('compatibilité navigateur', () => {
     expect(sources.length).toBeGreaterThan(20);
   });
 
-  it('n’embarque aucun module Node autre que node:crypto', () => {
+  it('n’embarque aucun module Node autre que crypto', () => {
     for (const chemin of sources) {
       const code = readFileSync(join(RACINE, chemin), 'utf8');
-      for (const module of code.matchAll(/from\s*'(node:[^']+)'/g)) {
-        expect(module[1], `${chemin} importe ${module[1]}`).toBe('node:crypto');
+      for (const module of code.matchAll(/from\s*'((?:node:)?[a-z_/]+)'/g)) {
+        const nom = module[1];
+        if (!nom.startsWith('node:') && !INTEGRES.includes(nom)) continue;
+        expect(nom.replace('node:', ''), `${chemin} importe ${nom}`).toBe('crypto');
       }
     }
   });
@@ -52,8 +57,10 @@ describe('compatibilité navigateur', () => {
   it('n’utilise que les primitives fournies par le substitut', () => {
     for (const chemin of sources) {
       const code = readFileSync(join(RACINE, chemin), 'utf8');
-      for (const nom of importsDe(code, 'node:crypto')) {
-        expect(PRIMITIVES, `${chemin} importe ${nom}`).toContain(nom);
+      for (const forme of ['crypto', 'node:crypto']) {
+        for (const nom of importsDe(code, forme)) {
+          expect(PRIMITIVES, `${chemin} importe ${nom}`).toContain(nom);
+        }
       }
     }
   });

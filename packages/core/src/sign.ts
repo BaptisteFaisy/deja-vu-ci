@@ -1,13 +1,13 @@
 /**
  * Signature computation (§ 9.3).
  *
- * Produces deterministic 16-hex fingerprints via SHA-256 (node:crypto).
+ * Produces deterministic 16-hex fingerprints via SHA-256 (crypto).
  * - signatureOf: category | errorType | message | frames (without line numbers)
  * - familyOf: category | errorType | message
  * - signatureShort: "S-" + 3 decimal digits derived from the fingerprint.
  */
 
-import { createHash } from 'node:crypto';
+import { createHash } from 'crypto';
 import type { ErrorBlock, SignatureKey } from './types.js';
 
 /**

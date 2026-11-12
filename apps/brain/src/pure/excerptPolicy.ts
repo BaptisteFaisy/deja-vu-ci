@@ -15,11 +15,14 @@
  * to hold less picks `masked-snippet` (a bounded, masked excerpt) or `hash-only`
  * (no text at all — the fingerprint still correlates the failures).
  *
- * Pure module: no `@forge/*` import, no network.
+ * **Split in two on purpose.** This file holds the constants, the types and the
+ * guards the screens import; it has no Node import and no engine import, so the
+ * Forge UI Kit bundle (a web target, Node built-ins disabled) can reach it.
+ * Applying a policy hashes and masks — that half lives in `excerptApply.ts`,
+ * for the backend only. `test/ui-bundle.test.ts` guards the boundary.
+ *
+ * Pure module: no `@forge/*` import, no network, no Node built-in.
  */
-
-import { createHash } from 'node:crypto';
-import { maskSecrets } from '@dejavu/core';
 
 /** The three retention policies, from the most to the least minimizing. */
 export const MINIMIZE_POLICIES = ['hash-only', 'masked-snippet', 'full'] as const;
@@ -68,50 +71,4 @@ export function isMinimizePolicy(value: unknown): value is MinimizePolicy {
 /** The policy to apply: the stored one when readable, the default otherwise. */
 export function policyOr(value: unknown): MinimizePolicy {
   return isMinimizePolicy(value) ? value : DEFAULT_EXCERPT_POLICY;
-}
-
-/** Stable 16-hex fingerprint of a raw excerpt. */
-export function excerptFingerprint(text: string): string {
-  return createHash('sha256').update(text).digest('hex').slice(0, 16);
-}
-
-/** UTF-8 size of a text, in bytes. */
-function byteSize(text: string): number {
-  return Buffer.byteLength(text, 'utf8');
-}
-
-/**
- * Reduces an excerpt to the strict minimum `policy` allows.
- *
- * The fingerprint is derived from the **raw** text, so the same excerpt
- * fingerprints identically under every policy; secrets are masked before
- * anything is retained — even under `full`, a raw secret never persists.
- * Pure: it never mutates its input and depends on no clock or storage.
- */
-export function applyExcerptPolicy(
-  excerpt: { text: string; fingerprint?: string },
-  policy: MinimizePolicy = DEFAULT_EXCERPT_POLICY,
-  maxChars: number = SNIPPET_CHARS,
-): MinimizedExcerpt {
-  const fingerprint = excerpt.fingerprint ?? excerptFingerprint(excerpt.text);
-
-  if (policy === 'hash-only') {
-    return { fingerprint, masked: false, truncated: false, bytes: 0 };
-  }
-
-  const maskedText = maskSecrets(excerpt.text).text;
-
-  if (policy === 'full') {
-    return {
-      fingerprint,
-      text: maskedText,
-      masked: true,
-      truncated: false,
-      bytes: byteSize(maskedText),
-    };
-  }
-
-  const truncated = maskedText.length > maxChars;
-  const text = truncated ? maskedText.slice(0, maxChars) : maskedText;
-  return { fingerprint, text, masked: true, truncated, bytes: byteSize(text) };
 }

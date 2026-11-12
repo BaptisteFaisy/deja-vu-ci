@@ -118,6 +118,7 @@ export async function buildSite() {
       // `site/test/sha256.test.ts` et `site/test/node-globals.test.ts`, et sur
       // les identifiants réels par `site/test/shim.test.ts`.
       'node:crypto': join(SITE, 'src/lib/nodeCryptoShim.ts'),
+      'crypto': join(SITE, 'src/lib/nodeCryptoShim.ts'),
     },
     // `Buffer` est un global Node : le produit compte et tronque des octets
     // avec. esbuild remplace toute référence libre par le substitut du site.

@@ -23,12 +23,8 @@ import {
   type SignatureStatus,
   type TestStats,
 } from '@dejavu/core';
-import {
-  computeCostTrend,
-  textBar,
-  trendMax,
-  type CostTrend,
-} from '../../../apps/brain/src/pure/costTrend';
+import { textBar, trendMax, type CostTrend } from '../../../apps/brain/src/pure/costTrend';
+import { computeCostTrend } from '../../../apps/brain/src/pure/costTrendCompute';
 import type { Lang } from '../lib/i18n';
 
 /** Le rapport du moteur, réexporté : le rendu n'a pas à connaître `core`. */

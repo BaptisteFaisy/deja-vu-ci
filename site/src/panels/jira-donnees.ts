@@ -38,7 +38,8 @@ import {
 } from '../../../apps/brain/src/ui/format';
 import { issueContextText, NO_KNOWN_FAILURE } from '../../../apps/brain/src/pure/issueContextText';
 import { assembleIncident, type IncidentPanel } from '../../../apps/brain/src/pure/incident';
-import { computeCostTrend, textBar, trendMax, type CostTrend } from '../../../apps/brain/src/pure/costTrend';
+import { textBar, trendMax, type CostTrend } from '../../../apps/brain/src/pure/costTrend';
+import { computeCostTrend } from '../../../apps/brain/src/pure/costTrendCompute';
 import { buildMemoryHealth, type MemoryHealth } from '../../../apps/brain/src/pure/memoryHealth';
 import {
   auditActionOfTicket,
@@ -49,11 +50,11 @@ import {
 } from '../../../apps/brain/src/pure/auditLog';
 import { buildExport, type MemoryExport } from '../../../apps/brain/src/pure/exportMemory';
 import {
-  applyExcerptPolicy,
   MINIMIZE_POLICIES,
   type MinimizedExcerpt,
   type MinimizePolicy,
 } from '../../../apps/brain/src/pure/excerptPolicy';
+import { applyExcerptPolicy } from '../../../apps/brain/src/pure/excerptApply';
 import {
   coerceSettingsPatch,
   excerptPolicyOf,
