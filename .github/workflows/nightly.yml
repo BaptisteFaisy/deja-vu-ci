@@ -157,7 +157,7 @@ jobs:
           "$NODE_BIN/node" --version
 
       - name: Download the numbers of the run
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: nightly-numbers-${{ github.run_id }}
           path: ${{ runner.temp }}/nightly
