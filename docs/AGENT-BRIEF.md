@@ -1,6 +1,6 @@
 # AGENT-BRIEF — règles communes aux sous-agents
 
-Tu travailles sur le dépôt **BaptisteFaisy/deja-vu-ci** (Déjà-vu CI, Codegeist 2026, apps Forge).
+Tu travailles sur le dépôt **Tradoooo/deja-vu-ci** (Déjà-vu CI, Codegeist 2026, apps Forge).
 Lis d'abord, dans cet ordre : `docs/CONTRACTS.md` puis `packages/core/src/types.ts`.
 Tu n'as pas la mémoire de `b` : tout ce dont tu as besoin est dans ces deux fichiers.
 

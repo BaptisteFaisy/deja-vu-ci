@@ -32,7 +32,7 @@ works as written** — the commands are the contract the lots were built against
 
 ## 0. Path 0 — nothing to install (30 seconds)
 
-**https://baptistefaisy.github.io/deja-vu-ci/** — open it, click **Replay the sample set**.
+**https://tradoooo.github.io/deja-vu-ci/** — open it, click **Replay the sample set**.
 
 The page runs the real engine (`packages/core`, unmodified) on the real sample dataset, in your
 browser: signatures, diagnostics with their facts, the ticket plan and the cost appear in one
@@ -49,7 +49,7 @@ installed apps show them where developers live (Jira and Bitbucket).
 This is the path every judge should take first: it needs nothing but Node.
 
 ```bash
-git clone https://github.com/BaptisteFaisy/deja-vu-ci.git
+git clone https://github.com/Tradoooo/deja-vu-ci.git
 cd deja-vu-ci
 npm ci
 npm run replay

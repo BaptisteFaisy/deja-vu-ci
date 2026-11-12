@@ -1,7 +1,7 @@
 # Déjà-vu CI — GitHub Actions integration
 
 A composite action that reports a failing step of a GitHub Actions workflow to
-the [Déjà-vu CI](https://github.com/BaptisteFaisy/deja-vu-ci) universal entry.
+the [Déjà-vu CI](https://github.com/Tradoooo/deja-vu-ci) universal entry.
 No `npm install`, no third-party tooling: `curl` + `bash`, exactly what the
 runners already have.
 
@@ -27,7 +27,7 @@ jobs:
 
       - name: Report red builds to Déjà-vu CI
         if: failure()
-        uses: BaptisteFaisy/deja-vu-ci/integrations/github-action@main
+        uses: Tradoooo/deja-vu-ci/integrations/github-action@main
         with:
           brain-url: ${{ secrets.DEJAVU_BRAIN_URL }}
           secret-key: ${{ secrets.DEJAVU_PROJECT_KEY }}

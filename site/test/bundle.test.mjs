@@ -39,7 +39,7 @@ describe('site public publié', () => {
     expect(html).toContain('./bundle.js');
     expect(html).toContain('./styles.css');
     for (const attribute of html.matchAll(/(?:src|href)="([^"]+)"/g)) {
-      expect(attribute[1], attribute[1]).toMatch(/^(?:\.\/|#|https:\/\/github\.com\/BaptisteFaisy\/deja-vu-ci)/);
+      expect(attribute[1], attribute[1]).toMatch(/^(?:\.\/|#|https:\/\/github\.com\/Tradoooo\/deja-vu-ci)/);
     }
     expect(publie('styles.css')).not.toContain('@import');
     // Six origines apparaissent dans le bundle, et aucune n'est un chargement :
