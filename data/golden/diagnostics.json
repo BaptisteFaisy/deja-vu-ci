@@ -9,7 +9,7 @@
   "perOccurrence": [
     {
       "occurrenceId": "billing-service-new0009ccccccc-unit-tests (pytest)-0-2026-11-12T08:00:00.000Z",
-      "signatureId": "323b47df64564529",
+      "signatureId": "f82b080d2a316f11",
       "kind": "new",
       "action": "fix",
       "confidence": 0.6
@@ -177,7 +177,7 @@
     },
     {
       "occurrenceId": "payments-api-new0002bbbbbbb-unit-tests (pytest)-0-2026-11-05T08:35:00.000Z",
-      "signatureId": "2a7ec18e81977617",
+      "signatureId": "951307af952eebb1",
       "kind": "new",
       "action": "fix",
       "confidence": 0.6
@@ -198,14 +198,14 @@
     },
     {
       "occurrenceId": "payments-api-new0005eeeeeee-go test ./...-0-2026-11-08T08:10:00.000Z",
-      "signatureId": "a22a5c9406079ede",
+      "signatureId": "fe84e787c2201959",
       "kind": "new",
       "action": "fix",
       "confidence": 0.6
     },
     {
       "occurrenceId": "payments-api-new0006fffffff-jest-0-2026-11-09T08:50:00.000Z",
-      "signatureId": "3505ee7f72965299",
+      "signatureId": "d13f6506916959fd",
       "kind": "new",
       "action": "fix",
       "confidence": 0.85
@@ -254,7 +254,7 @@
     },
     {
       "occurrenceId": "payments-web-new0008bbbbbbb-jest-0-2026-11-11T09:25:00.000Z",
-      "signatureId": "e9b5fa12e033e2a6",
+      "signatureId": "32b7832785996ed4",
       "kind": "new",
       "action": "fix",
       "confidence": 0.85

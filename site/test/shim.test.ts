@@ -15,12 +15,21 @@ vi.mock('node:crypto', async () => await import('../src/lib/nodeCrypto'));
 
 const { runDemo } = await import('../src/lib/demo');
 
-/** Identifiants de signatures relevés avec `node:crypto` (15 signatures). */
+/**
+ * Identifiants de signatures relevés avec `node:crypto` (15 signatures).
+ *
+ * Valeurs **relevées**, pas choisies : cinq d'entre elles ont été re-relevées
+ * quand l'extraction a reconnu les rapports de tests structurés (pytest, jest,
+ * Go…) dans le journal brut — ces six échecs du jeu d'exemple portent désormais
+ * un `testName` et leur message vient du rapport plutôt que de la première
+ * ligne du bloc de journal. La répartition des diagnostics, le nombre de
+ * signatures, le plan de tickets et le coût sont inchangés.
+ */
 const IDS_DORES = [
   'b2737785dd7e524d', '2ad03492867ad617', '8b94841020ff38ad', '510a30497d352937',
-  'e2c2ae39a0041eed', '323b47df64564529', '0da29ed003d6d8a8', 'e9b5fa12e033e2a6',
-  '4689afc61c5a42e0', '3505ee7f72965299', 'a22a5c9406079ede', 'fb6c03b1c83342fc',
-  '67a63eac27b0d23d', '2a7ec18e81977617', '4b6b8782b5558e1e',
+  'e2c2ae39a0041eed', 'f82b080d2a316f11', '0da29ed003d6d8a8', '32b7832785996ed4',
+  '4689afc61c5a42e0', 'd13f6506916959fd', 'fe84e787c2201959', 'fb6c03b1c83342fc',
+  '67a63eac27b0d23d', '951307af952eebb1', '4b6b8782b5558e1e',
 ];
 
 /** Répartition relevée avec `node:crypto` (40 échecs). */

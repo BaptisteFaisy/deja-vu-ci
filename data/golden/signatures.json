@@ -10,16 +10,6 @@
     "issueKey": null
   },
   {
-    "id": "2a7ec18e81977617",
-    "familyId": "40e5d99d365b2546",
-    "category": "test",
-    "status": "new",
-    "occurrences": 1,
-    "firstSeen": "2026-11-05T08:35:00.000Z",
-    "lastSeen": "2026-11-05T08:35:00.000Z",
-    "issueKey": null
-  },
-  {
     "id": "2ad03492867ad617",
     "familyId": "a282da12173c191a",
     "category": "timeout",
@@ -30,23 +20,13 @@
     "issueKey": null
   },
   {
-    "id": "323b47df64564529",
-    "familyId": "dc39a393ccbf3279",
+    "id": "32b7832785996ed4",
+    "familyId": "088e437c08921141",
     "category": "test",
     "status": "new",
     "occurrences": 1,
-    "firstSeen": "2026-11-12T08:00:00.000Z",
-    "lastSeen": "2026-11-12T08:00:00.000Z",
-    "issueKey": null
-  },
-  {
-    "id": "3505ee7f72965299",
-    "familyId": "a6ecacc6273c3bfe",
-    "category": "test",
-    "status": "new",
-    "occurrences": 1,
-    "firstSeen": "2026-11-09T08:50:00.000Z",
-    "lastSeen": "2026-11-09T08:50:00.000Z",
+    "firstSeen": "2026-11-11T09:25:00.000Z",
+    "lastSeen": "2026-11-11T09:25:00.000Z",
     "issueKey": null
   },
   {
@@ -100,13 +80,13 @@
     "issueKey": "CI-1"
   },
   {
-    "id": "a22a5c9406079ede",
-    "familyId": "233a99fa5befe74f",
+    "id": "951307af952eebb1",
+    "familyId": "c30dee1c27029a1f",
     "category": "test",
     "status": "new",
     "occurrences": 1,
-    "firstSeen": "2026-11-08T08:10:00.000Z",
-    "lastSeen": "2026-11-08T08:10:00.000Z",
+    "firstSeen": "2026-11-05T08:35:00.000Z",
+    "lastSeen": "2026-11-05T08:35:00.000Z",
     "issueKey": null
   },
   {
@@ -120,6 +100,16 @@
     "issueKey": null
   },
   {
+    "id": "d13f6506916959fd",
+    "familyId": "d9e370077e1e6d69",
+    "category": "test",
+    "status": "new",
+    "occurrences": 1,
+    "firstSeen": "2026-11-09T08:50:00.000Z",
+    "lastSeen": "2026-11-09T08:50:00.000Z",
+    "issueKey": null
+  },
+  {
     "id": "e2c2ae39a0041eed",
     "familyId": "b3b8635dac235d9e",
     "category": "compile",
@@ -130,13 +120,13 @@
     "issueKey": null
   },
   {
-    "id": "e9b5fa12e033e2a6",
-    "familyId": "6b0e32a395a75bdf",
+    "id": "f82b080d2a316f11",
+    "familyId": "de67a8dd05a619e6",
     "category": "test",
     "status": "new",
     "occurrences": 1,
-    "firstSeen": "2026-11-11T09:25:00.000Z",
-    "lastSeen": "2026-11-11T09:25:00.000Z",
+    "firstSeen": "2026-11-12T08:00:00.000Z",
+    "lastSeen": "2026-11-12T08:00:00.000Z",
     "issueKey": null
   },
   {
@@ -147,6 +137,16 @@
     "occurrences": 1,
     "firstSeen": "2026-11-07T07:25:00.000Z",
     "lastSeen": "2026-11-07T07:25:00.000Z",
+    "issueKey": null
+  },
+  {
+    "id": "fe84e787c2201959",
+    "familyId": "5fec7f2744cddbee",
+    "category": "test",
+    "status": "new",
+    "occurrences": 1,
+    "firstSeen": "2026-11-08T08:10:00.000Z",
+    "lastSeen": "2026-11-08T08:10:00.000Z",
     "issueKey": null
   }
 ]
