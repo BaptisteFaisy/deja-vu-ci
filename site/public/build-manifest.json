@@ -1,10 +1,11 @@
 {
-  "empreinte": "a64ef03aa8c9274e1f2eb86b3437e05b5037818aa297198e0432a4d53e753e78",
-  "sources": 71,
+  "empreinte": "9de9bd313d8bfec9aa64e1ceaa3c2acc9b66d05252cce3a17b0b4396d2dd2a1e",
+  "sources": 72,
   "embarquees": [
     "apps/brain/src/actions/engine.ts",
     "apps/brain/src/pure/costTrend.ts",
     "apps/brain/src/pure/excerptPolicy.ts",
+    "apps/sensor/src/pure/prCardView.ts",
     "data/sample/occurrences.json",
     "docs/SBOM.json",
     "packages/bridge/src/index.ts",
@@ -59,6 +60,7 @@
     "site/src/panels/incident.ts",
     "site/src/panels/jira.ts",
     "site/src/panels/justesse.ts",
+    "site/src/panels/pr-donnees.ts",
     "site/src/panels/pr.ts",
     "site/src/panels/preuves.ts",
     "site/src/panels/registry.ts",
@@ -75,6 +77,6 @@
     "site/src/render/sections.ts",
     "site/src/state/workspace.ts"
   ],
-  "octets": 168456,
+  "octets": 175799,
   "avertissements": 1
 }
