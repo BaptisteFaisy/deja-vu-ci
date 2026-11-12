@@ -165,7 +165,11 @@ def fw_complete(api_url, key, model, messages):
     except Exception as exc:                                   # noqa: BLE001
         raise AgentError("appel Fireworks : %s" % str(exc)[:200])
     try:
-        return data["choices"][0]["message"]["content"]
+        message = data["choices"][0]["message"]
+        texte = message.get("content") or message.get("reasoning_content") or ""
+        if not texte:
+            raise AgentError("le modèle a répondu sans texte (content et reasoning_content vides)")
+        return texte
     except (KeyError, IndexError, TypeError):
         raise AgentError("réponse Fireworks illisible (pas de choices[0])")
 

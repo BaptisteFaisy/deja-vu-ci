@@ -162,7 +162,15 @@ def fw_complete(api_url, key, model, messages):
     except Exception as exc:                                   # noqa: BLE001
         raise AgentError("appel du fournisseur : %s" % str(exc)[:200])
     try:
-        return data["choices"][0]["message"]["content"]
+        message = data["choices"][0]["message"]
+        # Certains modèles « reasoning » (combo/cheap route aujourd'hui sur
+        # ali/deepseek-v4-pro) rendent le texte dans `reasoning_content` et
+        # laissent `content` vide : lire l'un ou l'autre, jamais une chaîne
+        # vide qui ferait croire à une réponse alors qu'il n'y en a pas.
+        texte = message.get("content") or message.get("reasoning_content") or ""
+        if not texte:
+            raise AgentError("le fournisseur a répondu sans texte (content et reasoning_content vides)")
+        return texte
     except (KeyError, IndexError, TypeError):
         raise AgentError("réponse du fournisseur illisible (pas de choices[0])")
 

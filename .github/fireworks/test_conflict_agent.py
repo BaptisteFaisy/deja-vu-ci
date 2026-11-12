@@ -474,3 +474,69 @@ class PlafondFichiersTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ReasoningContentTest(unittest.TestCase):
+    """Un modèle « reasoning » rend le texte dans `reasoning_content`.
+
+    Le nœud `combo/cheap` d'InferHub route aujourd'hui sur des modèles de
+    raisonnement (ali/deepseek-*) : leur `content` est vide et le texte arrive
+    dans `reasoning_content`. Sans ce cas, l'agent tournait en HTTP 200 sans
+    jamais lire la réponse.
+    """
+
+    def _response(self, message):
+        reponse = mock.Mock()
+        reponse.__enter__ = mock.Mock(return_value=reponse)
+        reponse.__exit__ = mock.Mock(return_value=False)
+        reponse.read.return_value = str(
+            {"choices": [{"message": message}]}
+        ).replace("'", '"').encode("utf-8")
+        return reponse
+
+    def test_lit_reasoning_content_quand_content_vide(self):
+        with mock.patch("urllib.request.urlopen",
+                        return_value=self._response(
+                            {"content": "", "reasoning_content": "LE TEXTE"})):
+            self.assertEqual(
+                conflict_agent.fw_complete("http://x", "K", "M", []), "LE TEXTE")
+
+    def test_prefere_content_quand_present(self):
+        with mock.patch("urllib.request.urlopen",
+                        return_value=self._response(
+                            {"content": "CONTENU", "reasoning_content": "RAISON"})):
+            self.assertEqual(
+                conflict_agent.fw_complete("http://x", "K", "M", []), "CONTENU")
+
+    def test_refuse_les_deux_vides(self):
+        with mock.patch("urllib.request.urlopen",
+                        return_value=self._response({"content": ""})):
+            with self.assertRaises(conflict_agent.AgentError):
+                conflict_agent.fw_complete("http://x", "K", "M", [])
+
+
+class ReasoningContentTest(unittest.TestCase):
+    """Un modèle « reasoning » rend le texte dans `reasoning_content`."""
+
+    def _response(self, message):
+        reponse = mock.Mock()
+        reponse.__enter__ = mock.Mock(return_value=reponse)
+        reponse.__exit__ = mock.Mock(return_value=False)
+        reponse.read.return_value = str({"choices": [{"message": message}]}).replace("'", '"').encode("utf-8")
+        return reponse
+
+    def test_lit_reasoning_content_quand_content_vide(self):
+        with mock.patch("urllib.request.urlopen",
+                        return_value=self._response({"content": "", "reasoning_content": "LE TEXTE"})):
+            self.assertEqual(conflict_agent.fw_complete("http://x", "K", "M", []), "LE TEXTE")
+
+    def test_prefere_content_quand_present(self):
+        with mock.patch("urllib.request.urlopen",
+                        return_value=self._response({"content": "CONTENU", "reasoning_content": "RAISON"})):
+            self.assertEqual(conflict_agent.fw_complete("http://x", "K", "M", []), "CONTENU")
+
+    def test_refuse_les_deux_vides(self):
+        with mock.patch("urllib.request.urlopen",
+                        return_value=self._response({"content": ""})):
+            with self.assertRaises(conflict_agent.AgentError):
+                conflict_agent.fw_complete("http://x", "K", "M", [])
