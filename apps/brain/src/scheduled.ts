@@ -13,9 +13,11 @@
  */
 
 import type { Occurrence, Settings, Signature } from '@dejavu/core';
+import type { MinimizePolicy } from './pure/excerptPolicy';
 import { planAndApplyTickets, type ConsumerDeps } from './pure/consume';
+import { recordAudit } from './pure/auditLog';
 import { coreConsumerEngine, jiraTicketApplier } from './consumer';
-import { loadSettings } from './settings';
+import { loadExcerptPolicy, loadSettings } from './settings';
 import { migrateOnce, type BrainSqlStore } from './sql';
 
 /** Summary of one daily run. */
@@ -26,6 +28,29 @@ export type ScheduledAnswer =
 /** Deps extended with the settings of the run (read once). */
 interface RunDeps extends ConsumerDeps {
   settings: Settings;
+}
+
+/**
+ * Remembers the purge of the day: its date feeds the health panel ("last
+ * purge"), and one journal line tells the operator what was removed. Both are
+ * best-effort — the purge itself already happened.
+ */
+async function recordPurge(
+  store: BrainSqlStore,
+  policy: MinimizePolicy,
+  purged: number,
+  now: Date,
+): Promise<void> {
+  try {
+    await store.saveAppPolicy(policy, now.toISOString());
+    await recordAudit(store, {
+      action: 'excerpts-purged',
+      detail: `${purged} raw excerpt(s) removed`,
+      at: now,
+    });
+  } catch {
+    // The journal never breaks the daily run.
+  }
 }
 
 /** Detects and stores the outbreak of one family, returns true when new. */
@@ -66,12 +91,16 @@ export function createScheduledHandler(store: BrainSqlStore) {
     try {
       await migrateOnce();
       const now = new Date();
-      const settings = await loadSettings(store);
+      const [settings, policy] = await Promise.all([
+        loadSettings(store),
+        loadExcerptPolicy(store),
+      ]);
       const purged = await store.purgeExpired(now);
+      await recordPurge(store, policy, purged, now);
       const deps: RunDeps = {
         store,
         engine: coreConsumerEngine(),
-        tickets: jiraTicketApplier(settings),
+        tickets: jiraTicketApplier(settings, { audit: store, now: () => now }),
         now: () => now,
         settings,
       };

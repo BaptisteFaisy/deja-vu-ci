@@ -46,6 +46,8 @@ import { createUniversalHandler } from './universal';
 import { createConsumerHandler, jiraTicketApplier } from './consumer';
 import { createScheduledHandler } from './scheduled';
 import { settingsData, saveSettingsData, loadSettings } from './settings';
+import { auditLogData, memoryExportData, memoryHealthData } from './memoryViews';
+import { recordAudit } from './pure/auditLog';
 import { replayEngine, replaySample as runReplaySample, type ReplayOutcome } from './seed';
 import { toSettingsPayload } from './pure/settingsSchema';
 import { DEFAULT_SETTINGS } from './pure/defaults';
@@ -166,7 +168,7 @@ export async function replaySample(): Promise<ReplayOutcome> {
     const settings = await loadSettings(store);
     return await runReplaySample({
       store,
-      tickets: jiraTicketApplier(settings),
+      tickets: jiraTicketApplier(settings, { audit: store }),
       engine: replayEngine(),
     });
   } catch (error) {
@@ -191,7 +193,15 @@ export async function curateMerge(payload?: unknown): Promise<unknown> {
   const body = (payload ?? {}) as { keepId?: unknown; dropId?: unknown };
   const keepId = typeof body.keepId === 'string' ? body.keepId.trim() : '';
   const dropId = typeof body.dropId === 'string' ? body.dropId.trim() : '';
-  return assembleMergePreview(store, keepId, dropId);
+  const answer = await assembleMergePreview(store, keepId, dropId);
+  if (answer.ok) {
+    await recordAudit(store, {
+      action: 'signature-merged',
+      signatureId: keepId,
+      detail: `absorbed ${dropId}, ${answer.data.movedOccurrences} occurrence(s) — preview`,
+    });
+  }
+  return answer;
 }
 
 /**
@@ -204,7 +214,15 @@ export async function curateSplit(payload?: unknown): Promise<unknown> {
   const criterion: SplitCriterionKey = isSplitCriterionKey(body.criterion)
     ? body.criterion
     : 'test-name';
-  return assembleSplitPreview(store, signatureId, criterion);
+  const answer = await assembleSplitPreview(store, signatureId, criterion);
+  if (answer.ok) {
+    await recordAudit(store, {
+      action: 'signature-split',
+      signatureId,
+      detail: `by ${criterion}, ${answer.data.groups.length} group(s) — preview`,
+    });
+  }
+  return answer;
 }
 
 /**
@@ -219,6 +237,37 @@ export async function quarantineProposal(payload?: unknown): Promise<unknown> {
   return proposeQuarantineData(engine, signatureId);
 }
 
+/**
+ * Resolver `audit-log` (project page, "What the app did" tab): the journal of
+ * the actions the app took — tickets created, comments posted, reopens,
+ * quarantine proposals, curation decisions — newest first.
+ */
+export async function auditLog(): Promise<unknown> {
+  const result = await auditLogData(store);
+  return result.ok ? { ok: true, entries: result.data } : result;
+}
+
+/**
+ * Resolver `memory-export` (project page, "Export" panel): the signatures,
+ * their occurrences and their resolutions as one CSV or JSON document, built
+ * here rather than in the browser, with a timestamped file name.
+ */
+export async function memoryExport(payload?: unknown): Promise<unknown> {
+  const body = (payload ?? {}) as { format?: unknown };
+  const result = await memoryExportData(store, body.format, new Date());
+  return result.ok ? { ok: true, ...result.data } : result;
+}
+
+/**
+ * Resolver `memory-health` (project page, small panel): how full the memory is
+ * against the platform's 1 GiB, how old its oldest failure is, and when the app
+ * last purged the raw excerpts it no longer needed.
+ */
+export async function memoryHealth(): Promise<unknown> {
+  const result = await memoryHealthData(store, new Date());
+  return result.ok ? { ok: true, health: result.data } : result;
+}
+
 /** The resolver the UI modules of the manifest point at. */
 const uiResolver = new Resolver();
 registerUiResolvers(uiResolver, {
@@ -230,6 +279,9 @@ registerUiResolvers(uiResolver, {
   curateMerge,
   curateSplit,
   quarantineProposal,
+  auditLog,
+  memoryExport,
+  memoryHealth,
 });
 
 /** Handler of `projectPageResolver`, `settingsPageResolver`, `issuePanelResolver`. */

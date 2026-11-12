@@ -33,8 +33,15 @@ import {
 } from '@dejavu/core';
 import { consumeIngest, type ConsumeResult, type ConsumerEngine, type LlmPort } from './pure/consume';
 import { commentBody, createIssueBody, findLastSynthesisAt, updateIssueBody } from './pure/jira';
+import {
+  auditActionOfTicket,
+  recordAudit,
+  ticketAuditDetail,
+  type AuditSink,
+} from './pure/auditLog';
+import { applyExcerptPolicy } from './pure/excerptPolicy';
 import { validateIngestPayload } from './pure/validate';
-import { loadSettings } from './settings';
+import { loadExcerptPolicy, loadSettings } from './settings';
 import { migrateOnce, type BrainSqlStore } from './sql';
 
 /** The engine port, wired to the real `@dejavu/core` functions. */
@@ -158,12 +165,42 @@ async function postComment(issueKey: string, text: string): Promise<void> {
   });
 }
 
+/** The journal side of the applier: where and when an action is recorded. */
+export interface TicketApplierOptions {
+  /** The journal of what the app did; absent = nothing is recorded. */
+  audit?: AuditSink;
+  /** The clock of the journal entries. */
+  now?: () => Date;
+}
+
+/** One journal line per ticket action the app really applied. */
+async function recordTicketAction(
+  options: TicketApplierOptions,
+  action: TicketAction,
+  signature: Signature,
+  issueKey: string | undefined,
+): Promise<void> {
+  const key = issueKey ?? action.issueKey;
+  const detail = ticketAuditDetail(action);
+  const at = options.now?.();
+  await recordAudit(options.audit, {
+    action: auditActionOfTicket(action.kind),
+    signatureId: signature.id,
+    ...(key ? { issueKey: key } : {}),
+    ...(detail ? { detail } : {}),
+    ...(at ? { at } : {}),
+  });
+}
+
 /**
  * The Jira side of the ticket plan (§ 11). Every action is best-effort:
  * a refused transition degrades to a comment, and a failure never aborts
  * the whole message — the memory (SQL) stays the source of truth.
+ *
+ * Each applied action also lands in the journal of what the app did, so the
+ * project page can show it. A journal failure never breaks the action.
  */
-export function jiraTicketApplier(settings: Settings) {
+export function jiraTicketApplier(settings: Settings, options: TicketApplierOptions = {}) {
   return {
     async lastCommentAt(issueKey: string, signatureId: string): Promise<string | undefined> {
       const response = await requestJira(assumeTrustedRoute(`/rest/api/3/issue/${issueKey}/comment`), {
@@ -177,7 +214,9 @@ export function jiraTicketApplier(settings: Settings) {
 
     async apply(action: TicketAction, signature: Signature): Promise<{ issueKey?: string }> {
       try {
-        return await applyOne(action, signature, settings);
+        const applied = await applyOne(action, signature, settings);
+        await recordTicketAction(options, action, signature, applied.issueKey);
+        return applied;
       } catch {
         return action.issueKey ? { issueKey: action.issueKey } : {};
       }
@@ -242,13 +281,20 @@ export async function consumeMessage(
   // string is still accepted so an older in-flight message stays consumable.
   const parsed = validateIngestPayload(typeof body === 'string' ? JSON.parse(body) : body);
   if (!parsed.ok) return { ok: false, error: parsed.error };
-  const settings = await loadSettings(store);
-  const llm = await createLlmPort(store);
+  const [settings, excerptPolicy, llm] = await Promise.all([
+    loadSettings(store),
+    loadExcerptPolicy(store),
+    createLlmPort(store),
+  ]);
   return consumeIngest(parsed.value, {
     store,
     engine: coreConsumerEngine(),
-    tickets: jiraTicketApplier(settings),
+    tickets: jiraTicketApplier(settings, { audit: store, now: () => now }),
     now: () => now,
+    // The retention policy of the project (§ 18, CI-18): `hash-only` keeps no
+    // text at all, `masked-snippet` a bounded masked excerpt, `full` the text.
+    excerptPolicy,
+    minimize: applyExcerptPolicy,
     ...(llm ? { llm } : {}),
   });
 }

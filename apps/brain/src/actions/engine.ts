@@ -23,6 +23,7 @@ import type {
   Signature,
   SignatureKey,
 } from '@dejavu/core';
+import type { AuditEntry } from '../pure/auditLog';
 
 /**
  * Sous-ensemble du `Store` de `@dejavu/core` réellement utilisé par les
@@ -40,6 +41,11 @@ export interface StoreLike {
   saveSignature(signature: Signature): Promise<void>;
   getSettings(): Promise<Settings>;
   findOutbreak(familyId: string): Promise<Outbreak | undefined>;
+  /**
+   * The journal of what the app did. Optional: a read-only double (or a store
+   * that predates the journal) simply records nothing.
+   */
+  saveAuditEntry?(entry: AuditEntry): Promise<void>;
 }
 
 /** Entrées d'extraction acceptées par le moteur (§ 9.1). */

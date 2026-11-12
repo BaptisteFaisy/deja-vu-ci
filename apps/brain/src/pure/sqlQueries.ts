@@ -20,6 +20,8 @@ import type {
   Signature,
   TestStats,
 } from '@dejavu/core';
+import type { AuditEntry } from './auditLog';
+import type { MemoryTable } from './memoryHealth';
 
 /** A statement and its parameters. */
 export interface SqlStatement {
@@ -154,6 +156,16 @@ export function selectAllSignatures(): SqlStatement {
   return { text: 'SELECT * FROM signature', params: [] };
 }
 
+/** Every occurrence (the memory export). */
+export function selectAllOccurrences(): SqlStatement {
+  return { text: 'SELECT * FROM occurrence', params: [] };
+}
+
+/** Every resolution (the memory export). */
+export function selectAllResolutions(): SqlStatement {
+  return { text: 'SELECT * FROM resolution', params: [] };
+}
+
 /** The signatures of one family (indexed on `signature.family_id`). */
 export function selectSignaturesByFamily(familyId: string): SqlStatement {
   return { text: 'SELECT * FROM signature WHERE family_id = ?', params: [familyId] };
@@ -223,6 +235,70 @@ export function selectExpiredExcerpts(nowIso: string): SqlStatement {
 export function deleteExcerpts(ids: string[]): SqlStatement {
   const placeholders = ids.map(() => '?').join(', ');
   return { text: `DELETE FROM raw_excerpt WHERE occurrence_id IN (${placeholders})`, params: [...ids] };
+}
+
+// ---------------------------------------------------------------------------
+// The journal of what the app did, and the app policy (lot brain-views).
+// ---------------------------------------------------------------------------
+
+/** One journal entry: append-only, idempotent under a platform retry. */
+export function upsertAuditEntry(entry: AuditEntry): SqlStatement {
+  return upsert(
+    'audit_log',
+    ['id', 'action_kind', 'signature_id', 'issue_key', 'detail', 'created_at'],
+    [
+      entry.id,
+      entry.action,
+      entry.signatureId ?? null,
+      entry.issueKey ?? null,
+      entry.detail ?? null,
+      entry.createdAt,
+    ],
+    ['id'],
+  );
+}
+
+/** The `limit` most recent journal entries, newest first. */
+export function selectAuditEntries(limit: number): SqlStatement {
+  return {
+    text: 'SELECT * FROM audit_log ORDER BY created_at DESC LIMIT ?',
+    params: [limit],
+  };
+}
+
+/**
+ * The row count of one table (the health panel).
+ *
+ * The table name comes from the `MemoryTable` union — a literal chosen by this
+ * module's caller, never a value read from a request — so it is the one
+ * identifier the builders place in the statement text.
+ */
+export function selectRowCount(table: MemoryTable): SqlStatement {
+  return { text: `SELECT COUNT(*) AS row_count FROM ${table}`, params: [] };
+}
+
+/** The instant of the oldest occurrence, when the memory holds one. */
+export function selectOldestOccurrence(): SqlStatement {
+  return { text: 'SELECT MIN(occurred_at) AS oldest_at FROM occurrence', params: [] };
+}
+
+/** The app policy row: retention policy of the excerpts, date of the last purge. */
+export function selectAppPolicy(): SqlStatement {
+  return { text: 'SELECT * FROM app_policy WHERE project_key = ?', params: [SETTINGS_KEY] };
+}
+
+/** Upsert of the app policy row. */
+export function upsertAppPolicy(
+  excerptPolicy: string,
+  lastPurgeAt: string | undefined,
+  updatedAt: string,
+): SqlStatement {
+  return upsert(
+    'app_policy',
+    ['project_key', 'excerpt_policy', 'last_purge_at', 'updated_at'],
+    [SETTINGS_KEY, excerptPolicy, lastPurgeAt ?? null, updatedAt],
+    ['project_key'],
+  );
 }
 
 /**
