@@ -7,8 +7,8 @@
  */
 
 import { el, mount } from './dom';
-import { fill, langToggleLabel, t, type Lang } from '../lib/i18n';
-import { repositoriesOf, SAMPLE, type DemoRun } from '../lib/demo';
+import { langToggleLabel, t, type Lang } from '../lib/i18n';
+import type { DemoRun } from '../lib/demo';
 
 /** Dépôt public : tous les liens externes du site pointent là. */
 export const REPO_URL = 'https://github.com/BaptisteFaisy/deja-vu-ci';
@@ -65,50 +65,6 @@ export function renderHero(view: View, actions: Actions): HTMLElement {
     ),
     el('p', { class: 'note' }, t('hero.note', view.lang)),
   );
-}
-
-/** La ligne d'état du panneau de démo : en cours, fini, ou échec. */
-function statusLine(view: View): HTMLElement {
-  if (view.error) return el('p', { class: 'status error' }, fill(t('demo.error', view.lang), { error: view.error }));
-  if (view.running) return el('p', { class: 'status' }, t('demo.running', view.lang));
-  if (view.run) {
-    return el('p', { class: 'status' }, fill(t('demo.done', view.lang), { ms: view.run.elapsedMs }));
-  }
-  return el('p', { class: 'status' }, fill(t('demo.dataset', view.lang), {
-    name: SAMPLE.name,
-    days: SAMPLE.days,
-    repos: repositoriesOf().length,
-    failures: SAMPLE.occurrences.filter((o) => o.outcome === 'failure').length,
-  }));
-}
-
-/** Panneau de démo : le bouton, l'état, et les compteurs une fois joué. */
-export function renderDemo(view: View, actions: Actions): HTMLElement {
-  const counters = view.run ? counterList(view.run, view.lang) : undefined;
-  return el(
-    'div',
-    { class: 'panel' },
-    el('h2', {}, t('demo.title', view.lang)),
-    el('p', { class: 'section-note' }, t('demo.description', view.lang)),
-    el('button', { class: 'primary', type: 'button', disabled: view.running, onclick: actions.onRun },
-      t('hero.cta', view.lang)),
-    statusLine(view),
-    counters,
-  );
-}
-
-/** Les six compteurs du rejeu. */
-function counterList(run: DemoRun, lang: Lang): HTMLElement {
-  const entries: Array<[string, string | number]> = [
-    [t('counter.signatures', lang), run.signatures.length],
-    [t('counter.failures', lang), run.failures],
-    [t('counter.tickets', lang), run.tickets.filter((a) => a.kind === 'create').length],
-    [t('counter.comments', lang), run.tickets.filter((a) => a.kind === 'comment').length],
-    [t('cost.minutesLost', lang), Math.round(run.cost.ciMinutesLost)],
-    [t('cost.peopleAffected', lang), run.cost.peopleAffected],
-  ];
-  return el('ul', { class: 'counters' }, ...entries.map(([label, value]) =>
-    el('li', {}, el('span', { class: 'value' }, String(value)), el('span', { class: 'label' }, label))));
 }
 
 /** Pied de page. */
