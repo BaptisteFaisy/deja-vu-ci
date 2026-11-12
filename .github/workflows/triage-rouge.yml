@@ -92,7 +92,7 @@ jobs:
 
       - name: Tête de la PR dans l'arbre
         if: steps.ctx.outputs.pret == '1'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ${{ steps.ctx.outputs.sha }}
           fetch-depth: 1
