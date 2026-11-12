@@ -140,6 +140,12 @@ export interface Signature {
   issueKey?: string;
   /** Nom du test quand la signature est de catégorie `test`. */
   testName?: string;
+  /**
+   * Version de l'algorithme de signature qui a produit `id` (§ 9.3).
+   * Absent = version courante (`deja-vu-normalized-v1`). Voir
+   * `docs/SIGNATURE-VERSIONING.md`.
+   */
+  algorithmVersion?: number;
 }
 
 /** Statistiques d'un test instable (§ 16 `test_stats`). */

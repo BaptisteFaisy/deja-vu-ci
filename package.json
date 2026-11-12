@@ -9,7 +9,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "tsc -p packages/core && tsc -p packages/bridge && tsc -p packages/present",
+    "build": "tsc -p packages/core && tsc -p packages/bridge && tsc -p packages/present/tsconfig.build.json",
     "typecheck": "tsc -p packages/core --noEmit && tsc -p packages/bridge --noEmit && tsc -p packages/present --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",

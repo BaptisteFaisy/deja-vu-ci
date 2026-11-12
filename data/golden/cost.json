@@ -1,0 +1,7 @@
+{
+  "windowDays": 30,
+  "redBuilds": 40,
+  "ciMinutesLost": 52.4,
+  "peopleAffected": 26,
+  "retries": 3
+}

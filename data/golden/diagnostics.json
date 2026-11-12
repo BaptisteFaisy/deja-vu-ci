@@ -1,0 +1,291 @@
+{
+  "byKind": {
+    "already-fixed": 2,
+    "flaky": 15,
+    "infrastructure": 9,
+    "new": 12,
+    "uncertain": 2
+  },
+  "perOccurrence": [
+    {
+      "occurrenceId": "billing-service-new0009ccccccc-unit-tests (pytest)-0-2026-11-12T08:00:00.000Z",
+      "signatureId": "f82b080d2a316f11",
+      "kind": "new",
+      "action": "fix",
+      "confidence": 0.6
+    },
+    {
+      "occurrenceId": "billing-service-out0003cccccc-install-dependencies-0-2026-11-11T10:03:00.000Z",
+      "signatureId": "0da29ed003d6d8a8",
+      "kind": "infrastructure",
+      "action": "wait",
+      "confidence": 0.85
+    },
+    {
+      "occurrenceId": "billing-service-out0006ffffff-install-dependencies-0-2026-11-11T10:08:00.000Z",
+      "signatureId": "0da29ed003d6d8a8",
+      "kind": "infrastructure",
+      "action": "wait",
+      "confidence": 0.85
+    },
+    {
+      "occurrenceId": "payments-api-00f1aky0000-gradle test-0-2026-11-01T07:10:00.000Z",
+      "signatureId": "8b94841020ff38ad",
+      "kind": "new",
+      "action": "fix",
+      "confidence": 0.6
+    },
+    {
+      "occurrenceId": "payments-api-01f1aky0001-gradle test-0-2026-11-02T07:20:00.000Z",
+      "signatureId": "8b94841020ff38ad",
+      "kind": "uncertain",
+      "action": "none",
+      "confidence": 0.4
+    },
+    {
+      "occurrenceId": "payments-api-02f1aky0002-gradle test-0-2026-11-03T07:30:00.000Z",
+      "signatureId": "8b94841020ff38ad",
+      "kind": "flaky",
+      "action": "retry",
+      "confidence": 0.95
+    },
+    {
+      "occurrenceId": "payments-api-03f1aky0003-gradle test-0-2026-11-04T07:15:00.000Z",
+      "signatureId": "8b94841020ff38ad",
+      "kind": "flaky",
+      "action": "retry",
+      "confidence": 0.95
+    },
+    {
+      "occurrenceId": "payments-api-04f1aky0004-gradle test-0-2026-11-05T07:45:00.000Z",
+      "signatureId": "8b94841020ff38ad",
+      "kind": "flaky",
+      "action": "retry",
+      "confidence": 0.95
+    },
+    {
+      "occurrenceId": "payments-api-05f1aky0005-gradle test-0-2026-11-06T07:25:00.000Z",
+      "signatureId": "8b94841020ff38ad",
+      "kind": "flaky",
+      "action": "retry",
+      "confidence": 0.95
+    },
+    {
+      "occurrenceId": "payments-api-06f1aky0006-gradle test-0-2026-11-07T07:50:00.000Z",
+      "signatureId": "8b94841020ff38ad",
+      "kind": "flaky",
+      "action": "retry",
+      "confidence": 0.95
+    },
+    {
+      "occurrenceId": "payments-api-07f1aky0007-gradle test-0-2026-11-08T07:35:00.000Z",
+      "signatureId": "8b94841020ff38ad",
+      "kind": "flaky",
+      "action": "retry",
+      "confidence": 0.95
+    },
+    {
+      "occurrenceId": "payments-api-08f1aky0008-gradle test-0-2026-11-09T07:12:00.000Z",
+      "signatureId": "8b94841020ff38ad",
+      "kind": "flaky",
+      "action": "retry",
+      "confidence": 0.95
+    },
+    {
+      "occurrenceId": "payments-api-09f1aky0009-gradle test-0-2026-11-10T07:40:00.000Z",
+      "signatureId": "8b94841020ff38ad",
+      "kind": "flaky",
+      "action": "retry",
+      "confidence": 0.95
+    },
+    {
+      "occurrenceId": "payments-api-0af1aky0010-gradle test-0-2026-11-11T07:55:00.000Z",
+      "signatureId": "8b94841020ff38ad",
+      "kind": "flaky",
+      "action": "retry",
+      "confidence": 0.95
+    },
+    {
+      "occurrenceId": "payments-api-0bf1aky0011-gradle test-0-2026-11-12T07:18:00.000Z",
+      "signatureId": "8b94841020ff38ad",
+      "kind": "flaky",
+      "action": "retry",
+      "confidence": 0.95
+    },
+    {
+      "occurrenceId": "payments-api-0cf1aky0012-gradle test-0-2026-11-13T07:33:00.000Z",
+      "signatureId": "8b94841020ff38ad",
+      "kind": "flaky",
+      "action": "retry",
+      "confidence": 0.95
+    },
+    {
+      "occurrenceId": "payments-api-0df1aky0013-gradle test-0-2026-11-13T10:10:00.000Z",
+      "signatureId": "8b94841020ff38ad",
+      "kind": "flaky",
+      "action": "retry",
+      "confidence": 0.95
+    },
+    {
+      "occurrenceId": "payments-api-0ef1aky0014-gradle test-0-2026-11-14T07:22:00.000Z",
+      "signatureId": "8b94841020ff38ad",
+      "kind": "flaky",
+      "action": "retry",
+      "confidence": 0.95
+    },
+    {
+      "occurrenceId": "payments-api-0ff1aky0015-gradle test-0-2026-11-14T08:00:00.000Z",
+      "signatureId": "8b94841020ff38ad",
+      "kind": "flaky",
+      "action": "retry",
+      "confidence": 0.95
+    },
+    {
+      "occurrenceId": "payments-api-10f1aky0016-gradle test-0-2026-11-14T09:00:00.000Z",
+      "signatureId": "8b94841020ff38ad",
+      "kind": "flaky",
+      "action": "retry",
+      "confidence": 0.95
+    },
+    {
+      "occurrenceId": "payments-api-cli0001aaaaaa-integration-tests-0-2026-11-03T08:00:00.000Z",
+      "signatureId": "510a30497d352937",
+      "kind": "already-fixed",
+      "action": "rebase",
+      "confidence": 0.9
+    },
+    {
+      "occurrenceId": "payments-api-cli0002bbbbbb-integration-tests-0-2026-11-07T09:30:00.000Z",
+      "signatureId": "510a30497d352937",
+      "kind": "already-fixed",
+      "action": "rebase",
+      "confidence": 0.9
+    },
+    {
+      "occurrenceId": "payments-api-cli0003cccccc-integration-tests-0-2026-11-13T09:50:00.000Z",
+      "signatureId": "510a30497d352937",
+      "kind": "uncertain",
+      "action": "none",
+      "confidence": 0.4
+    },
+    {
+      "occurrenceId": "payments-api-new0001aaaaaaa-gradle test-0-2026-11-04T07:40:00.000Z",
+      "signatureId": "4b6b8782b5558e1e",
+      "kind": "new",
+      "action": "fix",
+      "confidence": 0.6
+    },
+    {
+      "occurrenceId": "payments-api-new0002bbbbbbb-unit-tests (pytest)-0-2026-11-05T08:35:00.000Z",
+      "signatureId": "951307af952eebb1",
+      "kind": "new",
+      "action": "fix",
+      "confidence": 0.6
+    },
+    {
+      "occurrenceId": "payments-api-new0003ccccccc-tsc --noEmit-0-2026-11-06T09:10:00.000Z",
+      "signatureId": "67a63eac27b0d23d",
+      "kind": "new",
+      "action": "fix",
+      "confidence": 0.6
+    },
+    {
+      "occurrenceId": "payments-api-new0004ddddddd-eslint-0-2026-11-07T07:25:00.000Z",
+      "signatureId": "fb6c03b1c83342fc",
+      "kind": "new",
+      "action": "fix",
+      "confidence": 0.6
+    },
+    {
+      "occurrenceId": "payments-api-new0005eeeeeee-go test ./...-0-2026-11-08T08:10:00.000Z",
+      "signatureId": "fe84e787c2201959",
+      "kind": "new",
+      "action": "fix",
+      "confidence": 0.6
+    },
+    {
+      "occurrenceId": "payments-api-new0006fffffff-jest-0-2026-11-09T08:50:00.000Z",
+      "signatureId": "d13f6506916959fd",
+      "kind": "new",
+      "action": "fix",
+      "confidence": 0.85
+    },
+    {
+      "occurrenceId": "payments-api-new0007aaaaaaa-gradle compileJava-0-2026-11-10T07:15:00.000Z",
+      "signatureId": "4689afc61c5a42e0",
+      "kind": "new",
+      "action": "fix",
+      "confidence": 0.6
+    },
+    {
+      "occurrenceId": "payments-api-new0010ddddddd-go build ./...-0-2026-11-13T08:25:00.000Z",
+      "signatureId": "e2c2ae39a0041eed",
+      "kind": "new",
+      "action": "fix",
+      "confidence": 0.6
+    },
+    {
+      "occurrenceId": "payments-api-new0011eeeeeee-integration-tests-0-2026-11-14T09:20:00.000Z",
+      "signatureId": "2ad03492867ad617",
+      "kind": "new",
+      "action": "fix",
+      "confidence": 0.6
+    },
+    {
+      "occurrenceId": "payments-api-out0001aaaaaa-install-dependencies-0-2026-11-11T10:00:00.000Z",
+      "signatureId": "0da29ed003d6d8a8",
+      "kind": "infrastructure",
+      "action": "wait",
+      "confidence": 0.85
+    },
+    {
+      "occurrenceId": "payments-api-out0004dddddd-install-dependencies-0-2026-11-11T10:05:00.000Z",
+      "signatureId": "0da29ed003d6d8a8",
+      "kind": "infrastructure",
+      "action": "wait",
+      "confidence": 0.85
+    },
+    {
+      "occurrenceId": "payments-api-out0007aaaaaa-install-dependencies-0-2026-11-11T10:10:00.000Z",
+      "signatureId": "0da29ed003d6d8a8",
+      "kind": "infrastructure",
+      "action": "wait",
+      "confidence": 0.85
+    },
+    {
+      "occurrenceId": "payments-web-new0008bbbbbbb-jest-0-2026-11-11T09:25:00.000Z",
+      "signatureId": "32b7832785996ed4",
+      "kind": "new",
+      "action": "fix",
+      "confidence": 0.85
+    },
+    {
+      "occurrenceId": "payments-web-new0012fffffff-docker build-0-2026-11-14T10:20:00.000Z",
+      "signatureId": "b2737785dd7e524d",
+      "kind": "infrastructure",
+      "action": "wait",
+      "confidence": 0.85
+    },
+    {
+      "occurrenceId": "payments-web-out0002bbbbbb-install-dependencies-0-2026-11-11T10:02:00.000Z",
+      "signatureId": "0da29ed003d6d8a8",
+      "kind": "infrastructure",
+      "action": "wait",
+      "confidence": 0.85
+    },
+    {
+      "occurrenceId": "payments-web-out0005eeeeee-install-dependencies-0-2026-11-11T10:07:00.000Z",
+      "signatureId": "0da29ed003d6d8a8",
+      "kind": "infrastructure",
+      "action": "wait",
+      "confidence": 0.85
+    },
+    {
+      "occurrenceId": "payments-web-out0008bbbbbb-install-dependencies-0-2026-11-11T10:12:00.000Z",
+      "signatureId": "0da29ed003d6d8a8",
+      "kind": "infrastructure",
+      "action": "wait",
+      "confidence": 0.85
+    }
+  ]
+}
