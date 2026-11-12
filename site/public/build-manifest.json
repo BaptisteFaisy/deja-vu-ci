@@ -1,6 +1,6 @@
 {
-  "empreinte": "323bb3fb6a6171ac891a049330266e0ed74bd65c5a10e7fdf8095deda3dfc241",
-  "sources": 78,
+  "empreinte": "183c84ede13edcf1c1ff299e1e170d213c6516fa9086febf4ef8437333e81058",
+  "sources": 82,
   "embarquees": [
     "apps/brain/src/actions/confirm-resolution.ts",
     "apps/brain/src/actions/context.ts",
@@ -29,6 +29,11 @@
     "apps/sensor/src/pure/prCardView.ts",
     "data/sample/occurrences.json",
     "docs/SBOM.json",
+    "integrations/adapters/github.js",
+    "integrations/adapters/gitlab.js",
+    "integrations/adapters/index.js",
+    "integrations/adapters/jenkins.js",
+    "integrations/adapters/lib.js",
     "packages/bridge/src/index.ts",
     "packages/core/src/calibrate.ts",
     "packages/core/src/cascade.ts",
@@ -97,6 +102,10 @@
     "site/src/panels/securite-strings.ts",
     "site/src/panels/securite-view.ts",
     "site/src/panels/securite.ts",
+    "site/src/panels/universel-adaptateurs.ts",
+    "site/src/panels/universel-donnees.ts",
+    "site/src/panels/universel-snippets.ts",
+    "site/src/panels/universel-textes.ts",
     "site/src/panels/universel.ts",
     "site/src/render/content.ts",
     "site/src/render/dom.ts",
@@ -104,6 +113,6 @@
     "site/src/render/sections.ts",
     "site/src/state/workspace.ts"
   ],
-  "octets": 275034,
+  "octets": 298180,
   "avertissements": 1
 }
