@@ -176,10 +176,30 @@ const TABLE: Record<string, [string, string]> = {
     'Chaque chiffre de cette page est calculé depuis le code source public.'],
 };
 
-/** Traduit une clé du site ; retombe sur la table partagée du produit. */
+/**
+ * Tables de traduction ajoutées par les panneaux.
+ *
+ * Chaque panneau possède **son** fichier et **ses** clés : deux panneaux ne
+ * peuvent donc jamais se marcher dessus, et le tableau du site reste lisible.
+ */
+const EXTRA: Array<Record<string, [string, string]>> = [];
+
+/** Enregistre la table d'un panneau (appelé au chargement de son module). */
+export function registerStrings(table: Record<string, [string, string]>): void {
+  EXTRA.push(table);
+}
+
+/**
+ * Traduit une clé : table du site, puis tables des panneaux, puis table
+ * partagée du produit. Une clé inconnue rend la clé elle-même.
+ */
 export function t(key: string, lang: Lang): string {
   const entry = TABLE[key];
   if (entry) return lang === 'fr' ? entry[1] : entry[0];
+  for (const table of EXTRA) {
+    const found = table[key];
+    if (found) return lang === 'fr' ? found[1] : found[0];
+  }
   return sharedT(key, lang);
 }
 
@@ -190,7 +210,7 @@ export function fill(template: string, values: Record<string, string | number>):
   );
 }
 
-/** Toutes les clés du site (contrôle de couverture des deux langues). */
+/** Toutes les clés connues : site + panneaux (contrôle des deux langues). */
 export function siteKeys(): string[] {
-  return Object.keys(TABLE);
+  return [...Object.keys(TABLE), ...EXTRA.flatMap((table) => Object.keys(table))];
 }

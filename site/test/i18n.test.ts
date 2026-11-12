@@ -17,6 +17,9 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import type { DiagnosticKind } from '@dejavu/core';
 import { fill, siteKeys, t } from '../src/lib/i18n';
+// Charger le registre enregistre les chaînes de chaque panneau : sans cela, les
+// clés `panel.*` seraient inconnues alors que leur panneau les déclare.
+import '../src/panels/registry';
 
 const SRC = fileURLToPath(new URL('../src', import.meta.url));
 

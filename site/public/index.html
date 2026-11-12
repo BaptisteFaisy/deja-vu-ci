@@ -14,9 +14,10 @@
   <body>
     <!--
       Public site of Déjà-vu CI (GitHub Pages). The skeleton is empty on
-      purpose: every visible string lives in `src/lib/i18n.ts` (English and
-      French, § 18) and every table is rendered by `src/render/*` from the
-      output of the REAL engine (`packages/core`) running in this browser.
+      purpose: every visible string lives in `src/lib/i18n.ts` or in the panel
+      that owns it (English and French, § 18), and every table is rendered from
+      the output of the REAL engine (`packages/core`) and the REAL view-models
+      of the two Forge apps, running in this browser. One tab per feature.
       Nothing is fetched: no backend, no analytics, no CDN.
     -->
     <noscript>
@@ -30,8 +31,8 @@
 
     <main>
       <section class="hero" id="hero"></section>
-      <section class="demo" id="demo"></section>
-      <section class="results" id="results" hidden></section>
+      <nav class="tabs" id="tabs" aria-label="Features"></nav>
+      <section class="panel-host" id="panel"></section>
       <section class="diagnostics" id="diagnostics"></section>
       <section class="how" id="how"></section>
       <section class="honesty" id="honesty"></section>

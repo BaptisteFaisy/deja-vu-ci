@@ -24,7 +24,9 @@ import {
   type DiagnosticFact,
   type DiagnosticKind,
   type Occurrence,
+  type ReplayResult,
   type SampleDataset,
+  type Store,
   type SignatureStatus,
   type TicketActionKind,
 } from '@dejavu/core';
@@ -147,6 +149,18 @@ function toDemoDiagnostic(occurrence: Occurrence, diagnostic: Diagnostic): DemoD
 export async function runDemo(now: Date = demoNow()): Promise<DemoRun> {
   const store = new MemoryStore();
   const result = await replayWithEngine(SAMPLE, staticReplayEngine(), { store, now });
+  return await viewOf(result, store, now);
+}
+
+/**
+ * Le modèle de vue d'un rejeu **et** d'un magasin.
+ *
+ * Deux usages : après un rejeu (résultat + magasin cohérents), et après une
+ * mutation de la mémoire (fusion de signatures, confirmation d'une résolution) :
+ * on relit alors le magasin sans rejouer, donc sans recompter les
+ * occurrences.
+ */
+export async function viewOf(result: ReplayResult, store: Store, now: Date): Promise<DemoRun> {
   const occurrences = result.diagnostics.map((entry) => entry.occurrence);
   const cost = computeCost(occurrences, {
     signatures: result.signatures,
@@ -163,7 +177,7 @@ export async function runDemo(now: Date = demoNow()): Promise<DemoRun> {
     diagnostics: result.diagnostics.map(({ occurrence, diagnostic }) =>
       toDemoDiagnostic(occurrence, diagnostic),
     ),
-    signatures: result.signatures.map((signature) => ({
+    signatures: (await store.listSignatures()).map((signature) => ({
       id: signature.id,
       shortId: signatureShort(signature.id),
       familyId: signature.familyId,

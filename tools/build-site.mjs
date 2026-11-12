@@ -108,20 +108,33 @@ export async function buildSite() {
     sourcemap: false,
     legalComments: 'none',
     logLevel: 'warning',
+    metafile: true,
     alias: {
       '@dejavu/core': join(RACINE, 'packages/core/src/index.ts'),
       '@dejavu/present': join(RACINE, 'packages/present/src/index.ts'),
-      // Le moteur hache avec `node:crypto` (identifiants de signatures) : le
-      // navigateur n'a pas ce module. Le substitut produit exactement les
-      // mêmes hachages (vérifié contre Node par `site/test/sha256.test.ts` et
-      // sur les identifiants réels par `site/test/shim.test.ts`).
-      'node:crypto': join(SITE, 'src/lib/nodeCrypto.ts'),
+      // Le moteur hache avec `node:crypto` (identifiants de signatures, pont
+      // signé) : le navigateur n'a pas ce module. Le substitut produit
+      // exactement les mêmes résultats — vérifié contre Node par
+      // `site/test/sha256.test.ts` et `site/test/node-globals.test.ts`, et sur
+      // les identifiants réels par `site/test/shim.test.ts`.
+      'node:crypto': join(SITE, 'src/lib/nodeCryptoShim.ts'),
     },
+    // `Buffer` est un global Node : le produit compte et tronque des octets
+    // avec. esbuild remplace toute référence libre par le substitut du site.
+    inject: [join(SITE, 'src/lib/nodeGlobals.ts')],
   });
   for (const fichier of STATIQUES) cpSync(join(SITE, fichier), join(PUBLIC, fichier));
+  // Les sources réellement embarquées dans le bundle : c'est la liste exacte que
+  // la garde `site/test/browser-compat.test.mjs` analyse, donc un nouveau module
+  // Node-only ne peut pas entrer dans le site sans être vu.
+  const embarquees = Object.keys(resultat.metafile?.inputs ?? {})
+    .map((chemin) => relative(RACINE, resolve(RACINE, chemin)))
+    .filter((chemin) => !chemin.includes('node_modules'))
+    .sort();
   const manifeste = {
     empreinte: fingerprint(),
     sources: sourceFiles().length,
+    embarquees,
     octets: statSync(join(PUBLIC, 'bundle.js')).size,
     avertissements: resultat.warnings.length,
   };
