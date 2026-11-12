@@ -22,7 +22,7 @@
     "typecheck:apps": "npm --prefix apps/sensor run typecheck && npm --prefix apps/brain run typecheck"
   },
   "devDependencies": {
-    "@forge/api": "^4.0.0",
+    "@forge/api": "^8.4.0",
     "@forge/bridge": "^5.0.0",
     "@forge/manifest": "^13.9.0",
     "@types/js-yaml": "^4.0.9",
