@@ -1,6 +1,6 @@
 {
-  "empreinte": "6d9d1690223a5b46d89dd1b4c383bb96ea2c5150e2ced64b16f373143156ea7c",
-  "sources": 64,
+  "empreinte": "5e62939870a5dffd4ed13c5a695f011c05efe2b0395a55f0db03c94db322fe08",
+  "sources": 66,
   "embarquees": [
     "apps/brain/src/actions/engine.ts",
     "data/sample/occurrences.json",
@@ -46,6 +46,8 @@
     "site/src/main.ts",
     "site/src/panels/cout.ts",
     "site/src/panels/curate.ts",
+    "site/src/panels/erreur-analyse.ts",
+    "site/src/panels/erreur-samples.ts",
     "site/src/panels/erreur.ts",
     "site/src/panels/incident.ts",
     "site/src/panels/jira.ts",
@@ -63,6 +65,6 @@
     "site/src/render/sections.ts",
     "site/src/state/workspace.ts"
   ],
-  "octets": 110461,
+  "octets": 127147,
   "avertissements": 1
 }
