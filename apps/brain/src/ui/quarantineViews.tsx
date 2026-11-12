@@ -9,10 +9,9 @@
 
 import React from 'react';
 import { CodeBlock, Inline, Stack, Tag, Text } from '@forge/react';
-import { WORTH_IT } from '@dejavu/core';
 import type { QuarantineProposal } from '@dejavu/core';
 import { t, type Lang } from './i18n';
-import type { ProposeQuarantineData } from '../actions/propose-quarantine';
+import type { ProposeQuarantineData, WorthItThresholds } from '../actions/propose-quarantine';
 
 /** One "label → value" line. */
 function Field({ label, value }: { label: string; value: React.ReactNode }): React.JSX.Element {
@@ -25,7 +24,12 @@ function Field({ label, value }: { label: string; value: React.ReactNode }): Rea
 }
 
 /** The cost of the flaky test, with the three thresholds behind `worthIt`. */
-function CostView({ lang, proposal }: { lang: Lang; proposal: QuarantineProposal }): React.JSX.Element {
+function CostView(props: {
+  lang: Lang;
+  proposal: QuarantineProposal;
+  thresholds: WorthItThresholds;
+}): React.JSX.Element {
+  const { lang, proposal, thresholds } = props;
   const cost = proposal.cost;
   return (
     <Stack space="space.050">
@@ -34,9 +38,9 @@ function CostView({ lang, proposal }: { lang: Lang; proposal: QuarantineProposal
       <Field label={t('column.minutes', lang)} value={String(cost.ciMinutesLost)} />
       <Field label={t('quarantine.flakyIndex', lang)} value={cost.flakyIndex.toFixed(2)} />
       <Text>{t('quarantine.thresholds', lang)}</Text>
-      <Field label={t('column.minutes', lang)} value={`≥ ${WORTH_IT.ciMinutesLost}`} />
-      <Field label={t('quarantine.flakyIndex', lang)} value={`≥ ${WORTH_IT.flakyIndex}`} />
-      <Field label={t('column.occurrences', lang)} value={`≥ ${WORTH_IT.occurrences}`} />
+      <Field label={t('column.minutes', lang)} value={`≥ ${thresholds.ciMinutesLost}`} />
+      <Field label={t('quarantine.flakyIndex', lang)} value={`≥ ${thresholds.flakyIndex}`} />
+      <Field label={t('column.occurrences', lang)} value={`≥ ${thresholds.occurrences}`} />
     </Stack>
   );
 }
@@ -76,7 +80,12 @@ function PatchView({ lang, proposal }: { lang: Lang; proposal: QuarantineProposa
 }
 
 /** The whole proposal: verdict, snippet, ticket, cost. */
-export function ProposalView({ lang, proposal }: { lang: Lang; proposal: QuarantineProposal }): React.JSX.Element {
+export function ProposalView(props: {
+  lang: Lang;
+  proposal: QuarantineProposal;
+  thresholds: WorthItThresholds;
+}): React.JSX.Element {
+  const { lang, proposal, thresholds } = props;
   return (
     <Stack space="space.100">
       <Inline space="space.100">
@@ -88,7 +97,7 @@ export function ProposalView({ lang, proposal }: { lang: Lang; proposal: Quarant
       </Inline>
       <PatchView lang={lang} proposal={proposal} />
       <TicketView lang={lang} proposal={proposal} />
-      <CostView lang={lang} proposal={proposal} />
+      <CostView lang={lang} proposal={proposal} thresholds={thresholds} />
     </Stack>
   );
 }
@@ -112,5 +121,5 @@ export function QuarantineAnswerView(props: {
       </Stack>
     );
   }
-  return <ProposalView lang={lang} proposal={data.proposal} />;
+  return <ProposalView lang={lang} proposal={data.proposal} thresholds={data.thresholds} />;
 }

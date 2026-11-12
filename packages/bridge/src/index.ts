@@ -20,7 +20,7 @@
  * constant.
  */
 
-import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
+import { createHmac, randomBytes, timingSafeEqual } from 'crypto';
 
 /** En-têtes du pont (noms exacts, minuscules : HTTP est insensible à la casse). */
 export const BRIDGE_HEADERS = {

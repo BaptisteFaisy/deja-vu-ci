@@ -35,7 +35,7 @@ import {
   minimizeExcerpt,
   type MinimizePolicy,
 } from '../../../packages/core/src/minimize';
-import { applyExcerptPolicy } from '../../../apps/brain/src/pure/excerptPolicy';
+import { applyExcerptPolicy } from '../../../apps/brain/src/pure/excerptApply';
 import { SAMPLE } from '../lib/demo';
 import sbomFile from '../../../docs/SBOM.json';
 

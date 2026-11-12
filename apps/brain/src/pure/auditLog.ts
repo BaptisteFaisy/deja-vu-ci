@@ -11,10 +11,10 @@
  * the last N entries). Writing an entry never breaks the flow that produced it:
  * a journal failure is swallowed, because the ticket action already happened.
  *
- * Pure module: `node:crypto` only, no `@forge/*` import.
+ * Pure module: `crypto` only, no `@forge/*` import.
  */
 
-import { createHash } from 'node:crypto';
+import { createHash } from 'crypto';
 import type { TicketAction, TicketActionKind } from '@dejavu/core';
 
 /** The actions the journal records. */
