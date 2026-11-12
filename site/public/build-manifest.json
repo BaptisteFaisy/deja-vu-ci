@@ -1,6 +1,6 @@
 {
-  "empreinte": "06f1e90765c03c75a185853fc59f517f31e5255a4de7c737227085661757e285",
-  "sources": 86,
+  "empreinte": "7274d351056178263b3535f05e9d0ec9fc7b5231639f6227cf309b4bf368da04",
+  "sources": 87,
   "embarquees": [
     "apps/brain/src/actions/confirm-resolution.ts",
     "apps/brain/src/actions/context.ts",
@@ -30,6 +30,10 @@
     "apps/brain/src/ui/format.ts",
     "apps/brain/src/ui/i18n.ts",
     "apps/sensor/src/pure/prCardView.ts",
+    "data/golden/cost.json",
+    "data/golden/diagnostics.json",
+    "data/golden/meta.json",
+    "data/golden/tickets.json",
     "data/labeled/100-failures.json",
     "data/sample/occurrences.json",
     "docs/SBOM.json",
@@ -101,6 +105,7 @@
     "site/src/panels/justesse.ts",
     "site/src/panels/pr-donnees.ts",
     "site/src/panels/pr.ts",
+    "site/src/panels/preuves-donnees.ts",
     "site/src/panels/preuves.ts",
     "site/src/panels/registry.ts",
     "site/src/panels/replay.ts",
@@ -121,6 +126,6 @@
     "site/src/render/sections.ts",
     "site/src/state/workspace.ts"
   ],
-  "octets": 381296,
+  "octets": 405127,
   "avertissements": 1
 }
