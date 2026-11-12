@@ -1,6 +1,6 @@
 {
-  "empreinte": "97a19c9130c53c793985c531675c12106863bfac3ec717084b207631942423ca",
-  "sources": 76,
+  "empreinte": "323bb3fb6a6171ac891a049330266e0ed74bd65c5a10e7fdf8095deda3dfc241",
+  "sources": 78,
   "embarquees": [
     "apps/brain/src/actions/confirm-resolution.ts",
     "apps/brain/src/actions/context.ts",
@@ -14,10 +14,17 @@
     "apps/brain/src/actions/search-failures.ts",
     "apps/brain/src/actions/similarity.ts",
     "apps/brain/src/actions/validate.ts",
+    "apps/brain/src/pure/auditLog.ts",
     "apps/brain/src/pure/costTrend.ts",
     "apps/brain/src/pure/curation.ts",
+    "apps/brain/src/pure/defaults.ts",
     "apps/brain/src/pure/excerptPolicy.ts",
+    "apps/brain/src/pure/exportMemory.ts",
     "apps/brain/src/pure/incident.ts",
+    "apps/brain/src/pure/issueContextText.ts",
+    "apps/brain/src/pure/memoryHealth.ts",
+    "apps/brain/src/pure/settingsSchema.ts",
+    "apps/brain/src/ui/format.ts",
     "apps/brain/src/ui/i18n.ts",
     "apps/sensor/src/pure/prCardView.ts",
     "data/sample/occurrences.json",
@@ -75,6 +82,8 @@
     "site/src/panels/erreur.ts",
     "site/src/panels/incident-donnees.ts",
     "site/src/panels/incident.ts",
+    "site/src/panels/jira-donnees.ts",
+    "site/src/panels/jira-semaine.ts",
     "site/src/panels/jira.ts",
     "site/src/panels/justesse.ts",
     "site/src/panels/pr-donnees.ts",
@@ -95,6 +104,6 @@
     "site/src/render/sections.ts",
     "site/src/state/workspace.ts"
   ],
-  "octets": 248329,
+  "octets": 275034,
   "avertissements": 1
 }
