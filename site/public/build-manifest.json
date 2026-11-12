@@ -1,9 +1,12 @@
 {
-  "empreinte": "5e62939870a5dffd4ed13c5a695f011c05efe2b0395a55f0db03c94db322fe08",
-  "sources": 66,
+  "empreinte": "9aef93a014e44fd6a7e1669162d4667754561f34f791de09a3ab1948f5c2cbc5",
+  "sources": 69,
   "embarquees": [
     "apps/brain/src/actions/engine.ts",
+    "apps/brain/src/pure/excerptPolicy.ts",
     "data/sample/occurrences.json",
+    "docs/SBOM.json",
+    "packages/bridge/src/index.ts",
     "packages/core/src/calibrate.ts",
     "packages/core/src/cascade.ts",
     "packages/core/src/categorize.ts",
@@ -16,6 +19,7 @@
     "packages/core/src/index.ts",
     "packages/core/src/llm.ts",
     "packages/core/src/mask.ts",
+    "packages/core/src/minimize.ts",
     "packages/core/src/normalize.ts",
     "packages/core/src/outbreak.ts",
     "packages/core/src/quarantine.ts",
@@ -57,6 +61,9 @@
     "site/src/panels/registry.ts",
     "site/src/panels/replay.ts",
     "site/src/panels/rovo.ts",
+    "site/src/panels/securite-demo.ts",
+    "site/src/panels/securite-strings.ts",
+    "site/src/panels/securite-view.ts",
     "site/src/panels/securite.ts",
     "site/src/panels/universel.ts",
     "site/src/render/content.ts",
@@ -65,6 +72,6 @@
     "site/src/render/sections.ts",
     "site/src/state/workspace.ts"
   ],
-  "octets": 127147,
+  "octets": 153513,
   "avertissements": 1
 }
