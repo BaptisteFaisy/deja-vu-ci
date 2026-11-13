@@ -167,7 +167,7 @@ function refusalCard(lang: Lang): HTMLElement {
     { class: 'card' },
     el('h3', {}, t('prod.refusal.title', lang)),
     el('p', { class: 'section-note' }, fill(t('prod.refusal.note', lang), { status: REFUSAL_STATUS })),
-    el('blockquote', {}, REFUSAL_QUOTE),
+    el('div', { class: 'panel' }, el('p', { class: 'mono' }, REFUSAL_QUOTE)),
   );
 }
 
