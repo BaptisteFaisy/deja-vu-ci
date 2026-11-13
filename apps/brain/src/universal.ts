@@ -19,7 +19,13 @@ import {
   universalToIngest,
   type IngestPayload,
 } from '@dejavu/core';
-import { enqueue, jsonResponse } from './ingest';
+import { enqueue } from './ingest';
+import {
+  bodyOf,
+  jsonResponse,
+  type WebTriggerRequest,
+  type WebTriggerResponse,
+} from './webtrigger';
 import { validateIngestPayload } from './pure/validate';
 import { loadSettings } from './settings';
 import { migrateOnce, type BrainSqlStore } from './sql';
@@ -57,10 +63,10 @@ export async function convertUniversal(
 
 /** Handler factory of the `/universal` web trigger. */
 export function createUniversalHandler(store: BrainSqlStore) {
-  return async function universal(request: Request): Promise<Response> {
+  return async function universal(trigger: WebTriggerRequest): Promise<WebTriggerResponse> {
     try {
       await migrateOnce();
-      const body: unknown = JSON.parse(await request.text());
+      const body: unknown = JSON.parse(bodyOf(trigger) || 'null');
       const converted = await convertUniversal(body, store, new Date());
       if (!converted.ok) {
         return jsonResponse(converted.status, { ok: false, error: converted.error });

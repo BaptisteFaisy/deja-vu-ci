@@ -45,14 +45,11 @@ describe('the journal statements', () => {
     });
     const statement = upsertAuditEntry(entry);
     expect(statement.text).toContain('INSERT INTO audit_log');
-    expect(statement.text).toContain('ON CONFLICT (id) DO UPDATE SET');
+    expect(statement.text).toContain('ON DUPLICATE KEY UPDATE');
+    // Une seule série de valeurs : `VALUES(colonne)` reprend la valeur
+    // insérée, donc les paramètres ne sont pas doublés.
     expect(statement.params).toEqual([
       entry.id,
-      'ticket-created',
-      'sig-1',
-      'CI-7',
-      'Flaky test',
-      '2026-11-12T10:00:00.000Z',
       'ticket-created',
       'sig-1',
       'CI-7',
@@ -70,10 +67,15 @@ describe('the journal statements', () => {
     expect(statement.params[4]).toBeNull();
   });
 
-  it('bounds the read with a placeholder, newest first', () => {
+  it('inlines the bound of the read, newest first', () => {
+    // Forge SQL (TiDB) refuse un paramètre lié dans LIMIT (« Incorrect
+    // arguments to LIMIT ») et ne répond que par une erreur générique : la
+    // borne est donc coercée puis écrite dans l'instruction.
     const statement = selectAuditEntries(25);
-    expect(statement.text).toBe('SELECT * FROM audit_log ORDER BY created_at DESC LIMIT ?');
-    expect(statement.params).toEqual([25]);
+    expect(statement.text).toBe('SELECT * FROM audit_log ORDER BY created_at DESC LIMIT 25');
+    expect(statement.params).toEqual([]);
+    expect(selectAuditEntries(2.7).text).toContain('LIMIT 2');
+    expect(selectAuditEntries(-4).text).toContain('LIMIT 0');
   });
 
   it('maps a row back to a journal line, keeping an unknown action readable', () => {
@@ -166,8 +168,8 @@ describe('the export reads', () => {
 describe('the schema the migration runs', () => {
   it('declares the two app tables, additively', () => {
     const appStatements = splitSchema(APP_SCHEMA);
-    expect(appStatements.some((s) => s.startsWith('CREATE TABLE audit_log'))).toBe(true);
-    expect(appStatements.some((s) => s.startsWith('CREATE TABLE app_policy'))).toBe(true);
+    expect(appStatements.some((s) => s.startsWith('CREATE TABLE IF NOT EXISTS audit_log'))).toBe(true);
+    expect(appStatements.some((s) => s.startsWith('CREATE TABLE IF NOT EXISTS app_policy'))).toBe(true);
     expect(appStatements.some((s) => s.startsWith('CREATE INDEX audit_log_created_at'))).toBe(true);
     expect([...APP_TABLES]).toEqual(['audit_log', 'app_policy']);
   });

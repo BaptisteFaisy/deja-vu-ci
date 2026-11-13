@@ -11,7 +11,8 @@
  */
 
 import type { CostReport, Diagnostic, Occurrence, QueryResponse, Signature } from '@dejavu/core';
-import { verifySignedRequest, jsonResponse } from './ingest';
+import { verifySignedRequest } from './ingest';
+import { jsonResponse, type WebTriggerRequest, type WebTriggerResponse } from './webtrigger';
 import { validateQueryRequest } from './pure/validate';
 import { migrateOnce, type BrainSqlStore } from './sql';
 import type { BrainEngine } from './actions/engine';
@@ -22,9 +23,9 @@ import { computeCostTrend } from './pure/costTrendCompute';
 
 /** Handler factory of the `/query` web trigger. */
 export function createQueryHandler(store: BrainSqlStore, engine: BrainEngine) {
-  return async function query(request: Request): Promise<Response> {
+  return async function query(trigger: WebTriggerRequest): Promise<WebTriggerResponse> {
     try {
-      const verified = await verifySignedRequest(request);
+      const verified = await verifySignedRequest(trigger);
       if (!verified.ok) return verified.response;
 
       const parsed = validateQueryRequest(verified.payload);

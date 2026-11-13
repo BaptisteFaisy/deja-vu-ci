@@ -79,7 +79,7 @@ export function indexedColumns(schema) {
     indexes.set(table, known);
   };
   for (const statement of q.splitSchema(schema)) {
-    const table = statement.match(/^CREATE TABLE (\w+)/i);
+    const table = statement.match(/^CREATE TABLE (?:IF NOT EXISTS )?(\w+)/i);
     if (table) for (const columns of primaryKeyColumns(statement)) add(table[1], columns);
     const index = statement.match(/^CREATE INDEX \w+ ON (\w+) \(([^)]+)\)/i);
     if (index) add(index[1], splitColumns(index[2]));

@@ -42,17 +42,26 @@ export function toJson(value: unknown): string {
 /** Settings live in a single row, keyed by this constant. */
 export const SETTINGS_KEY = 'default';
 
-/** INSERT … ON CONFLICT: Forge SQL upserts a primary key this way. */
+/**
+ * INSERT … ON DUPLICATE KEY UPDATE : l'upsert d'une clé primaire sur Forge SQL.
+ *
+ * Forge SQL parle MySQL/TiDB, **pas** PostgreSQL : `ON CONFLICT (…) DO UPDATE`
+ * y est refusé (« Unknown SQL execution error »), et la forme acceptée est
+ * `ON DUPLICATE KEY UPDATE colonne = VALUES(colonne)`. Le projet voisin
+ * (Rayon d'impact) avaitbuté sur le même dialecte.
+ */
 function upsert(table: string, columns: string[], values: unknown[], conflict: string[]): SqlStatement {
   const placeholders = columns.map(() => '?').join(', ');
   const updates = columns
     .filter((column) => !conflict.includes(column))
-    .map((column) => `${column} = ?`)
+    .map((column) => `${column} = VALUES(${column})`)
     .join(', ');
-  const updateValues = values.filter((_, index) => !conflict.includes(columns[index]));
+  const cle = conflict.join(', ');
   return {
-    text: `INSERT INTO ${table} (${columns.join(', ')}) VALUES (${placeholders}) ON CONFLICT (${conflict.join(', ')}) DO UPDATE SET ${updates}`,
-    params: [...values, ...updateValues],
+    text:
+      `INSERT INTO ${table} (${columns.join(', ')}) VALUES (${placeholders})` +
+      (updates ? ` ON DUPLICATE KEY UPDATE ${updates}` : ''),
+    params: [...values],
   };
 }
 
@@ -258,11 +267,19 @@ export function upsertAuditEntry(entry: AuditEntry): SqlStatement {
   );
 }
 
-/** The `limit` most recent journal entries, newest first. */
+/**
+ * The `limit` most recent journal entries, newest first.
+ *
+ * The limit is **inlined**, never bound: Forge SQL (TiDB) refuses a bound
+ * parameter there — « ERROR 1210 Incorrect arguments to LIMIT » — and answers
+ * only with the generic « Unknown SQL execution error ». The value is therefore
+ * coerced to a non-negative integer before being written into the statement.
+ */
 export function selectAuditEntries(limit: number): SqlStatement {
+  const borne = Number.isFinite(limit) ? Math.max(0, Math.floor(limit)) : 0;
   return {
-    text: 'SELECT * FROM audit_log ORDER BY created_at DESC LIMIT ?',
-    params: [limit],
+    text: `SELECT * FROM audit_log ORDER BY created_at DESC LIMIT ${borne}`,
+    params: [],
   };
 }
 
@@ -317,7 +334,24 @@ export function splitSchema(schema: string): string[] {
   return stripped
     .split(';')
     .map((statement) => statement.trim())
-    .filter((statement) => statement !== '');
+    .filter((statement) => statement !== '')
+    .map(withIfNotExists);
+}
+
+/**
+ * Rend les `CREATE TABLE` idempotents : `CREATE TABLE IF NOT EXISTS`.
+ *
+ * Forge SQL répond « Unknown SQL execution error » — un message générique, que
+ * rien ne distingue d'une vraie erreur — quand la table existe déjà. Comme la
+ * migration est rejouée à chaque démarrage d'instance, un `CREATE TABLE` nu
+ * faisait échouer la migration entière sur une installation déjà peuplée, et
+ * donc **toutes** les routes. L'instruction idempotente supprime le cas.
+ */
+function withIfNotExists(statement: string): string {
+  if (/^create\s+table\s+/i.test(statement) && !/if\s+not\s+exists/i.test(statement)) {
+    return statement.replace(/^create\s+table\s+/i, 'CREATE TABLE IF NOT EXISTS ');
+  }
+  return statement;
 }
 
 /** True when a DDL failure only means "the object already exists". */
