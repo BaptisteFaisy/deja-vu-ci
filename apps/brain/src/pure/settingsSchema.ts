@@ -33,9 +33,11 @@ export function coerceSettingsPatch(raw: unknown): Validation<Partial<Settings>>
 
   if (record.issueProjectKey !== undefined) {
     const value = record.issueProjectKey;
-    if (typeof value !== 'string' || value.trim() === '') {
-      return { ok: false, error: 'issueProjectKey must be a non-empty string' };
+    if (typeof value !== 'string') {
+      return { ok: false, error: 'issueProjectKey must be a string' };
     }
+    // Empty means "the project on screen": the operator chose no project (§ lot
+    // projet-ci), so the patch stores '' and the target resolution follows it.
     patch.issueProjectKey = value.trim().toUpperCase();
   }
   if (record.universalKey !== undefined && record.universalKey !== null) {

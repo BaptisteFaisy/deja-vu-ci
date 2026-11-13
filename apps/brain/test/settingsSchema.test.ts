@@ -39,13 +39,19 @@ describe('coerceSettingsPatch', () => {
 
   it.each([
     ['a non-object', 'nope'],
-    ['an empty project key', { issueProjectKey: '  ' }],
+    ['a project key that is not a string', { issueProjectKey: 42 }],
     ['a numeric threshold below its bound', { flakyMinOccurrences: 0 }],
     ['a retention beyond a year', { rawRetentionDays: 400 }],
     ['a non-numeric threshold', { flakyWindowDays: 'soon' }],
     ['a too-short universal key', { universalKey: 'abc' }],
   ])('refuses %s', (_label, raw) => {
     expect(coerceSettingsPatch(raw).ok).toBe(false);
+  });
+
+  it('accepts an empty project key as « the project on screen »', () => {
+    const result = coerceSettingsPatch({ issueProjectKey: '  ' });
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value.issueProjectKey).toBe('');
   });
 });
 

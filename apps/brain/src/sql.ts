@@ -47,6 +47,7 @@ import {
   type SqlRow,
 } from './pure/sqlRows';
 import { DEFAULT_SETTINGS } from './pure/defaults';
+import { UNCHOSEN_PROJECT_KEY } from './pure/projectTarget';
 import type { AuditEntry, AuditLine } from './pure/auditLog';
 import type { AppPolicy, MinimizePolicy } from './pure/excerptPolicy';
 import type { MemoryTable } from './pure/memoryHealth';
@@ -180,7 +181,9 @@ function housekeepingMethods(client: SqlClient) {
     },
     async getSettings(): Promise<Settings> {
       const rows = await read(client, queries.selectSettings());
-      return rows[0] ? mapSettings(rows[0]) : { ...DEFAULT_SETTINGS };
+      return rows[0]
+        ? mapSettings(rows[0])
+        : { ...DEFAULT_SETTINGS, issueProjectKey: UNCHOSEN_PROJECT_KEY };
     },
     async saveSettings(s: Settings): Promise<void> {
       await run(client, queries.upsertSettings(s, new Date().toISOString()));

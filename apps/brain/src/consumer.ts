@@ -27,10 +27,10 @@ import {
   TemplateCache,
   testStats,
   type ErrorBlock,
-  type Settings,
   type Signature,
   type TicketAction,
 } from '@dejavu/core';
+import { createDecision, resolveProjectTarget, type ProjectTarget } from './pure/projectTarget';
 import { consumeIngest, type ConsumeResult, type ConsumerEngine, type LlmPort } from './pure/consume';
 import { commentBody, createIssueBody, findLastSynthesisAt, updateIssueBody } from './pure/jira';
 import {
@@ -193,14 +193,39 @@ async function recordTicketAction(
 }
 
 /**
+ * One journal line for a ticket the app **refused** to create.
+ *
+ * The refusal is an action of the app like any other: the operator reads it in
+ * the journal ("What the app did") instead of wondering why no ticket appeared.
+ */
+async function recordRefusal(
+  options: TicketApplierOptions,
+  signature: Signature,
+  reason: string,
+): Promise<void> {
+  const at = options.now?.();
+  await recordAudit(options.audit, {
+    action: 'ticket-refused',
+    signatureId: signature.id,
+    detail: reason,
+    ...(at ? { at } : {}),
+  });
+}
+
+/**
  * The Jira side of the ticket plan (§ 11). Every action is best-effort:
  * a refused transition degrades to a comment, and a failure never aborts
  * the whole message — the memory (SQL) stays the source of truth.
  *
+ * The **target project** is resolved upstream (`pure/projectTarget.ts`): the
+ * app writes into the project the operator is looking at, and creates no
+ * ticket at all when it knows no project — it says why instead, in the journal
+ * and in the refusal it returns.
+ *
  * Each applied action also lands in the journal of what the app did, so the
  * project page can show it. A journal failure never breaks the action.
  */
-export function jiraTicketApplier(settings: Settings, options: TicketApplierOptions = {}) {
+export function jiraTicketApplier(target: ProjectTarget, options: TicketApplierOptions = {}) {
   return {
     async lastCommentAt(issueKey: string, signatureId: string): Promise<string | undefined> {
       const response = await requestJira(assumeTrustedRoute(`/rest/api/3/issue/${issueKey}/comment`), {
@@ -212,9 +237,13 @@ export function jiraTicketApplier(settings: Settings, options: TicketApplierOpti
       return findLastSynthesisAt(comments, signatureId);
     },
 
-    async apply(action: TicketAction, signature: Signature): Promise<{ issueKey?: string }> {
+    async apply(action: TicketAction, signature: Signature): Promise<{ issueKey?: string; error?: string }> {
       try {
-        const applied = await applyOne(action, signature, settings);
+        const applied = await applyOne(action, signature, target);
+        if (applied.error) {
+          await recordRefusal(options, signature, applied.error);
+          return applied;
+        }
         await recordTicketAction(options, action, signature, applied.issueKey);
         return applied;
       } catch {
@@ -228,13 +257,15 @@ export function jiraTicketApplier(settings: Settings, options: TicketApplierOpti
 async function applyOne(
   action: TicketAction,
   signature: Signature,
-  settings: Settings,
-): Promise<{ issueKey?: string }> {
+  target: ProjectTarget,
+): Promise<{ issueKey?: string; error?: string }> {
   if (action.kind === 'create') {
+    const decision = createDecision(target);
+    if (!decision.ok) return { error: decision.reason };
     const response = await requestJira(assumeTrustedRoute('/rest/api/3/issue'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(createIssueBody(action, settings.issueProjectKey)),
+      body: JSON.stringify(createIssueBody(action, decision.projectKey)),
     });
     const created = await jiraJson(response);
     return typeof created.key === 'string' ? { issueKey: created.key } : {};
@@ -286,10 +317,13 @@ export async function consumeMessage(
     loadExcerptPolicy(store),
     createLlmPort(store),
   ]);
+  // The queue consumer has no screen context: the effective target is the
+  // register alone. An empty register means no ticket is created.
+  const target = resolveProjectTarget({ chosen: settings.issueProjectKey });
   return consumeIngest(parsed.value, {
     store,
     engine: coreConsumerEngine(),
-    tickets: jiraTicketApplier(settings, { audit: store, now: () => now }),
+    tickets: jiraTicketApplier(target, { audit: store, now: () => now }),
     now: () => now,
     // The retention policy of the project (§ 18, CI-18): `hash-only` keeps no
     // text at all, `masked-snippet` a bounded masked excerpt, `full` the text.

@@ -50,7 +50,8 @@ import { DEFAULT_SETTINGS } from './pure/defaults';
 import { brainStore, migrateOnce } from './sql';
 import Resolver from '@forge/resolver';
 import { registerUiResolvers } from './resolvers';
-import { issueKeyFrom } from './pure/invokeContext';
+import { issueKeyFrom, projectKeyFrom } from './pure/invokeContext';
+import { resolveProjectTarget } from './pure/projectTarget';
 import {
   issueContextText as renderIssueContextText,
   type IssueContextInput,
@@ -154,18 +155,27 @@ export async function saveSettings(payload: unknown): Promise<{ ok: boolean; err
  *
  * Fills the memory with the sample set — 40 failures over 14 days — through
  * the real engine and the real Forge SQL store, then creates the tickets the
- * replay planned on the real Jira. Idempotent: on a memory that already holds
- * signatures nothing is injected (`src/seed.ts`). Never throws: a failure comes
- * back as `{ ok: false, error }` and the screen displays it.
+ * replay planned on the real Jira. The project the tickets go to is resolved
+ * once, here: the operator's explicit choice primes; without one, the project
+ * the operator is looking at (`context.extension.project.key`) is used; with
+ * neither — a call with no project context — no ticket is created and the
+ * summary says why. Idempotent: on a memory that already holds signatures
+ * nothing is injected (`src/seed.ts`). Never throws: a failure comes back as
+ * `{ ok: false, error }` and the screen displays it.
  */
-export async function replaySample(): Promise<ReplayOutcome> {
+export async function replaySample(payload?: unknown, context?: unknown): Promise<ReplayOutcome> {
   try {
     await migrateOnce();
     const settings = await loadSettings(store);
+    const target = resolveProjectTarget({
+      chosen: settings.issueProjectKey,
+      screenProjectKey: projectKeyFrom({ payload, context }),
+    });
     return await runReplaySample({
       store,
-      tickets: jiraTicketApplier(settings, { audit: store }),
+      tickets: jiraTicketApplier(target, { audit: store }),
       engine: replayEngine(),
+      projectKey: target.projectKey,
     });
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : String(error) };

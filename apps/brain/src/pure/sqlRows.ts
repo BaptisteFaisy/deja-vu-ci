@@ -25,6 +25,7 @@ import type {
   TestStats,
 } from '@dejavu/core';
 import { DEFAULT_SETTINGS } from './defaults';
+import { UNCHOSEN_PROJECT_KEY } from './projectTarget';
 import type { AuditLine } from './auditLog';
 import { policyOr, type AppPolicy } from './excerptPolicy';
 
@@ -207,7 +208,7 @@ export function mapPairing(row: SqlRow): Pairing {
 /** `settings` row → engine type, missing columns falling back to defaults. */
 export function mapSettings(row: SqlRow): Settings {
   const settings: Settings = {
-    issueProjectKey: text(row, 'issue_project_key') ?? DEFAULT_SETTINGS.issueProjectKey,
+    issueProjectKey: text(row, 'issue_project_key') ?? UNCHOSEN_PROJECT_KEY,
     flakyMinOccurrences: number(row, 'flaky_min_occurrences', DEFAULT_SETTINGS.flakyMinOccurrences),
     flakyMinBranches: number(row, 'flaky_min_branches', DEFAULT_SETTINGS.flakyMinBranches),
     flakyWindowDays: number(row, 'flaky_window_days', DEFAULT_SETTINGS.flakyWindowDays),

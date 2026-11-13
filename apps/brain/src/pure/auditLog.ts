@@ -20,6 +20,7 @@ import type { TicketAction, TicketActionKind } from '@dejavu/core';
 /** The actions the journal records. */
 export const AUDIT_ACTIONS = [
   'ticket-created',
+  'ticket-refused',
   'ticket-updated',
   'comment-posted',
   'ticket-reopened',

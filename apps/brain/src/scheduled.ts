@@ -18,6 +18,7 @@ import { planAndApplyTickets, type ConsumerDeps } from './pure/consume';
 import { recordAudit } from './pure/auditLog';
 import { coreConsumerEngine, jiraTicketApplier } from './consumer';
 import { loadExcerptPolicy, loadSettings } from './settings';
+import { resolveProjectTarget } from './pure/projectTarget';
 import { migrateOnce, type BrainSqlStore } from './sql';
 
 /** Summary of one daily run. */
@@ -100,7 +101,12 @@ export function createScheduledHandler(store: BrainSqlStore) {
       const deps: RunDeps = {
         store,
         engine: coreConsumerEngine(),
-        tickets: jiraTicketApplier(settings, { audit: store, now: () => now }),
+        // The daily run has no screen context: the target is the register
+        // alone. An empty register means no ticket is created (fail-closed).
+        tickets: jiraTicketApplier(resolveProjectTarget({ chosen: settings.issueProjectKey }), {
+          audit: store,
+          now: () => now,
+        }),
         now: () => now,
         settings,
       };
