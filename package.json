@@ -16,6 +16,7 @@
     "replay": "npm run build --silent && node tools/replay.mjs",
     "eval": "npm run build --silent && node tools/eval-accuracy.mjs",
     "check:data": "node tools/check-dataset.mjs",
+    "check:forge-tree": "node tools/forge-tree.mjs",
     "lint:manifests": "node tools/validate-manifest.mjs",
     "build:site": "node tools/build-site.mjs",
     "gen:data": "node tools/gen/sample.mjs && node tools/gen/corpus.mjs && npm run check:data --silent",

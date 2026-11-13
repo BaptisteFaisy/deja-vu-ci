@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Capteur \u2014 the Bitbucket Forge app of D\u00e9j\u00e0-vu CI: reads a failing step, masks it, signs it, sends it to the Brain",
+  "description": "Capteur — the Bitbucket Forge app of Déjà-vu CI: reads a failing step, masks it, signs it, sends it to the Brain",
   "scripts": {
     "typecheck": "tsc -p . --noEmit",
     "build:ui": "esbuild src/ui/custom.tsx --bundle --minify --outfile=static/index.js --loader:.tsx=tsx --define:process.env.NODE_ENV='\"production\"'"
@@ -21,8 +21,12 @@
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "esbuild": "^0.21.5",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
     "typescript": "^5.7.2"
+  },
+  "overrides": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
   }
 }
