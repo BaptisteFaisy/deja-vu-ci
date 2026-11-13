@@ -20,11 +20,14 @@ import { SAMPLE_DATASET, replaySample } from '../src/seed';
 class FakeJira {
   readonly applied: TicketAction[] = [];
   private next = 1;
+  /** Le projet des créations, tel que le résout l'applicateur réel. */
+  projectKey = 'PAY';
 
-  async apply(action: TicketAction): Promise<{ issueKey?: string }> {
+  async apply(action: TicketAction): Promise<{ issueKey?: string; error?: string }> {
     this.applied.push(action);
     if (action.kind !== 'create') return {};
-    const key = `PAY-${900 + this.next}`;
+    if (!this.projectKey) return { error: 'no target project' };
+    const key = `${this.projectKey}-${900 + this.next}`;
     this.next += 1;
     return { issueKey: key };
   }
@@ -121,5 +124,36 @@ describe('rejeu du jeu d’exemple', () => {
   it('embarque le jeu livré dans le dépôt', () => {
     expect(SAMPLE_DATASET.name).toBe('payments-api-ci-memory');
     expect(SAMPLE_DATASET.occurrences.length).toBeGreaterThan(0);
+  });
+
+  it('dit dans quel projet les tickets ont été créés', async () => {
+    const store = new MemoryStore();
+    const jira = new FakeJira();
+    jira.projectKey = 'PAY';
+    const result = await replaySample({ store, tickets: jira, projectKey: 'PAY' });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.projectKey).toBe('PAY');
+    expect('refusal' in result).toBe(false);
+    // Les clés créées sont dans le projet déclaré.
+    const keys = await ticketKeys(store);
+    expect(keys.length).toBeGreaterThan(0);
+    for (const key of keys) expect(key).toMatch(/^PAY-\d+$/);
+  });
+
+  it('signale un refus quand il n’y a aucun projet cible', async () => {
+    const store = new MemoryStore();
+    const jira = new FakeJira();
+    jira.projectKey = '';
+    const result = await replaySample({ store, tickets: jira, projectKey: '' });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.projectKey).toBe('');
+    expect(result.ticketsCreated).toBe(0);
+    expect(result.refusal).toBe('no target project');
+    // La mémoire est remplie, même sans ticket.
+    expect((await store.listSignatures()).length).toBeGreaterThan(0);
   });
 });

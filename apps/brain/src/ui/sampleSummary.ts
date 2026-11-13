@@ -18,6 +18,10 @@ export interface ReplaySummaryView {
   ticketsCreated?: number;
   comments?: number;
   byKind?: Record<string, number>;
+  /** Le projet où les tickets ont été créés ('' quand aucun n'a pu l'être). */
+  projectKey?: string;
+  /** La raison d'un refus de création, quand le plan n'a pas tout appliqué. */
+  refusal?: string;
   error?: string;
 }
 
@@ -51,6 +55,12 @@ export function summaryLine(summary: ReplaySummaryView, lang: Lang): string {
   const kinds = kindCounts(summary);
   if (kinds.length > 0) {
     parts.push(`${t('sample.kinds', lang)}: ${kinds.map((k) => `${k.kind} ${k.count}`).join(', ')}`);
+  }
+  if (summary.projectKey) {
+    parts.push(`${t('sample.project', lang)}: ${summary.projectKey}`);
+  }
+  if (summary.refusal) {
+    parts.push(`${t('sample.refused', lang)}: ${summary.refusal}`);
   }
   return parts.join(' · ');
 }

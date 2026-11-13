@@ -39,7 +39,7 @@ export const SAMPLE_DATASET = sampleDataset as unknown as SampleDataset;
 
 /** The Jira side of the seeding: one method, injected by `index.ts`. */
 export interface SeedTickets {
-  apply(action: TicketAction, signature: Signature): Promise<{ issueKey?: string }>;
+  apply(action: TicketAction, signature: Signature): Promise<{ issueKey?: string; error?: string }>;
 }
 
 /** What the screen shows after a replay. */
@@ -54,6 +54,10 @@ export interface ReplaySummary {
   ticketsCreated: number;
   comments: number;
   elapsedMs: number;
+  /** The project the tickets were created in (`''` when none could be used). */
+  projectKey: string;
+  /** Why no ticket could be created, when the app refused to write one. */
+  refusal?: string;
 }
 
 /** The outcome of a seeding: a summary, or the reason it did not run. */
@@ -67,6 +71,8 @@ export interface SeedDeps {
   engine?: ReplayEngine;
   dataset?: SampleDataset;
   now?: Date;
+  /** The project the tickets go to; `''` means the app refuses to create them. */
+  projectKey?: string;
 }
 
 /**
@@ -85,7 +91,7 @@ function messageOf(error: unknown): string {
  * nothing is created, so the ticket and comment counters stay at zero — they
  * count what **this** call did, not what the memory holds.
  */
-function alreadySeeded(signatures: Signature[], started: number): ReplaySummary {
+function alreadySeeded(signatures: Signature[], started: number, projectKey: string): ReplaySummary {
   const kinds: Record<string, number> = {};
   return {
     ok: true,
@@ -97,6 +103,7 @@ function alreadySeeded(signatures: Signature[], started: number): ReplaySummary 
     ticketsCreated: 0,
     comments: 0,
     elapsedMs: Date.now() - started,
+    projectKey,
   };
 }
 
@@ -112,10 +119,11 @@ async function applyOne(
   signature: Signature,
   tickets: SeedTickets,
   book: KeyBook,
-): Promise<{ created: boolean; commented: boolean }> {
+): Promise<{ created: boolean; commented: boolean; error?: string }> {
   const real = book.byPlaceholder.get(action.issueKey ?? '') ?? book.byFamily.get(action.familyId);
   const effective = real ? { ...action, issueKey: real } : action;
   const applied = await tickets.apply(effective, real ? { ...signature, issueKey: real } : signature);
+  if (applied.error) return { created: false, commented: false, error: applied.error };
   if (action.kind === 'create' && applied.issueKey) {
     book.byFamily.set(action.familyId, applied.issueKey);
     if (signature.issueKey) book.byPlaceholder.set(signature.issueKey, applied.issueKey);
@@ -132,16 +140,18 @@ async function applyTickets(
   result: ReplayResult,
   store: Store,
   tickets: SeedTickets | undefined,
-): Promise<{ created: number; commented: number }> {
+): Promise<{ created: number; commented: number; error?: string }> {
   if (!tickets) return { created: 0, commented: 0 };
   const byId = new Map(result.signatures.map((s) => [s.id, s]));
   const book: KeyBook = { byFamily: new Map(), byPlaceholder: new Map() };
   let created = 0;
   let commented = 0;
+  let error: string | undefined;
   for (const action of result.tickets) {
     const signature = byId.get(action.signatureId);
     if (!signature) continue;
     const done = await applyOne(action, signature, tickets, book);
+    if (done.error && !error) error = done.error;
     if (done.created) created += 1;
     if (done.commented) commented += 1;
   }
@@ -151,7 +161,7 @@ async function applyTickets(
       await store.saveSignature({ ...signature, issueKey: real });
     }
   }
-  return { created, commented };
+  return { created, commented, ...(error ? { error } : {}) };
 }
 
 /**
@@ -162,9 +172,10 @@ async function applyTickets(
  */
 export async function replaySample(deps: SeedDeps): Promise<ReplayOutcome> {
   const started = Date.now();
+  const projectKey = deps.projectKey ?? '';
   try {
     const existing = await deps.store.listSignatures();
-    if (existing.length > 0) return alreadySeeded(existing, started);
+    if (existing.length > 0) return alreadySeeded(existing, started, projectKey);
     const dataset = deps.dataset ?? SAMPLE_DATASET;
     const engine = deps.engine ?? replayEngine();
     const result = await replayWithEngine(dataset, engine, {
@@ -183,6 +194,8 @@ export async function replaySample(deps: SeedDeps): Promise<ReplayOutcome> {
       ticketsCreated: applied.created,
       comments: applied.commented,
       elapsedMs: result.elapsedMs,
+      projectKey,
+      ...(applied.error ? { refusal: applied.error } : {}),
     };
   } catch (error) {
     return { ok: false, error: messageOf(error) };

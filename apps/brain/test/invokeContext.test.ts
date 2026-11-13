@@ -8,7 +8,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { issueKeyFrom } from '../src/pure/invokeContext';
+import { issueKeyFrom, projectKeyFrom } from '../src/pure/invokeContext';
 
 describe('clé de ticket d’une invocation', () => {
   it('lit une clé posée dans la charge utile', () => {
@@ -56,5 +56,34 @@ describe('clé de ticket d’une invocation', () => {
     expect(
       issueKeyFrom({ payload: { issueKey: 'PAY-10' }, context: { issueKey: 'PAY-11' } }),
     ).toBe('PAY-10');
+  });
+});
+
+describe('clé de projet d’une invocation', () => {
+  it('lit le projet de la page projet (extension data du module)', () => {
+    // La forme documentée par Atlassian pour `jira:projectPage` : les
+    // données d'extension du module portent `project.key` — le même nid que
+    // `extension.issue.key` que lit déjà l'encart de ticket.
+    expect(projectKeyFrom({ context: { extension: { project: { key: 'PAY', id: '10010' } } } })).toBe(
+      'PAY',
+    );
+  });
+
+  it('lit un projet posé dans la charge utile ou le contexte', () => {
+    expect(projectKeyFrom({ payload: { projectKey: 'PAY' } })).toBe('PAY');
+    expect(projectKeyFrom({ context: { project: { key: 'PAY' } } })).toBe('PAY');
+  });
+
+  it('lit le projet du contexte de plateforme, en dernier recours', () => {
+    expect(projectKeyFrom({ context: { platformContext: { projectKey: 'PAY' } } })).toBe('PAY');
+  });
+
+  it('ne confond pas la clé de ticket avec celle du projet', () => {
+    expect(projectKeyFrom({ context: { extension: { issue: { key: 'PAY-7' } } } })).toBe('');
+  });
+
+  it('rend une chaîne vide plutôt que de deviner', () => {
+    expect(projectKeyFrom({})).toBe('');
+    expect(projectKeyFrom({ payload: { issueKey: 'PAY-1' } })).toBe('');
   });
 });
