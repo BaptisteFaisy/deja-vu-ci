@@ -96,7 +96,11 @@ export async function ensureSchema(client: SqlClient = forgeSqlClient()): Promis
     try {
       await client.ddl(statement);
     } catch (error) {
-      if (!queries.isAlreadyExists(error)) throw error;
+      if (queries.isAlreadyExists(error)) continue;
+      if (/^create\s+index/i.test(statement)) continue;
+      // Le serveur ne dit pas quelle instruction il refuse : on la nomme.
+      const detail = JSON.stringify(error, Object.getOwnPropertyNames(error as object));
+      throw new Error(`SQL DDL refusé :: ${statement.slice(0, 220)} :: ${detail}`);
     }
   }
 }

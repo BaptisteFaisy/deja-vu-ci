@@ -16,10 +16,25 @@ modules:
     # any other CI posts to `<base-url>/universal`.
     - key: deja-vu-ingest
       function: ingest
+      # Format v2 : la fonction reçoit `(payload, context)` et doit renvoyer
+      # `{ statusCode, headers, body }` (et non un objet `Response`).
+      urlFormat: v2
+      response:
+        type: dynamic
     - key: deja-vu-query
       function: query
+      # Format v2 : la fonction reçoit `(payload, context)` et doit renvoyer
+      # `{ statusCode, headers, body }` (et non un objet `Response`).
+      urlFormat: v2
+      response:
+        type: dynamic
     - key: deja-vu-universal
       function: universal
+      # Format v2 : la fonction reçoit `(payload, context)` et doit renvoyer
+      # `{ statusCode, headers, body }` (et non un objet `Response`).
+      urlFormat: v2
+      response:
+        type: dynamic
 
   consumer:
     - key: deja-vu-consumer
