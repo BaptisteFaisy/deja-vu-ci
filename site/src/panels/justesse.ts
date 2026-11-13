@@ -1,32 +1,46 @@
 /**
- * Panneau « Accuracy » — en construction.
+ * Panneau « Justesse » — la mesure § 18, calculée dans le navigateur.
  *
- * Le squelette existe pour que le site compile et reste cohérent pendant que ce
- * panneau est écrit ; son contenu réel (et ses propres chaînes) remplaceront
- * ce fichier.
+ * Le corpus étiqueté du dépôt (`data/labeled/100-failures.json` : 100 échecs
+ * étiquetés à la main, 27 groupes) est mesuré **en direct** par le vrai
+ * moteur (`packages/core`) : les trois indicateurs du § 18 (regroupement,
+ * catégories, faux « instable »), le détail ligne à ligne, et la comparaison
+ * avec la trace publiée par la vérification nocturne.
+ *
+ * La mesure est calculée une fois pour la page (le corpus et le moteur ne
+ * changent pas) : le panneau le dit, et affiche le temps qu'elle a pris.
  */
 
 import { el, mount } from '../render/dom';
-import { registerStrings, t } from '../lib/i18n';
-import type { Panel } from './types';
+import { t } from '../lib/i18n';
+import type { Panel, PanelContext } from './types';
+import './justesse-strings';
+import { measurement } from './justesse-mesure';
+import {
+  detailSection,
+  indicatorsSection,
+  introSection,
+  methodSection,
+  nightlySection,
+} from './justesse-view';
 
-registerStrings({
-  'panel.justesse.title': ['Accuracy', 'Justesse'],
-  'panel.justesse.summary': [
-    'The labelled corpus measured in your browser: grouping, categories, false flaky.',
-    'Le corpus étiqueté mesuré dans votre navigateur : regroupement, catégories, faux instables.',
-  ],
-});
+/** Rend le panneau dans son hôte (idempotent : reconstruit tout). */
+function renderPanel(host: HTMLElement, ctx: PanelContext): void {
+  const { lang } = ctx;
+  const mesure = measurement();
+  mount(
+    host,
+    el('div', { class: 'block' }, introSection(mesure, lang)),
+    el('div', { class: 'block' }, indicatorsSection(mesure, lang)),
+    el('div', { class: 'block' }, detailSection(mesure, lang)),
+    el('div', { class: 'block' }, methodSection(lang)),
+    el('div', { class: 'block' }, nightlySection(mesure, lang)),
+  );
+}
 
 export const panel: Panel = {
   id: 'justesse',
   title: (lang) => t('panel.justesse.title', lang),
   summary: (lang) => t('panel.justesse.summary', lang),
-  render(host, ctx) {
-    mount(
-      host,
-      el('p', { class: 'section-note' }, t('panel.justesse.summary', ctx.lang)),
-      el('p', { class: 'empty' }, 'en construction'),
-    );
-  },
+  render: renderPanel,
 };

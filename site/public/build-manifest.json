@@ -1,6 +1,6 @@
 {
-  "empreinte": "21b60af5ad3207fd18eef2d33053dd4a2d6e41e600fe2f564748ae7c108f4186",
-  "sources": 83,
+  "empreinte": "7274d351056178263b3535f05e9d0ec9fc7b5231639f6227cf309b4bf368da04",
+  "sources": 87,
   "embarquees": [
     "apps/brain/src/actions/confirm-resolution.ts",
     "apps/brain/src/actions/context.ts",
@@ -34,6 +34,7 @@
     "data/golden/diagnostics.json",
     "data/golden/meta.json",
     "data/golden/tickets.json",
+    "data/labeled/100-failures.json",
     "data/sample/occurrences.json",
     "docs/SBOM.json",
     "integrations/adapters/github.js",
@@ -97,6 +98,10 @@
     "site/src/panels/jira-donnees.ts",
     "site/src/panels/jira-semaine.ts",
     "site/src/panels/jira.ts",
+    "site/src/panels/justesse-mesure.ts",
+    "site/src/panels/justesse-nuit.ts",
+    "site/src/panels/justesse-strings.ts",
+    "site/src/panels/justesse-view.ts",
     "site/src/panels/justesse.ts",
     "site/src/panels/pr-donnees.ts",
     "site/src/panels/pr.ts",
@@ -121,6 +126,6 @@
     "site/src/render/sections.ts",
     "site/src/state/workspace.ts"
   ],
-  "octets": 322008,
+  "octets": 405127,
   "avertissements": 1
 }
