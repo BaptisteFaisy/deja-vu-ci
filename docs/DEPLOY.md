@@ -47,6 +47,18 @@ npm ci --prefer-offline --no-audit --no-fund && npm run build
 
 ## 3. Lint, déploiement, installation
 
+Avant de déployer, l'arbre installé de l'app doit contenir **une seule copie
+de React** : le bundler Forge construit avec l'arbre local, et deux copies
+cassent le rendu (page blanche, `Cannot read properties of null (reading
+'useState')`). Le contrôle est dans le dépôt :
+
+```bash
+node tools/forge-tree.mjs      # sortie 1 si une app a React en double
+```
+
+Si le contrôle échoue, l'arbre est pollué (un `node_modules/node_modules/`
+parasite) : le refaire dans l'app avec `npm ci` avant de déployer.
+
 ```bash
 cd apps/brain
 npm install --no-audit --no-fund
@@ -60,10 +72,6 @@ forge lint
 forge deploy
 forge install --demo-site --product bitbucket --confirm-scopes --non-interactive
 ```
-
-`forge deploy --environment production` publie la version de production ;
-`forge install --upgrade` met à jour une installation existante.
-
 ## 4. Ouvrir le site
 
 ```bash

@@ -136,3 +136,29 @@ day (§ 11).
   issue keys the replay writes (`CI-1`, `CI-2`…) are replaced by the keys Jira
   really answered with before the memory is read again.
 
+## One React in the UI bundle
+
+The UI Kit 2 bundle must contain **one** copy of React.
+
+On 2026-11-13 the Brain deployed in production rendered a blank page:
+`TypeError: Cannot read properties of null (reading 'useState')`. The bundle
+held **two** copies of React — the app's own code on one side, the renderer
+`react-reconciler` (which installs the dispatcher the hooks read) on the other.
+The renderer wrote into one copy, the app read the other, and every screen
+crashed on its first hook.
+
+The duplicate came from a stray `node_modules/node_modules/` tree in the
+working copy: the Forge bundler builds with the local tree. Three guards keep
+it out:
+
+- React and React DOM are pinned to an exact version and repeated in
+  `overrides`, so no transitive dependency can pull a second one in.
+- `node tools/forge-tree.mjs` (or `npm run check:forge-tree`) inspects the
+  installed tree and fails when a package is in double — run it before
+  `forge deploy` (see `docs/DEPLOY.md`).
+- `tools/forge-tree.test.mjs` tests that check against a fixture built from
+  the tree that broke production.
+
+When the check fails, the tree is polluted: redo the install in the app
+directory with `npm ci`. An `npm install` on an already polluted tree keeps
+the duplicate.
