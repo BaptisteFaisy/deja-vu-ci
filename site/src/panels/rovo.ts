@@ -90,7 +90,7 @@ registerStrings({
 
 /** Le manifeste fait foi pour l’agent : lien vers la source, rien de recopié. */
 const MANIFEST_URL =
-  'https://github.com/BaptisteFaisy/deja-vu-ci/blob/main/apps/brain/manifest.yml';
+  'https://github.com/Tradoooo/deja-vu-ci/blob/main/apps/brain/manifest.yml';
 
 /** Ton du verbe, déduit des métadonnées du descripteur. */
 const VERB_TONE: Record<string, string> = { GET: 'blue', CREATE: 'green', UPDATE: 'yellow' };

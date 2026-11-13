@@ -16,7 +16,7 @@ manquante qui est écrite, avec une raison tirée du diff.
 Bibliothèque standard uniquement. Usage :
 
   FIREWORKS_API_KEY=... python3 scope_agent.py fix \\
-      --repo BaptisteFaisy/deja-vu-ci --pr 215 --sha <tête> \\
+      --repo Tradoooo/deja-vu-ci --pr 215 --sha <tête> \\
       --guard /tmp/check_couche0.py
 
 Codes de sortie : 0 = corps complété ; 1 = échec avec compte rendu ;

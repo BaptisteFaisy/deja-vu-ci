@@ -11,7 +11,7 @@ import { langToggleLabel, t, type Lang } from '../lib/i18n';
 import type { DemoRun } from '../lib/demo';
 
 /** Dépôt public : tous les liens externes du site pointent là. */
-export const REPO_URL = 'https://github.com/BaptisteFaisy/deja-vu-ci';
+export const REPO_URL = 'https://github.com/Tradoooo/deja-vu-ci';
 
 /** Ce que le site a besoin de savoir pour se rendre. */
 export interface View {
@@ -73,7 +73,7 @@ export function renderFooter(view: View): HTMLElement {
     'div',
     {},
     `${t('footer.license', view.lang)} `,
-    el('a', { href: REPO_URL, rel: 'noopener' }, 'BaptisteFaisy/deja-vu-ci'),
+    el('a', { href: REPO_URL, rel: 'noopener' }, 'Tradoooo/deja-vu-ci'),
     ` — ${t('footer.contest', view.lang)} ${t('footer.source', view.lang)}`,
   );
 }

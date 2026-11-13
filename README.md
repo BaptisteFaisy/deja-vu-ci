@@ -26,7 +26,7 @@ threshold: the app then shows the facts instead of blaming (or exonerating) the 
 
 ## The public site — zero install, zero account
 
-**https://baptistefaisy.github.io/deja-vu-ci/** — the real engine, running in your browser.
+**https://tradoooo.github.io/deja-vu-ci/** — the real engine, running in your browser.
 
 The site bundles `packages/core` (unmodified) together with the sample dataset tracked by git, and
 replays it in one click: signatures, diagnostics with the facts that justify them, the ticket plan
