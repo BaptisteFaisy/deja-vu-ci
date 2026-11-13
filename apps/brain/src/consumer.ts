@@ -11,7 +11,6 @@
  * a partial failure never duplicates anything.
  */
 
-import { assumeTrustedRoute, requestJira } from '@forge/api';
 import type { AsyncEvent } from '@forge/events';
 import type { ChatResponse, Prompt } from '@forge/llm';
 import {
@@ -27,22 +26,19 @@ import {
   TemplateCache,
   testStats,
   type ErrorBlock,
-  type Settings,
-  type Signature,
-  type TicketAction,
 } from '@dejavu/core';
+import { resolveProjectTarget } from './pure/projectTarget';
 import { consumeIngest, type ConsumeResult, type ConsumerEngine, type LlmPort } from './pure/consume';
-import { commentBody, createIssueBody, findLastSynthesisAt, updateIssueBody } from './pure/jira';
-import {
-  auditActionOfTicket,
-  recordAudit,
-  ticketAuditDetail,
-  type AuditSink,
-} from './pure/auditLog';
 import { applyExcerptPolicy } from './pure/excerptApply';
 import { validateIngestPayload } from './pure/validate';
 import { loadExcerptPolicy, loadSettings } from './settings';
 import { migrateOnce, type BrainSqlStore } from './sql';
+import { jiraTicketApplier } from './ticketApplier';
+
+// L'applicateur Jira vit dans son propre module (`./ticketApplier`) : il ne
+// dépend que de `@forge/api` et des modules `pure/`, jamais de `./sql`. Le
+// refus de créer un ticket se teste donc sans la plateforme — et ce module
+// reste importable par le root workspace, qui n'installe pas `@forge/sql`.
 
 /** The engine port, wired to the real `@dejavu/core` functions. */
 export function coreConsumerEngine(): ConsumerEngine {
@@ -134,143 +130,6 @@ export async function createLlmPort(store: BrainSqlStore): Promise<LlmPort | und
   };
 }
 
-/** Reads a Jira REST answer as JSON, tolerating empty bodies. */
-async function jiraJson(response: { text(): Promise<string> }): Promise<Record<string, unknown>> {
-  const text = await response.text();
-  if (!text) return {};
-  try {
-    return JSON.parse(text) as Record<string, unknown>;
-  } catch {
-    return {};
-  }
-}
-
-/** Finds the id of a "reopen"-like transition, when the workflow has one. */
-async function findReopenTransition(issueKey: string): Promise<string | undefined> {
-  const response = await requestJira(assumeTrustedRoute(`/rest/api/3/issue/${issueKey}/transitions`), {
-    method: 'GET',
-    headers: { Accept: 'application/json' },
-  });
-  const body = await jiraJson(response);
-  const transitions = (body.transitions ?? []) as Array<{ id: string; name: string }>;
-  return transitions.find((t) => /reopen/i.test(t.name))?.id;
-}
-
-/** Posts a plain comment (used as the fallback of every failed transition). */
-async function postComment(issueKey: string, text: string): Promise<void> {
-  await requestJira(assumeTrustedRoute(`/rest/api/3/issue/${issueKey}/comment`), {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(commentBody(text)),
-  });
-}
-
-/** The journal side of the applier: where and when an action is recorded. */
-export interface TicketApplierOptions {
-  /** The journal of what the app did; absent = nothing is recorded. */
-  audit?: AuditSink;
-  /** The clock of the journal entries. */
-  now?: () => Date;
-}
-
-/** One journal line per ticket action the app really applied. */
-async function recordTicketAction(
-  options: TicketApplierOptions,
-  action: TicketAction,
-  signature: Signature,
-  issueKey: string | undefined,
-): Promise<void> {
-  const key = issueKey ?? action.issueKey;
-  const detail = ticketAuditDetail(action);
-  const at = options.now?.();
-  await recordAudit(options.audit, {
-    action: auditActionOfTicket(action.kind),
-    signatureId: signature.id,
-    ...(key ? { issueKey: key } : {}),
-    ...(detail ? { detail } : {}),
-    ...(at ? { at } : {}),
-  });
-}
-
-/**
- * The Jira side of the ticket plan (§ 11). Every action is best-effort:
- * a refused transition degrades to a comment, and a failure never aborts
- * the whole message — the memory (SQL) stays the source of truth.
- *
- * Each applied action also lands in the journal of what the app did, so the
- * project page can show it. A journal failure never breaks the action.
- */
-export function jiraTicketApplier(settings: Settings, options: TicketApplierOptions = {}) {
-  return {
-    async lastCommentAt(issueKey: string, signatureId: string): Promise<string | undefined> {
-      const response = await requestJira(assumeTrustedRoute(`/rest/api/3/issue/${issueKey}/comment`), {
-        method: 'GET',
-        headers: { Accept: 'application/json' },
-      });
-      const body = await jiraJson(response);
-      const comments = ((body.comments ?? []) as Array<{ created?: string; body?: unknown }>);
-      return findLastSynthesisAt(comments, signatureId);
-    },
-
-    async apply(action: TicketAction, signature: Signature): Promise<{ issueKey?: string }> {
-      try {
-        const applied = await applyOne(action, signature, settings);
-        await recordTicketAction(options, action, signature, applied.issueKey);
-        return applied;
-      } catch {
-        return action.issueKey ? { issueKey: action.issueKey } : {};
-      }
-    },
-  };
-}
-
-/** Applies one ticket action; returns the key the Brain must remember. */
-async function applyOne(
-  action: TicketAction,
-  signature: Signature,
-  settings: Settings,
-): Promise<{ issueKey?: string }> {
-  if (action.kind === 'create') {
-    const response = await requestJira(assumeTrustedRoute('/rest/api/3/issue'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(createIssueBody(action, settings.issueProjectKey)),
-    });
-    const created = await jiraJson(response);
-    return typeof created.key === 'string' ? { issueKey: created.key } : {};
-  }
-
-  const issueKey = action.issueKey;
-  if (!issueKey) return {};
-
-  if (action.kind === 'update' && action.description) {
-    await requestJira(assumeTrustedRoute(`/rest/api/3/issue/${issueKey}`), {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updateIssueBody(action)),
-    });
-  }
-  if (action.kind === 'comment' && action.comment) {
-    await postComment(issueKey, `${action.comment}\n(${signature.id})`);
-  }
-  if (action.kind === 'reopen') {
-    const transition = await findReopenTransition(issueKey);
-    if (transition) {
-      await requestJira(assumeTrustedRoute(`/rest/api/3/issue/${issueKey}/transitions`), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ transition: { id: transition } }),
-      });
-    } else {
-      await postComment(issueKey, `This problem came back (${signature.id}): the ticket should be reopened.`);
-    }
-  }
-  if (action.kind === 'close-suggested') {
-    await postComment(issueKey, `No occurrence for 14 days (${signature.id}): closure suggested.`);
-  }
-  return { issueKey };
-}
-
 /** One queued message → one consumption result. */
 export async function consumeMessage(
   store: BrainSqlStore,
@@ -286,10 +145,13 @@ export async function consumeMessage(
     loadExcerptPolicy(store),
     createLlmPort(store),
   ]);
+  // The queue consumer has no screen context: the effective target is the
+  // register alone. An empty register means no ticket is created.
+  const target = resolveProjectTarget({ chosen: settings.issueProjectKey });
   return consumeIngest(parsed.value, {
     store,
     engine: coreConsumerEngine(),
-    tickets: jiraTicketApplier(settings, { audit: store, now: () => now }),
+    tickets: jiraTicketApplier(target, { audit: store, now: () => now }),
     now: () => now,
     // The retention policy of the project (§ 18, CI-18): `hash-only` keeps no
     // text at all, `masked-snippet` a bounded masked excerpt, `full` the text.

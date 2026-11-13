@@ -36,7 +36,7 @@ export interface UiDataPorts {
   /** Settings page, save button. */
   saveSettings(payload: unknown): Promise<unknown>;
   /** Project page, "replay the sample set" button (§ 22, CI-11). */
-  replaySample(): Promise<unknown>;
+  replaySample(payload: unknown, context: unknown): Promise<unknown>;
   /** Project page, curation: merge two signatures (CI-17). */
   curateMerge(payload: unknown): Promise<unknown>;
   /** Project page, curation: split one signature (CI-17). */
@@ -72,7 +72,7 @@ export function registerUiResolvers(resolver: ResolverLike, ports: UiDataPorts):
   resolver.define('issue-context', ({ payload, context }) => ports.issuePanel(payload, context));
   resolver.define('settings', () => ports.settings());
   resolver.define('save-settings', ({ payload }) => ports.saveSettings(payload));
-  resolver.define('replay-sample', () => ports.replaySample());
+  resolver.define('replay-sample', ({ payload, context }) => ports.replaySample(payload, context));
   resolver.define('curate-merge', ({ payload }) => ports.curateMerge(payload));
   resolver.define('curate-split', ({ payload }) => ports.curateSplit(payload));
   resolver.define('quarantine-proposal', ({ payload }) => ports.quarantineProposal(payload));

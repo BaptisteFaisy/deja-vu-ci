@@ -95,12 +95,20 @@ describe('résolveurs des écrans UI Kit', () => {
     expect(calls).toEqual(['settings', 'saveSettings:{"issueProjectKey":"CI"}']);
   });
 
-  it('route `replay-sample` vers le rejeu du jeu d’exemple', async () => {
+  it('route `replay-sample` vers le rejeu, avec la charge et le contexte', async () => {
     const { resolver, defined } = fakeResolver();
     const { ports, calls } = fakePorts();
+    // Le port du rejeu reçoit le contexte : c'est lui qui porte le projet de
+    // la page (le rejeu cible ce projet). On remplace le double d'origine par
+    // un double qui enregistre les arguments.
+    ports.replaySample = async (payload, context) => {
+      calls.push(`replaySample:${JSON.stringify(context)}`);
+      return { ok: true, seeded: true };
+    };
     registerUiResolvers(resolver, ports);
-    const answer = await defined.get('replay-sample')?.({ payload: undefined, context: undefined });
-    expect(calls).toEqual(['replaySample']);
+    const context = { extension: { project: { key: 'PAY' } } };
+    const answer = await defined.get('replay-sample')?.({ payload: { nothing: true }, context });
+    expect(calls).toEqual(['replaySample:{"extension":{"project":{"key":"PAY"}}}']);
     expect(answer).toEqual({ ok: true, seeded: true });
   });
 

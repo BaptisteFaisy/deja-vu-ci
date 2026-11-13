@@ -15,6 +15,7 @@
 import type { Settings } from '@dejavu/core';
 import { migrateOnce, type BrainSqlStore } from './sql';
 import { DEFAULT_SETTINGS } from './pure/defaults';
+import { UNCHOSEN_PROJECT_KEY } from './pure/projectTarget';
 import { DEFAULT_EXCERPT_POLICY, type MinimizePolicy } from './pure/excerptPolicy';
 import {
   coerceSettingsPatch,
@@ -34,7 +35,7 @@ export async function loadSettings(store: BrainSqlStore): Promise<Settings> {
     const stored = await store.getSettings();
     return { ...DEFAULT_SETTINGS, ...stored };
   } catch {
-    return { ...DEFAULT_SETTINGS };
+    return { ...DEFAULT_SETTINGS, issueProjectKey: UNCHOSEN_PROJECT_KEY };
   }
 }
 
