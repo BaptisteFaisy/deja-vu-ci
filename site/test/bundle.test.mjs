@@ -42,11 +42,15 @@ describe('site public publié', () => {
       expect(attribute[1], attribute[1]).toMatch(/^(?:\.\/|#|https:\/\/github\.com\/BaptisteFaisy\/deja-vu-ci)/);
     }
     expect(publie('styles.css')).not.toContain('@import');
-    // Quatre origines apparaissent dans le bundle, et aucune n'est un
-    // chargement : `github.com` est le lien vers le dépôt ; les trois autres
-    // viennent des **données** du jeu d'exemple (URL de builds Bitbucket, et
-    // deux URL citées dans des extraits de journaux). Si cette liste change,
-    // c'est qu'une URL externe est entrée dans le site : à justifier ici.
+    // Six origines apparaissent dans le bundle, et aucune n'est un chargement :
+    // `github.com` est le lien vers le dépôt ; `bitbucket.org` est l'URL de
+    // builds du jeu d'exemple ; `docs.docker.com` et `registry.npmjs.org`
+    // viennent d'extraits de journaux du jeu d'exemple. Les deux dernières,
+    // `registry.internal.example` (un registre npm fictif) et
+    // `repo.maven.apache.org` (Maven Central), ne sont que du **texte cité**
+    // dans les journaux fictifs du corpus étiqueté embarqué par le panneau
+    // « Justesse » — jamais chargées. Si cette liste change, c'est qu'une URL
+    // externe est entrée dans le site : à justifier ici.
     const origines = new Set(
       [...publie('bundle.js').matchAll(/https?:\/\/[^/"'`)\s]+/g)].map((m) => m[0]),
     );
@@ -54,7 +58,9 @@ describe('site public publié', () => {
       'https://bitbucket.org',
       'https://docs.docker.com',
       'https://github.com',
+      'https://registry.internal.example',
       'https://registry.npmjs.org',
+      'https://repo.maven.apache.org',
     ]);
     // Aucune requête n'est possible : pas de fetch, pas de XHR, pas de worker.
     expect(publie('bundle.js')).not.toMatch(/\bfetch\(/);
