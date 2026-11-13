@@ -23,7 +23,7 @@ permissions:
 jobs:
   ci:
     name: ci
-    runs-on: [self-hosted, linux, x64, deja-vu-ci-worker]
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
@@ -35,6 +35,10 @@ jobs:
       # Runners self-hosted persistants : un sous-dossier parasite d'un run
       # précédent peut survivre et fausser les contrôles. node_modules est
       # exclu (npm ci le remplace de toute façon) pour garder le run court.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
       - name: Nettoyage du workspace
         shell: bash
         run: git clean -ffdx -e node_modules
@@ -49,22 +53,6 @@ jobs:
           mkdir -p "$HOME/.cache/ci-tmp"
           echo "TMPDIR=$HOME/.cache/ci-tmp" >> "$GITHUB_ENV"
 
-      - name: Node du worker (hors PATH par défaut)
-        shell: bash
-        run: |
-          set -euo pipefail
-          NODE_BIN="$HOME/.local/node/bin"
-          if [ ! -x "$NODE_BIN/node" ]; then
-            echo "::error::Node introuvable dans $NODE_BIN (installation du worker absente)"
-            exit 1
-          fi
-          echo "$NODE_BIN" >> "$GITHUB_PATH"
-          "$NODE_BIN/node" --version
-
-      # Dépendances : installées une fois par runner (node_modules survit au
-      # `git clean` ci-dessus), réinstallées seulement si le verrou change.
-      # Sans ce cache, `npm ci` coûte plus que le budget de 5 min quand la
-      # machine des runners est chargée.
       - name: Dépendances (cache du runner, réinstallation si verrou changé)
         shell: bash
         run: |
