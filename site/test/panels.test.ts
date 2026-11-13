@@ -23,6 +23,7 @@ const ATTENDUS = [
   'securite',
   'justesse',
   'preuves',
+  'prod',
 ];
 
 describe('registre des panneaux', () => {

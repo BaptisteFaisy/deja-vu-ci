@@ -42,25 +42,28 @@ describe('site public publié', () => {
       expect(attribute[1], attribute[1]).toMatch(/^(?:\.\/|#|https:\/\/github\.com\/Tradoooo\/deja-vu-ci)/);
     }
     expect(publie('styles.css')).not.toContain('@import');
-    // Six origines apparaissent dans le bundle, et aucune n'est un chargement :
+    // Neuf origines apparaissent dans le bundle, et aucune n'est un chargement :
     // `github.com` est le lien vers le dépôt ; `bitbucket.org` est l'URL de
-    // builds du jeu d'exemple ; `docs.docker.com` et `registry.npmjs.org`
-    // viennent d'extraits de journaux du jeu d'exemple. Les deux dernières,
-    // `registry.internal.example` (un registre npm fictif) et
-    // `repo.maven.apache.org` (Maven Central), ne sont que du **texte cité**
-    // dans les journaux fictifs du corpus étiqueté embarqué par le panneau
-    // « Justesse » — jamais chargées. Si cette liste change, c'est qu'une URL
-    // externe est entrée dans le site : à justifier ici.
+    // builds du jeu d'exemple ; `docs.docker.com`, `registry.npmjs.org`,
+    // `registry.internal.example` et `repo.maven.apache.org` ne sont que du
+    // **texte cité** (extraits de journaux du jeu d'exemple et du corpus
+    // étiqueté du panneau « Justesse ») ; les trois dernières sont les **liens
+    // réels** du panneau Production (le site Jira, la console Forge et ce site
+    // publié). Si cette liste change, c'est qu'une URL externe est entrée dans
+    // le site : à justifier ici.
     const origines = new Set(
       [...publie('bundle.js').matchAll(/https?:\/\/[^/"'`)\s]+/g)].map((m) => m[0]),
     );
     expect([...origines].sort()).toEqual([
       'https://bitbucket.org',
+      'https://developer.atlassian.com',
       'https://docs.docker.com',
       'https://github.com',
+      'https://one-atlas-cndz.atlassian.net',
       'https://registry.internal.example',
       'https://registry.npmjs.org',
       'https://repo.maven.apache.org',
+      'https://tradoooo.github.io',
     ]);
     // Aucune requête n'est possible : pas de fetch, pas de XHR, pas de worker.
     expect(publie('bundle.js')).not.toMatch(/\bfetch\(/);
