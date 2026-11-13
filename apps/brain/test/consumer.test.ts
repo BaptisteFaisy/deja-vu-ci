@@ -10,7 +10,7 @@
 
 import { describe, expect, it } from 'vitest';
 import type { Signature, TicketAction } from '@dejavu/core';
-import { jiraTicketApplier } from '../src/consumer';
+import { jiraTicketApplier } from '../src/ticketApplier';
 import { NO_PROJECT_REASON } from '../src/pure/projectTarget';
 
 /** Un `create`, signé : tout ce que l'applicateur refuse de traiter. */

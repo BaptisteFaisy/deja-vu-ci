@@ -39,7 +39,8 @@ import { assembleMergePreview, assembleSplitPreview } from './pure/curationCompu
 import { ingest } from './ingest';
 import { createQueryHandler, issueContextData, memoryPageData } from './query';
 import { createUniversalHandler } from './universal';
-import { createConsumerHandler, jiraTicketApplier } from './consumer';
+import { createConsumerHandler } from './consumer';
+import { jiraTicketApplier } from './ticketApplier';
 import { createScheduledHandler } from './scheduled';
 import { settingsData, saveSettingsData, loadSettings } from './settings';
 import { auditLogData, memoryExportData, memoryHealthData } from './memoryViews';
