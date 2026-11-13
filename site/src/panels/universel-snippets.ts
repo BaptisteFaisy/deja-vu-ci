@@ -45,7 +45,7 @@ export function githubActionSnippet(payload: Record<string, unknown>, values: Fo
   return [
     '      - name: Report red builds to Déjà-vu CI',
     '        if: failure()',
-    '        uses: BaptisteFaisy/deja-vu-ci/integrations/github-action@main',
+    '        uses: Tradoooo/deja-vu-ci/integrations/github-action@main',
     '        with:',
     '          brain-url: ${{ secrets.DEJAVU_BRAIN_URL }}',
     '          secret-key: ${{ secrets.DEJAVU_PROJECT_KEY }}',

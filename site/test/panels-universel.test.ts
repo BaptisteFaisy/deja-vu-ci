@@ -106,7 +106,7 @@ describe('les extraits', () => {
     const extraits = buildSnippets(maskPayload(resultat.payload).payload, defaultValues());
     const parId = new Map(extraits.map((snippet) => [snippet.id, snippet.text]));
     expect(parId.get('curl')).toContain("--data-binary @- <<'DEJAVU_EOF'");
-    expect(parId.get('github')).toContain('BaptisteFaisy/deja-vu-ci/integrations/github-action@main');
+    expect(parId.get('github')).toContain('Tradoooo/deja-vu-ci/integrations/github-action@main');
     expect(parId.get('gitlab')).toContain('.deja-vu-report:');
     expect(parId.get('jenkins')).toContain('post {');
     expect(parId.get('cli')).toContain('deja-vu report');

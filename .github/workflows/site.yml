@@ -1,6 +1,6 @@
 name: site
 
-# Site public — https://baptistefaisy.github.io/deja-vu-ci/
+# Site public — https://tradoooo.github.io/deja-vu-ci/
 #
 # `site/public/` est **commité** (bundle, feuille de style, page, empreinte) :
 # ce workflow ne construit donc rien, il téléverse et publie. Deux raisons :

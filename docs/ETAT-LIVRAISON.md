@@ -62,7 +62,7 @@ Verified with the Forge CLI on **2026-11-12** (CLI 14.2.0, Developer Space
 |---|---|
 | **Brain** (Jira app `ari:cloud:ecosystem::app/2abacda7-8c4f-4b29-9c97-7209dd240894`) | Major version **3** deployed on 2026-11-11T18:53:10Z, `development` environment. One installation on the demo site `one-atlas-cndz.atlassian.net` (Jira), status *Up-to-date*. The deployed build exposes **16 functions and 6 actions** |
 | **Sensor** (Bitbucket app `ari:cloud:ecosystem::app/f4c98609-1c94-4e98-9e26-89cec008d6d7`) | Major version **1** deployed on 2026-11-11T15:53:13Z, **no module**. **Not installed anywhere** — the demo site has no Bitbucket (`docs/DEPLOY.md` § 6) |
-| **Public site** | Published on GitHub Pages: `https://baptistefaisy.github.io/deja-vu-ci/`, from the committed `site/public/` (`.github/workflows/site.yml`, on push to `main`) |
+| **Public site** | Published on GitHub Pages: `https://tradoooo.github.io/deja-vu-ci/`, from the committed `site/public/` (`.github/workflows/site.yml`, on push to `main`) |
 | **Full version string of the Jira app** | Reported as **3.1.0** in the wave brief; the CLI exposes major versions only — **not verified** |
 
 **The repository is ahead of the deployed Brain.** `main` declares 7 actions

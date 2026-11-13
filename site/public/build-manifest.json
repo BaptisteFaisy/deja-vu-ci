@@ -1,5 +1,5 @@
 {
-  "empreinte": "7274d351056178263b3535f05e9d0ec9fc7b5231639f6227cf309b4bf368da04",
+  "empreinte": "b2703e136cdc35b91e3700243dc3207bfacc57ac7aa7af8144f7662ffaade97f",
   "sources": 87,
   "embarquees": [
     "apps/brain/src/actions/confirm-resolution.ts",
@@ -126,6 +126,6 @@
     "site/src/render/sections.ts",
     "site/src/state/workspace.ts"
   ],
-  "octets": 405127,
+  "octets": 405336,
   "avertissements": 1
 }
