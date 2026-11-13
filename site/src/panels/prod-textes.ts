@@ -75,8 +75,8 @@ registerStrings({
     'Colonne de gauche : relevé en production le {date}. Colonne de droite : calculé par cette page, dans votre navigateur, depuis le même fichier d’exemple (octets identiques, suivi par git). Toute différence est affichée avec son écart, pas lissée.',
   ],
   'prod.live.why': [
-    'Same input, different verdicts: the sample file is byte-identical, so what differs is the code or its settings. The deployed build is v3.2.0, older than this tree — `docs/ETAT-LIVRAISON.md` § 3 records that the repository is ahead of the installed Brain. Both columns are real; neither is rewritten to match the other.',
-    'Même entrée, verdicts différents : le fichier d’exemple est identique octet pour octet, donc ce qui diffère est le code ou ses réglages. Le build déployé est le v3.2.0, antérieur à cet arbre — `docs/ETAT-LIVRAISON.md` § 3 note que le dépôt est en avance sur le Cerveau installé. Les deux colonnes sont réelles ; aucune n’est réécrite pour coller à l’autre.',
+    'The deployed build now comes from this same tree (v2.12.0). The left column is the recording made in production, the right one is computed here, by the same engine: a difference would be a defect, and it is shown with its gap, never smoothed over.',
+    'Le build déployé vient désormais de ce même arbre (v2.12.0). La colonne de gauche est le relevé fait en production, celle de droite est calculée ici, par le même moteur : une différence serait un défaut, et elle est affichée avec son écart, jamais lissée.',
   ],
   'prod.col.recorded': ['Recorded in production', 'Relevé en production'],
   'prod.col.here': ['Computed here', 'Calculé ici'],

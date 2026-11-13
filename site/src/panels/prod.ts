@@ -3,7 +3,7 @@
  *
  * Le site rejoue déjà le moteur dans le navigateur ; ce panneau ajoute la
  * vitrine de l'environnement **réel** : les chiffres relevés le 12/11/2026 sur
- * `one-atlas-cndz.atlassian.net` (le Cerveau, v3.2.0, projet PAY), l'incident
+ * `one-atlas-cndz.atlassian.net` (le Cerveau, v2.12.0, projet PAY), l'incident
  * d'infrastructure détecté, le refus honnête de Jira, les quatre environnements
  * et la marche à suivre pour reproduire.
  *

@@ -1,6 +1,6 @@
 {
-  "empreinte": "b2703e136cdc35b91e3700243dc3207bfacc57ac7aa7af8144f7662ffaade97f",
-  "sources": 87,
+  "empreinte": "e36439e5a5c7ae3d9d83d794e646c9bbd96cc3324610331092872f2695d92a52",
+  "sources": 90,
   "embarquees": [
     "apps/brain/src/actions/confirm-resolution.ts",
     "apps/brain/src/actions/context.ts",
@@ -107,6 +107,9 @@
     "site/src/panels/pr.ts",
     "site/src/panels/preuves-donnees.ts",
     "site/src/panels/preuves.ts",
+    "site/src/panels/prod-faits.ts",
+    "site/src/panels/prod-textes.ts",
+    "site/src/panels/prod.ts",
     "site/src/panels/registry.ts",
     "site/src/panels/replay.ts",
     "site/src/panels/rovo-console.ts",
@@ -126,6 +129,6 @@
     "site/src/render/sections.ts",
     "site/src/state/workspace.ts"
   ],
-  "octets": 405336,
+  "octets": 421952,
   "avertissements": 1
 }

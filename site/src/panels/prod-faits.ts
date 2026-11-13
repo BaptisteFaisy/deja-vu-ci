@@ -36,7 +36,7 @@ export const APP_PAGE_PATH = `/jira/software/projects/${PROJECT_KEY}/apps/…`;
 export const APP_ID = 'ari:cloud:ecosystem::app/2abacda7-8c4f-4b29-9c97-7209dd240894';
 
 /** La version déployée, l'environnement et l'état de l'installation. */
-export const DEPLOYED_VERSION = 'v3.2.0';
+export const DEPLOYED_VERSION = 'v2.12.0';
 export const DEPLOY_ENV = 'production';
 export const INSTALL_STATUS = 'Up-to-date';
 

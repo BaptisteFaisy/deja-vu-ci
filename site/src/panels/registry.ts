@@ -20,11 +20,12 @@ import { panel as universel } from './universel';
 import { panel as securite } from './securite';
 import { panel as justesse } from './justesse';
 import { panel as preuves } from './preuves';
+import { panel as prod } from './prod';
 
 /** Tous les panneaux, dans l'ordre où les onglets les affichent. */
 export const PANELS: Panel[] = [
   replay,
-  erreur, pr, jira, rovo, curate, incident, cout, universel, securite, justesse, preuves,
+  erreur, pr, jira, rovo, curate, incident, cout, universel, securite, justesse, preuves, prod,
 ];
 
 /** Le panneau d'un identifiant, s'il existe. */
